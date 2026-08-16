@@ -1,34 +1,34 @@
-entidad,personas_que_tuvieron_que_pedir_prestado,porcentaje_pct,periodo
-Estados Unidos Mexicanos,20938804,23.3632,2025
-Aguascalientes,207199,20.8647,2025
-Baja California,406182,14.7602,2025
-Baja California Sur,131703,21.2928,2025
-Campeche,176968,27.7381,2025
-Coahuila de Zaragoza,497827,20.0793,2025
-Colima,109814,21.6041,2025
-Chiapas,861280,28.2258,2025
-Chihuahua,643118,23.7377,2025
-Ciudad de México,1189776,15.8539,2025
-Durango,360074,28.2792,2025
-Guanajuato,916420,21.7333,2025
-Guerrero,691474,32.3572,2025
-Hidalgo,514773,23.5638,2025
-Jalisco,1012827,16.3229,2025
-México,3259556,25.8955,2025
-Michoacán de Ocampo,831029,25.4670,2025
-Morelos,410345,28.6392,2025
-Nayarit,191970,22.7771,2025
-Nuevo León,795467,17.9015,2025
-Oaxaca,732283,29.0025,2025
-Puebla,1104763,25.3130,2025
-Querétaro,314327,17.3176,2025
-Quintana Roo,341462,25.7836,2025
-San Luis Potosí,431868,22.1660,2025
-Sinaloa,568104,24.9763,2025
-Sonora,637952,30.1083,2025
-Tabasco,606787,35.5444,2025
-Tamaulipas,533879,21.6116,2025
-Tlaxcala,234097,22.8462,2025
-Veracruz de Ignacio de la Llave,1423514,26.1808,2025
-Yucatán,480820,29.4117,2025
-Zacatecas,321146,28.2260,2025
+entidad,porcentaje
+Estados Unidos Mexicanos,23.3632049453
+Aguascalientes,20.8646590042
+Baja California,14.7601854153
+Baja California Sur,21.2928352939
+Campeche,27.7380614642
+Coahuila de Zaragoza,20.079288317
+Colima,21.6041282626
+Chiapas,28.225760201
+Chihuahua,23.7377120823
+Ciudad de México,15.8538506126
+Durango,28.2791806692
+Guanajuato,21.7332892226
+Guerrero,32.3572297613
+Hidalgo,23.5637834765
+Jalisco,16.3228768497
+México,25.8955067718
+Michoacán de Ocampo,25.4669700941
+Morelos,28.6391575721
+Nayarit,22.7770513821
+Nuevo León,17.9015215687
+Oaxaca,29.0025129758
+Puebla,25.3130324324
+Querétaro,17.3175859497
+Quintana Roo,25.783560113
+San Luis Potosí,22.1660146566
+Sinaloa,24.9763251955
+Sonora,30.108336814
+Tabasco,35.5443801713
+Tamaulipas,21.6115682908
+Tlaxcala,22.8462208099
+Veracruz de Ignacio de la Llave,26.1808148655
+Yucatán,29.4117107324
+Zacatecas,28.2259652231
