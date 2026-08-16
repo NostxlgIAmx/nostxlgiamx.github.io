@@ -1,0 +1,57 @@
+sector,tamano,unidades
+Agropecuario,0 a 5 personas,32
+Agropecuario,6 a 10 personas,9
+Agropecuario,11 a 30 personas,11
+Agropecuario,31 a 50 personas,4
+Agropecuario,51 a 100 personas,0
+Agropecuario,101 a 250 personas,0
+Agropecuario,251 y más personas,0
+Industria y construcción,0 a 5 personas,5439
+Industria y construcción,6 a 10 personas,705
+Industria y construcción,11 a 30 personas,522
+Industria y construcción,31 a 50 personas,137
+Industria y construcción,51 a 100 personas,102
+Industria y construcción,101 a 250 personas,99
+Industria y construcción,251 y más personas,100
+Comercio,0 a 5 personas,27819
+Comercio,6 a 10 personas,1816
+Comercio,11 a 30 personas,945
+Comercio,31 a 50 personas,156
+Comercio,51 a 100 personas,93
+Comercio,101 a 250 personas,71
+Comercio,251 y más personas,9
+Transporte y logística,0 a 5 personas,369
+Transporte y logística,6 a 10 personas,97
+Transporte y logística,11 a 30 personas,105
+Transporte y logística,31 a 50 personas,33
+Transporte y logística,51 a 100 personas,34
+Transporte y logística,101 a 250 personas,21
+Transporte y logística,251 y más personas,11
+Servicios profesionales y empresariales,0 a 5 personas,3370
+Servicios profesionales y empresariales,6 a 10 personas,455
+Servicios profesionales y empresariales,11 a 30 personas,342
+Servicios profesionales y empresariales,31 a 50 personas,46
+Servicios profesionales y empresariales,51 a 100 personas,16
+Servicios profesionales y empresariales,101 a 250 personas,17
+Servicios profesionales y empresariales,251 y más personas,10
+Educación y salud,0 a 5 personas,3501
+Educación y salud,6 a 10 personas,771
+Educación y salud,11 a 30 personas,998
+Educación y salud,31 a 50 personas,192
+Educación y salud,51 a 100 personas,121
+Educación y salud,101 a 250 personas,66
+Educación y salud,251 y más personas,19
+"Alojamiento, alimentos y recreación",0 a 5 personas,10935
+"Alojamiento, alimentos y recreación",6 a 10 personas,953
+"Alojamiento, alimentos y recreación",11 a 30 personas,392
+"Alojamiento, alimentos y recreación",31 a 50 personas,45
+"Alojamiento, alimentos y recreación",51 a 100 personas,6
+"Alojamiento, alimentos y recreación",101 a 250 personas,7
+"Alojamiento, alimentos y recreación",251 y más personas,0
+Otros servicios y gobierno,0 a 5 personas,12709
+Otros servicios y gobierno,6 a 10 personas,826
+Otros servicios y gobierno,11 a 30 personas,348
+Otros servicios y gobierno,31 a 50 personas,87
+Otros servicios y gobierno,51 a 100 personas,60
+Otros servicios y gobierno,101 a 250 personas,58
+Otros servicios y gobierno,251 y más personas,21
