@@ -1,0 +1,14 @@
+/* Refinamientos estructurales: home, taxonomía y fusión Datos + Visualizaciones */
+.home-project-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.home-project-grid .project-card{min-height:285px}
+.home-project-grid .project-card h3{margin-top:22px}
+.scope-note{margin-top:18px;color:var(--muted);font-size:12px;line-height:1.7}
+.data-viz-principles .principle{padding:20px 0}
+.analysis-card .card-body{height:100%;display:flex;flex-direction:column}
+.analysis-card .card-copy{margin-bottom:0}
+.analysis-card .tag-row{margin-top:auto;padding-top:16px}
+.merged-section-note{max-width:760px;color:var(--muted);font-size:14px;line-height:1.75;margin-top:-16px;margin-bottom:32px}
+.redirect-page{min-height:70vh;display:grid;place-items:center;text-align:center;padding:70px 24px}
+.redirect-page p{color:var(--muted)}
+@media (max-width:1050px){.home-project-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:600px){.home-project-grid{grid-template-columns:1fr}}
