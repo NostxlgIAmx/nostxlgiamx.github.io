@@ -1,0 +1,126 @@
+/*
+ * NostxlgIA — ajuste de jerarquía visual para /proyectos/
+ * Base objetivo: codex/web-fixes @ 6a0f168
+ *
+ * Solo afecta al primer proyecto (Visualizador territorial de información pública).
+ * No altera GeoJSON, JS, autoplay, hover ni los otros proyectos.
+ */
+
+@media (min-width:1101px){
+  .projects-list .project-feature:first-child{
+    grid-template-columns:minmax(0,3fr) minmax(390px,2fr);
+    min-height:430px;
+  }
+
+  .projects-list .project-feature:first-child .project-visual{
+    min-height:430px;
+  }
+
+  .projects-list .project-feature:first-child .card-body{
+    padding:34px 36px;
+  }
+
+  .projects-list .project-feature:first-child .card-title{
+    font-size:clamp(28px,2.25vw,34px);
+    line-height:1.12;
+  }
+
+  /* Más mapa, menos panel de controles. */
+  .projects-list .project-feature:first-child .project-visual.ntx-territorial{
+    grid-template-columns:minmax(0,81fr) minmax(128px,19fr);
+  }
+
+  /* Aprovechar mejor el área disponible sin deformar la geometría. */
+  .projects-list .project-feature:first-child .ntx-map{
+    inset:26px 6px 14px;
+    width:calc(100% - 12px);
+    height:calc(100% - 40px);
+  }
+
+  /* Microinterfaz legible en escritorio al crecer el componente. */
+  .projects-list .project-feature:first-child .ntx-map-meta,
+  .projects-list .project-feature:first-child .ntx-map-meta strong{
+    font-size:6.7px;
+  }
+
+  .projects-list .project-feature:first-child .ntx-panel-label,
+  .projects-list .project-feature:first-child .ntx-variable-control label,
+  .projects-list .project-feature:first-child .ntx-layer-controls legend{
+    font-size:6.5px;
+  }
+
+  .projects-list .project-feature:first-child .ntx-variable-control select{
+    height:30px;
+    font-size:8px;
+  }
+
+  .projects-list .project-feature:first-child .ntx-layer-controls label{
+    font-size:7.2px;
+  }
+
+  .projects-list .project-feature:first-child .ntx-legend li{
+    font-size:6.3px;
+  }
+
+  .projects-list .project-feature:first-child .ntx-unit-card{
+    padding:10px 9px 9px;
+  }
+
+  .projects-list .project-feature:first-child .ntx-unit-card strong{
+    font-size:9.2px;
+  }
+
+  .projects-list .project-feature:first-child .ntx-unit-code,
+  .projects-list .project-feature:first-child .ntx-unit-value span,
+  .projects-list .project-feature:first-child .ntx-unit-class>span{
+    font-size:6.2px;
+  }
+
+  .projects-list .project-feature:first-child .ntx-unit-value b{
+    font-size:11px;
+  }
+
+  .projects-list .project-feature:first-child .ntx-map-scale,
+  .projects-list .project-feature:first-child .ntx-map-status{
+    font-size:6px;
+  }
+}
+
+/* Transición intermedia: mantiene protagonismo sin estrechar demasiado el texto. */
+@media (min-width:861px) and (max-width:1100px){
+  .projects-list .project-feature:first-child{
+    grid-template-columns:minmax(0,1.18fr) minmax(340px,.82fr);
+    min-height:400px;
+  }
+
+  .projects-list .project-feature:first-child .project-visual{
+    min-height:400px;
+  }
+
+  .projects-list .project-feature:first-child .project-visual.ntx-territorial{
+    grid-template-columns:minmax(0,79fr) minmax(118px,21fr);
+  }
+
+  .projects-list .project-feature:first-child .card-body{
+    padding:30px;
+  }
+}
+
+/* En móvil se respeta el apilado existente, pero se da más altura al visor. */
+@media (max-width:860px){
+  .projects-list .project-feature:first-child .project-visual{
+    height:300px;
+  }
+
+  .projects-list .project-feature:first-child .project-visual.ntx-territorial{
+    grid-template-columns:minmax(0,76fr) minmax(108px,24fr);
+    height:300px;
+  }
+}
+
+@media (max-width:520px){
+  .projects-list .project-feature:first-child .project-visual,
+  .projects-list .project-feature:first-child .project-visual.ntx-territorial{
+    height:270px;
+  }
+}

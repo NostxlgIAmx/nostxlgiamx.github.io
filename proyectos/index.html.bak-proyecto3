@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 
 <html lang="es">
 <head>
@@ -45,8 +45,7 @@
 <script src="../assets/js/main.js"></script>
 <script src="../assets/js/project-territorial.js"></script>
 <script src="../assets/js/project-indicators.js"></script>
-<script src="../assets/js/project-evaluation.js"></script>
-<script src="../assets/js/project-electoral.js"></script>
 <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
 </body>
 </html>
+
