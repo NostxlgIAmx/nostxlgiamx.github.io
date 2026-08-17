@@ -54,6 +54,17 @@
     if (aside) aside.innerHTML = '<strong>Áreas</strong>Análisis de datos · Analítica y tecnología · Inteligencia electoral · Cartografía · Planeación · Evaluación';
   }
 
+  /* Mensaje del hero como nodos de texto reales y seleccionables. */
+  const heroCaption = document.querySelector('.hero-vnext .visual-caption');
+  if (heroCaption) {
+    const title = heroCaption.querySelector('h3');
+    const paragraph = heroCaption.querySelector('p');
+    if (title) title.textContent = 'La información por sí sola no mejora las decisiones.';
+    if (paragraph) {
+      paragraph.textContent = 'Uno de los principales retos de las organizaciones actuales no es generar más información, sino saber utilizar la que ya producen: ordenarla, contextualizarla, distinguir qué señales son relevantes y convertirlas en criterios claros para actuar. Analizar datos permite pasar de registros dispersos a evidencia interpretable, relacionar resultados con su contexto y detectar patrones que ayuden a decidir dónde intervenir, qué priorizar y cómo mejorar el desempeño.';
+    }
+  }
+
   const filterButtons = [...document.querySelectorAll('.filter-chip')];
   const analysisCards = [...document.querySelectorAll('.analysis-card')];
 
