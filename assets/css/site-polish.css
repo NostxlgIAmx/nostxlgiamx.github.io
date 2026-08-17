@@ -113,6 +113,88 @@ main .section-pad>.container:has(>.service-family)>.cta{order:10}
 .hero-vnext .visual-caption p{max-width:720px!important;line-height:1.72!important}
 .hero-vnext .visual-caption p:after{content:none!important;display:none!important}
 
+/* 6) Auditoría de visualizaciones: legibilidad y aprovechamiento del área.
+   Alcance deliberadamente limitado a /datos/ y al interior visual de /proyectos/. */
+
+/* Datos y visualizaciones — escala mínima legible */
+.source-viz-card{min-height:465px}
+.dv-stage{padding:20px!important}
+.dv-flow-kpis{gap:9px!important;margin-bottom:15px!important}
+.dv-flow-kpis>div{padding:11px 10px!important}
+.dv-flow-kpis span{font-size:8px!important;line-height:1.25!important}
+.dv-flow-kpis strong{font-size:16px!important;margin-top:5px!important}
+.dv-flow-root{padding:12px 14px!important}
+.dv-flow-root span{font-size:10px!important}.dv-flow-root strong{font-size:17px!important}
+.dv-flow-split{gap:11px!important;margin-top:11px!important}
+.dv-flow-branch{padding:12px!important}
+.dv-flow-branch header span{font-size:10px!important}.dv-flow-branch header strong{font-size:16px!important}.dv-flow-branch header small{font-size:8px!important;margin-top:2px!important}
+.dv-flow-children{gap:7px!important}.dv-flow-children span,.dv-flow-children b{font-size:9px!important}.dv-flow-children i{width:7px!important;height:7px!important}
+.dv-flow-band{height:13px!important;margin:11px 0 10px!important}
+
+.dv-axis-label{font-size:10px!important}.dv-row-label{font-size:11px!important}.dv-value-label{font-size:10px!important}
+.dv-inline-legend{gap:20px!important;margin-top:10px!important;font-size:9px!important}.dv-inline-legend span:before{width:8px!important;height:8px!important}
+.dv-stage[data-viz="enoe-sector"],.dv-stage[data-viz="enbiare-satisfaction"],.dv-stage[data-viz="enbiare-borrowing"]{display:flex!important;flex-direction:column!important;justify-content:center!important}
+.dv-stage[data-viz="enoe-sector"] .dv-svg,.dv-stage[data-viz="enbiare-satisfaction"] .dv-svg{height:245px!important;width:100%!important}
+
+.dv-toggle{gap:8px!important;margin-bottom:18px!important}.dv-toggle button{padding:8px 11px!important;font-size:9px!important}
+.dv-ribbon{height:44px!important}.dv-ribbon-list{gap:10px 18px!important;margin-top:18px!important}.dv-ribbon-item{grid-template-columns:9px 1fr auto!important;gap:8px!important;font-size:9px!important}.dv-ribbon-item i{width:8px!important;height:8px!important}.dv-ribbon-item strong{font-size:9px!important}
+.dv-stage[data-viz="enoe-income"]{display:flex!important;flex-direction:column!important;justify-content:center!important}
+
+.dv-mental-grid{grid-template-columns:minmax(86px,1.28fr) repeat(4,minmax(52px,1fr))!important;gap:7px!important}
+.dv-mental-head{font-size:9px!important;line-height:1.3!important}.dv-mental-head small{font-size:8px!important}.dv-mental-age{font-size:10px!important}.dv-mental-cell{min-height:44px!important}.dv-mental-cell strong{font-size:11px!important}.dv-mini-note{margin-top:15px!important;font-size:9px!important;line-height:1.55!important}
+.dv-stage[data-viz="enbiare-mental"]{display:flex!important;flex-direction:column!important;justify-content:center!important}
+.dv-slope-name{font-size:10px!important}
+
+.dv-dotrank{gap:10px!important}.dv-dotrank-row{grid-template-columns:20px 104px minmax(120px,1fr) 44px!important;gap:8px!important}.dv-dotrank-rank,.dv-dotrank-name,.dv-dotrank-row>strong{font-size:9px!important}.dv-dotrank-track{height:16px!important}.dv-dotrank-track b{top:4px!important;width:9px!important;height:9px!important}.dv-benchmark{top:-1px!important;bottom:-2px!important}
+
+.dv-sector-filter{gap:7px!important;margin-bottom:12px!important}.dv-sector-filter button{padding:7px 9px!important;font-size:8px!important;line-height:1.15!important}
+.dv-stage[data-viz="denue-map"]{display:flex!important;flex-direction:column!important}.dv-stage[data-viz="denue-map"] .dv-geo-wrap{flex:1 1 auto!important;min-height:225px!important}.dv-stage[data-viz="denue-map"] .dv-geo-svg{height:225px!important;width:100%!important}.dv-city-label{font-size:10px!important}.dv-mini-note{color:#8495a8!important}
+
+.dv-stage[data-viz="denue-municipal"]{display:flex!important;align-items:center!important}.dv-bubble-grid{width:100%!important;gap:18px 8px!important}.dv-bubble{max-width:102px!important;max-height:102px!important}.dv-bubble strong{font-size:13px!important}.dv-bubble-item>span{margin-top:8px!important;font-size:8.5px!important}.dv-bubble-item>b{margin-top:3px!important;font-size:10px!important}.dv-bubble-item>small{font-size:8px!important}
+
+.dv-stage[data-viz="denue-matrix"]{display:flex!important;flex-direction:column!important;justify-content:center!important}
+.dv-stage[data-viz="denue-matrix"] *{font-size:9px!important}
+.dv-stage[data-viz="denue-matrix"] strong,.dv-stage[data-viz="denue-matrix"] b{font-size:10px!important}
+
+/* Proyectos — Visualizador territorial */
+.projects-list .ntx-territorial .ntx-map-meta,.projects-list .ntx-territorial .ntx-map-meta strong{font-size:9px!important;letter-spacing:.08em!important}
+.projects-list .ntx-territorial .ntx-panel-label,.projects-list .ntx-territorial .ntx-variable-control label,.projects-list .ntx-territorial .ntx-layer-controls legend{font-size:9px!important}
+.projects-list .ntx-territorial .ntx-variable-control select{height:36px!important;font-size:11px!important;padding-inline:10px!important}
+.projects-list .ntx-territorial .ntx-layer-controls label{font-size:10px!important;line-height:1.35!important;margin-top:5px!important}
+.projects-list .ntx-territorial .ntx-legend li{font-size:9px!important;gap:5px!important}
+.projects-list .ntx-territorial .ntx-unit-card{padding:12px 11px 11px!important}
+.projects-list .ntx-territorial .ntx-unit-card strong{font-size:12px!important}
+.projects-list .ntx-territorial .ntx-unit-code,.projects-list .ntx-territorial .ntx-unit-value span,.projects-list .ntx-territorial .ntx-unit-class>span{font-size:8.5px!important;line-height:1.35!important}
+.projects-list .ntx-territorial .ntx-unit-value b{font-size:15px!important}
+.projects-list .ntx-territorial .ntx-map-scale,.projects-list .ntx-territorial .ntx-map-status{font-size:8.5px!important}
+
+/* Proyectos — Seguimiento comercial */
+.projects-list .ntx-kpi-system .ntx-kpi-shell{padding:18px!important;gap:12px!important}
+.projects-list .ntx-kpi-system .ntx-kpi-kicker{font-size:9px!important}.projects-list .ntx-kpi-system .ntx-kpi-title strong{font-size:15px!important}.projects-list .ntx-kpi-system .ntx-kpi-title small{font-size:8px!important}
+.projects-list .ntx-kpi-system .ntx-period{height:26px!important;min-width:38px!important;font-size:8px!important}
+.projects-list .ntx-kpi-system .ntx-kpi-cards{gap:9px!important}.projects-list .ntx-kpi-system .ntx-kpi-card{padding:10px!important}.projects-list .ntx-kpi-system .ntx-kpi-card span{font-size:7.5px!important}.projects-list .ntx-kpi-system .ntx-kpi-card b{font-size:17px!important}.projects-list .ntx-kpi-system .ntx-kpi-card small{font-size:7.5px!important}
+.projects-list .ntx-kpi-system .ntx-kpi-main{grid-template-columns:minmax(0,1.5fr) minmax(170px,.9fr)!important;gap:10px!important}.projects-list .ntx-kpi-system .ntx-kpi-side{gap:10px!important}
+.projects-list .ntx-kpi-system .ntx-panel-head{padding:10px 11px 0!important}.projects-list .ntx-kpi-system .ntx-panel-head strong{font-size:9.5px!important}.projects-list .ntx-kpi-system .ntx-panel-head span{font-size:7.5px!important}
+.projects-list .ntx-kpi-system .ntx-bars{padding:10px 11px 11px!important;gap:9px!important}.projects-list .ntx-kpi-system .ntx-bar-row{grid-template-columns:64px minmax(0,1fr) 30px!important;gap:7px!important}.projects-list .ntx-kpi-system .ntx-bar-row span,.projects-list .ntx-kpi-system .ntx-bar-row b{font-size:8px!important}.projects-list .ntx-kpi-system .ntx-bar-track{height:7px!important}
+.projects-list .ntx-kpi-system .ntx-rank{padding:9px 11px 11px!important;gap:7px!important}.projects-list .ntx-kpi-system .ntx-rank-row{grid-template-columns:14px minmax(0,1fr) 40px!important;gap:7px!important}.projects-list .ntx-kpi-system .ntx-rank-row i{width:14px!important;height:14px!important;font-size:7px!important}.projects-list .ntx-kpi-system .ntx-rank-row span,.projects-list .ntx-kpi-system .ntx-rank-row b{font-size:8px!important}
+.projects-list .ntx-kpi-system .ntx-pipeline{padding:10px 11px!important;gap:9px!important}.projects-list .ntx-kpi-system .ntx-pipe-label{min-width:78px!important}.projects-list .ntx-kpi-system .ntx-pipe-label strong{font-size:8.5px!important}.projects-list .ntx-kpi-system .ntx-pipe-label span,.projects-list .ntx-kpi-system .ntx-stage-head{font-size:7px!important}.projects-list .ntx-kpi-system .ntx-stage-track{height:6px!important}
+
+/* Proyectos — Evaluación */
+.projects-list .ntx-eval .ntx-eval-shell{padding:17px 18px 16px!important;gap:11px!important}
+.projects-list .ntx-eval .ntx-eval-kicker{font-size:9px!important}.projects-list .ntx-eval .ntx-eval-title{font-size:14px!important}.projects-list .ntx-eval .ntx-eval-sub{font-size:8px!important}.projects-list .ntx-eval .ntx-eval-cycle button{font-size:7.5px!important;padding:5px 8px!important}
+.projects-list .ntx-eval .ntx-eval-kpis{gap:8px!important}.projects-list .ntx-eval .ntx-eval-kpi{padding:9px!important}.projects-list .ntx-eval .ntx-eval-kpi span{font-size:7px!important}.projects-list .ntx-eval .ntx-eval-kpi strong{font-size:16px!important}.projects-list .ntx-eval .ntx-eval-kpi small{font-size:7px!important}
+.projects-list .ntx-eval .ntx-eval-main{grid-template-columns:minmax(0,1.42fr) minmax(180px,.78fr)!important;gap:9px!important}.projects-list .ntx-eval .ntx-eval-section-head{padding:9px 10px 8px!important}.projects-list .ntx-eval .ntx-eval-section-head strong{font-size:8.5px!important}.projects-list .ntx-eval .ntx-eval-section-head span{font-size:6.8px!important}
+.projects-list .ntx-eval .ntx-mir-head,.projects-list .ntx-eval .ntx-mir-row{grid-template-columns:70px minmax(100px,1.3fr) minmax(82px,.9fr) 52px 50px!important}.projects-list .ntx-eval .ntx-mir-head div{padding:6px!important;font-size:6.4px!important}.projects-list .ntx-eval .ntx-mir-row>div{padding:7px 6px!important}.projects-list .ntx-eval .ntx-mir-level strong{font-size:8px!important}.projects-list .ntx-eval .ntx-mir-level small{font-size:6.5px!important}.projects-list .ntx-eval .ntx-mir-objective span,.projects-list .ntx-eval .ntx-mir-indicator span{font-size:7px!important}.projects-list .ntx-eval .ntx-mir-target b{font-size:8.5px!important}.projects-list .ntx-eval .ntx-mir-progress b{font-size:9.5px!important}
+.projects-list .ntx-eval .ntx-eval-sidebox{padding:9px 10px!important}.projects-list .ntx-eval .ntx-eval-sidebox h4{font-size:8.5px!important}.projects-list .ntx-eval .ntx-eval-sidebox>small{font-size:6.7px!important}.projects-list .ntx-eval .ntx-align-copy b{font-size:6.8px!important}.projects-list .ntx-eval .ntx-align-item>span:last-child{font-size:6.5px!important}.projects-list .ntx-eval .ntx-beneficiaries{grid-template-columns:52px 1fr!important;gap:9px!important}.projects-list .ntx-eval .ntx-benef-ring{width:52px!important;height:52px!important}.projects-list .ntx-eval .ntx-benef-ring strong{font-size:10px!important}.projects-list .ntx-eval .ntx-benef-line span,.projects-list .ntx-eval .ntx-benef-line b{font-size:6.8px!important}
+.projects-list .ntx-eval .ntx-pbr{padding:9px 10px!important}.projects-list .ntx-eval .ntx-pbr-label b,.projects-list .ntx-eval .ntx-eval-status b{font-size:8px!important}.projects-list .ntx-eval .ntx-pbr-label span,.projects-list .ntx-eval .ntx-eval-status span{font-size:6.5px!important}.projects-list .ntx-eval .ntx-pbr-track small{font-size:6.5px!important}
+
+/* Proyectos — Inteligencia electoral */
+.projects-list .ntx-el .ntx-el-shell{padding:16px 17px!important;gap:11px!important}.projects-list .ntx-el .ntx-el-kicker{font-size:9px!important}.projects-list .ntx-el .ntx-el-title{font-size:14px!important}.projects-list .ntx-el .ntx-el-sub{font-size:8px!important}.projects-list .ntx-el .ntx-el-modes button{font-size:7.5px!important;padding:6px 9px!important}
+.projects-list .ntx-el .ntx-el-body{grid-template-columns:minmax(0,1.45fr) minmax(190px,.95fr)!important;gap:10px!important}.projects-list .ntx-el .ntx-el-maphead{padding:9px 10px 7px!important}.projects-list .ntx-el .ntx-el-maphead strong{font-size:8.5px!important}.projects-list .ntx-el .ntx-el-maphead span{font-size:7px!important}.projects-list .ntx-el .ntx-el-mapnote{font-size:6.8px!important;padding:6px 8px!important}.projects-list .ntx-el .ntx-el-legend{min-height:32px!important;gap:7px 11px!important;padding:8px 10px!important}.projects-list .ntx-el .ntx-el-legend-item{font-size:7px!important}.projects-list .ntx-el .ntx-el-legend-item i{width:9px!important;height:9px!important}
+.projects-list .ntx-el .ntx-el-panel{padding:10px!important;gap:9px!important}.projects-list .ntx-el .ntx-el-panel h4{font-size:9px!important}.projects-list .ntx-el .ntx-el-panel>small{font-size:6.8px!important}.projects-list .ntx-el .ntx-el-kpis{gap:7px!important}.projects-list .ntx-el .ntx-el-kpi{padding:8px!important}.projects-list .ntx-el .ntx-el-kpi span{font-size:6.5px!important}.projects-list .ntx-el .ntx-el-kpi strong{font-size:12px!important}.projects-list .ntx-el .ntx-el-kpi small{font-size:6.5px!important}
+.projects-list .ntx-el .ntx-el-parties{padding:9px!important}.projects-list .ntx-el .ntx-el-section-title{font-size:8px!important}.projects-list .ntx-el .ntx-el-section-title span{font-size:6.5px!important}.projects-list .ntx-el .ntx-el-party{grid-template-columns:40px 1fr 34px!important;gap:7px!important}.projects-list .ntx-el .ntx-el-party b,.projects-list .ntx-el .ntx-el-party span{font-size:7px!important}.projects-list .ntx-el .ntx-el-party em{height:5px!important}
+.projects-list .ntx-el .ntx-el-selected{padding:9px!important}.projects-list .ntx-el .ntx-el-selected-head span{font-size:6.5px!important}.projects-list .ntx-el .ntx-el-selected-head strong{font-size:9px!important}.projects-list .ntx-el .ntx-el-winner b{font-size:8.5px!important}.projects-list .ntx-el .ntx-el-winner span{font-size:8px!important}.projects-list .ntx-el .ntx-el-selected-grid span,.projects-list .ntx-el .ntx-el-coal span{font-size:6.3px!important}.projects-list .ntx-el .ntx-el-selected-grid b,.projects-list .ntx-el .ntx-el-coal b{font-size:7.5px!important}
+
 @media (max-width:1050px){
   .projects-list .project-feature{grid-template-columns:minmax(0,1.35fr) minmax(330px,.65fr)!important}
   .projects-list .project-feature,.projects-list .project-feature .project-visual{min-height:420px!important}
@@ -121,6 +203,9 @@ main .section-pad>.container:has(>.service-family)>.cta{order:10}
   .projects-list .project-feature{grid-template-columns:1fr!important;min-height:0!important}
   .projects-list .project-feature .project-visual{height:300px!important;min-height:300px!important;border-right:0;border-bottom:1px solid var(--line)}
   .service-family .service-family-no:after{font-size:40px!important}
+  .dv-stage{padding:16px!important}
+  .dv-flow-kpis span{font-size:7px!important}.dv-flow-kpis strong{font-size:13px!important}
+  .projects-list .ntx-kpi-system .ntx-kpi-shell,.projects-list .ntx-eval .ntx-eval-shell,.projects-list .ntx-el .ntx-el-shell{padding:10px!important;gap:7px!important}
 }
 @media (max-width:600px){
   .source-viz-copy{padding-right:20px;padding-top:58px}
