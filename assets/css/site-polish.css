@@ -95,7 +95,6 @@ main .section-pad>.container:has(>.service-family)>.cta{order:10}
 /* 4) Hero: demostración conceptual sin cifras que puedan confundirse con resultados reales */
 .hero-vnext .territory-stats{display:none!important}
 .hero-vnext .analysis-metric{display:none!important}
-.hero-vnext .bar-tooltip{display:none!important}
 .hero-vnext .visual-kicker{font-size:0!important}
 .hero-vnext .visual-kicker:after{
   content:"Demostración conceptual · datos simulados";
