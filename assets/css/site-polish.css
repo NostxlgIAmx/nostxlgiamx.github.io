@@ -107,13 +107,12 @@ main .section-pad>.container:has(>.service-family)>.cta{order:10}
   font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
 }
 
-/* 5) Cierre del hero: sin franja redundante y con explicación más completa */
+/* 5) Cierre del hero: texto real, seleccionable y sin franja redundante */
 .hero-vnext .color-key{display:none!important}
-.hero-vnext .visual-caption{padding-bottom:28px!important}
+.hero-vnext .visual-caption{padding-bottom:28px!important;pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important}
+.hero-vnext .visual-caption h3,.hero-vnext .visual-caption p{pointer-events:auto!important;user-select:text!important;-webkit-user-select:text!important}
 .hero-vnext .visual-caption p{max-width:720px!important;line-height:1.72!important}
-.hero-vnext .visual-caption p:after{
-  content:" El objetivo no es representar un caso real, sino mostrar cómo una misma información puede transformarse en distintas lecturas: primero se estructura y compara, después se identifican patrones y tendencias y, cuando el problema lo requiere, se incorpora la dimensión territorial para entender dónde ocurren las diferencias y cómo pueden utilizarse para apoyar una decisión.";
-}
+.hero-vnext .visual-caption p:after{content:none!important;display:none!important}
 
 @media (max-width:1050px){
   .projects-list .project-feature{grid-template-columns:minmax(0,1.35fr) minmax(330px,.65fr)!important}
