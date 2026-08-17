@@ -9,6 +9,24 @@
     document.head.appendChild(polish);
   }
 
+  /* Ajuste final, limitado a las visualizaciones de Datos y Proyectos. */
+  if (currentScript && document.querySelector('[data-data-library], .projects-list')) {
+    if (!document.querySelector('link[data-viz-qa-final]')) {
+      const visualStyles = document.createElement('link');
+      visualStyles.rel = 'stylesheet';
+      visualStyles.href = new URL('../css/viz-qa-final.css', currentScript.src).href;
+      visualStyles.dataset.vizQaFinal = 'true';
+      document.head.appendChild(visualStyles);
+    }
+    if (document.querySelector('[data-data-library]') && !document.querySelector('script[data-viz-qa-final]')) {
+      const visualScript = document.createElement('script');
+      visualScript.src = new URL('viz-qa-final.js', currentScript.src).href;
+      visualScript.dataset.vizQaFinal = 'true';
+      visualScript.async = false;
+      document.head.appendChild(visualScript);
+    }
+  }
+
   const navToggle = document.querySelector('.nav-toggle');
   const nav = document.querySelector('.nav');
 
