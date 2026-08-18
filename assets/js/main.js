@@ -9,10 +9,17 @@
     document.head.appendChild(polish);
   }
 
-  /* Fondo ambiental analítico cargado directamente, sin dependencia del cursor. */
+  /* Cursor y fondo ambiental cargados por separado. */
+  if (currentScript && !document.querySelector('script[data-cursor-ambient]')) {
+    const cursorAmbient = document.createElement('script');
+    cursorAmbient.src = new URL('cursor-ambient.js?v=20260818-halo-return', currentScript.src).href;
+    cursorAmbient.dataset.cursorAmbient = 'true';
+    cursorAmbient.async = false;
+    document.head.appendChild(cursorAmbient);
+  }
   if (currentScript && !document.querySelector('script[data-ambient-background]')) {
     const ambientScript = document.createElement('script');
-    ambientScript.src = new URL('ambient-background-v2.js?v=20260818-3', currentScript.src).href;
+    ambientScript.src = new URL('ambient-background-v2.js?v=20260818-saturated', currentScript.src).href;
     ambientScript.dataset.ambientBackground = 'true';
     ambientScript.async = false;
     document.head.appendChild(ambientScript);
