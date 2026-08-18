@@ -9,6 +9,15 @@
     document.head.appendChild(polish);
   }
 
+  /* Luz ambiental sutil que sigue al cursor en dispositivos con puntero fino. */
+  if (currentScript && !document.querySelector('script[data-cursor-ambient]')) {
+    const ambientScript = document.createElement('script');
+    ambientScript.src = new URL('cursor-ambient.js?v=20260817-1', currentScript.src).href;
+    ambientScript.dataset.cursorAmbient = 'true';
+    ambientScript.async = false;
+    document.head.appendChild(ambientScript);
+  }
+
   /* Ajuste final, limitado a las visualizaciones de Datos y Proyectos. */
   if (currentScript && document.querySelector('[data-data-library], .projects-list')) {
     if (!document.querySelector('link[data-viz-qa-final]')) {
