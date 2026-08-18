@@ -1,48 +1,636 @@
 (() => {
   'use strict';
 
-  if (window.matchMedia('(max-width: 760px)').matches) return;
+  const currentScript = document.currentScript;
+  if (!currentScript) return;
 
   document.querySelectorAll('.ambient-bg,.ambient-background-canvas').forEach((node) => node.remove());
   document.querySelectorAll('style[data-ambient-background]').forEach((node) => node.remove());
 
-  const ROAD_PATHS = {"road1":"M23.0,75.3 L23.2,74.9 L23.2,74.5 L22.2,72.3 L22.3,71.9 L24.9,66.7 L24.8,64.4 L25.2,63.1 L25.5,62.8 L26.3,62.5 L26.8,61.7 L27.1,61.4 L28.9,60.4 L29.6,60.5 L31.6,61.3 L33.4,64.8 L33.7,65.1 L35.0,65.6 L37.4,65.0 M23.1,74.1 L22.4,72.5 L22.3,72.0 L25.0,66.7 L24.9,64.3 L25.3,63.1 L25.5,62.9 L26.1,62.7 L26.4,62.5 L27.1,61.5 L29.0,60.5 L29.5,60.5 L31.5,61.3 L33.4,64.9 L33.6,65.1 L35.0,65.7 L37.3,65.1 M5.6,80.6 L6.3,80.9 L17.1,80.5 M26.7,62.0 L27.1,63.3 L30.7,70.0 L30.6,70.2 M27.8,61.1 L28.1,61.9 L27.7,62.6 L27.7,63.0 L30.9,68.9 M16.3,81.2 L7.9,81.6 M36.1,57.8 L30.6,63.9 M26.6,62.3 L27.0,63.5 L30.1,69.3 M17.1,80.3 L14.7,80.3 L9.2,80.7 M15.9,81.4 L8.2,81.8 M23.6,75.2 L24.1,75.1 L25.0,74.7 L25.2,74.0 L25.3,73.2 L25.9,72.8 L26.5,72.5 L26.9,72.2 L28.4,70.4 M27.5,69.1 L27.9,69.0 L28.4,69.0 L33.7,70.1 L34.3,70.5 M34.5,68.0 L32.1,66.8 L31.7,67.0 M28.0,64.3 L31.1,70.1 M34.7,66.1 L31.9,70.3 L31.3,71.5 M34.0,70.2 L34.6,69.2 L35.2,68.4 L37.4,66.3 L37.4,65.8 L37.3,65.1 M35.9,57.7 L32.0,62.1 M34.3,66.8 L31.9,70.5 L31.4,71.6 M35.8,57.7 L32.1,61.9 M33.4,70.0 L34.1,68.9 L35.2,67.5 L36.7,66.1 L37.0,66.1 M15.5,81.0 L9.9,81.3 M13.9,81.9 L8.5,82.1 M29.6,64.6 L28.3,65.9 L27.4,69.0 M35.6,62.4 L38.3,58.2 M23.4,62.4 L25.6,64.0 L26.5,64.4 L27.9,64.4 M4.4,2.0 L6.2,6.5 M33.6,65.0 L32.2,69.5 M24.7,70.1 L23.5,74.6 M28.1,64.9 L30.3,69.0 M28.5,64.9 L30.7,69.0 M25.2,71.1 L24.2,74.7 L23.9,75.4 M38.1,62.3 L37.7,63.3 L35.2,65.5 M24.5,70.1 L23.4,74.4 M32.9,69.9 L33.2,69.6 L35.2,66.1 M37.5,62.0 L35.1,65.6 M34.3,70.4 L35.3,69.4 L37.3,67.3 M34.5,66.2 L32.2,69.6 M10.4,80.1 L10.7,84.2 M5.3,1.9 L6.1,3.7 L6.5,5.8 M38.0,62.5 L37.7,63.3 L35.3,65.5","road2":"M62.7,63.3 L62.5,63.4 L59.3,67.2 L50.7,75.3 M47.7,73.0 L51.8,69.8 L53.0,69.4 L53.6,69.0 L56.8,67.6 L61.2,64.4 L61.5,63.9 L61.8,64.0 L61.8,64.1 M45.8,78.1 L46.1,80.1 L46.1,82.0 L45.7,84.7 L45.7,86.5 L45.5,87.8 L45.9,88.6 M47.7,73.0 L50.7,70.5 L51.8,69.8 L53.0,69.3 L53.7,68.9 L56.7,67.6 M46.1,80.3 L46.1,82.1 L45.7,84.7 L45.8,86.5 L45.5,87.6 L45.9,88.6 M52.0,76.6 L49.5,76.7 L43.5,77.7 M38.1,87.9 L40.5,86.7 L45.4,85.4 L45.7,85.1 M41.4,76.1 L40.7,76.7 L40.9,78.2 L40.7,79.5 L38.3,82.9 M38.2,82.8 L40.7,79.5 L40.8,78.1 L40.7,76.8 L40.8,76.6 L41.4,76.1 M54.0,69.8 L48.0,74.1 L47.5,74.4 M88.8,67.2 L90.1,70.2 L90.1,71.2 L90.3,72.2 L90.7,73.0 L91.2,73.3 L91.4,73.3 M50.6,75.4 L47.0,75.0 L46.6,74.9 L43.6,75.1 M50.6,75.4 L57.5,76.1 M53.2,77.6 L52.5,77.9 L46.3,78.0 M39.4,87.3 L40.5,86.7 L45.4,85.4 L45.7,85.2 M53.2,77.6 L52.6,77.9 L46.5,78.0 M53.3,77.7 L51.7,78.5 L51.0,78.3 L50.6,78.8 L49.3,78.8 L47.3,78.3 M48.8,75.7 L46.3,76.4 L44.6,76.6 L43.1,76.6 L42.3,76.8 M60.2,66.1 L59.3,67.1 L55.7,70.5 M47.4,69.2 L46.8,72.6 L46.9,75.0 L47.0,75.1 M49.3,76.6 L43.2,77.5 M43.8,77.1 L49.7,76.1 M43.8,77.2 L49.7,76.2 M55.7,70.5 L51.7,74.3 M48.9,75.9 L44.6,76.9 L43.4,77.0 M47.7,73.0 L48.3,73.5 L48.7,73.5 L52.0,71.1 M54.9,75.3 L59.4,73.0 M60.2,67.1 L61.2,71.7 M52.3,79.2 L51.4,79.3 L47.9,79.3 L47.4,79.4 M56.8,67.7 L60.7,64.9 M57.0,69.3 L58.3,70.5 L59.4,73.0 M54.3,83.9 L58.5,85.4 M47.1,75.5 L42.7,75.9 M43.5,78.8 L41.9,82.7 M56.0,68.3 L58.3,70.5 L58.7,71.3 M42.7,75.7 L43.5,75.6 L46.8,75.0 M57.5,76.1 L58.2,76.2 L58.1,76.3 L54.9,76.9 M49.2,76.8 L49.6,80.6 M59.5,67.0 L59.8,67.3 L60.5,70.7 M62.5,63.2 L62.5,63.4 L60.2,66.1","road3":"M47.1,25.9 L47.1,26.5 L46.9,27.0 L47.0,27.5 L46.9,27.6 L46.9,28.3 L46.7,28.2 L46.6,27.9 L46.5,27.9 L46.3,28.1 L46.2,28.5 L45.6,28.6 L45.1,29.1 M33.0,75.2 L32.9,74.4 L32.9,73.7 L33.3,73.0 L34.9,71.1 M55.4,72.7 L56.9,73.1 L57.4,73.1 L60.2,72.2 M45.8,26.0 L45.2,29.2 L45.3,30.6 M8.4,52.9 L8.9,53.4 L9.3,53.6 L12.7,53.4 M55.9,73.5 L56.8,74.2 L59.1,76.3 M9.9,52.6 L10.7,53.4 L11.1,53.2 L11.3,53.3 L11.6,53.2 L11.9,53.3 L12.1,53.2 L12.6,53.4 L12.9,53.8 M57.0,73.7 L59.8,76.3 M33.3,73.2 L35.7,70.4 M45.5,25.7 L44.9,29.1 M45.3,29.0 L45.7,28.6 L45.7,28.7 L46.3,28.5 L46.3,28.1 L46.5,28.0 L46.6,28.3 L46.9,28.3 L46.9,27.7 L47.1,27.4 M45.6,25.8 L45.0,29.1 M47.6,28.5 L45.3,29.6 L44.9,30.3 M57.2,73.7 L57.6,74.0 L59.7,75.9 M57.4,75.1 L60.1,77.1 M7.3,51.1 L8.2,52.3 L9.4,53.6 M43.8,27.0 L46.9,27.8 M69.8,95.2 L71.3,96.9 L72.0,97.2 M47.8,27.7 L47.5,27.8 L47.0,28.1 L46.9,28.3 L45.4,28.9 L45.3,29.1 M44.4,10.6 L44.9,11.8 L44.5,13.4 M7.0,54.4 L7.1,54.4 L7.3,54.3 L8.9,52.2 M9.0,51.8 L8.8,52.2 L7.2,53.9 M34.0,72.8 L33.4,73.2 L33.1,73.7 L33.0,74.3 L33.3,75.0 M48.0,28.1 L45.5,29.3 M69.4,97.3 L67.1,98.7 M6.1,37.7 L6.2,38.3 L6.1,38.7 L6.2,40.3 M48.2,75.2 L48.4,75.5 L49.3,77.5 M3.7,38.0 L3.1,38.3 L2.9,38.6 L2.9,39.1 L2.7,40.1 M6.9,16.2 L6.3,16.4 L5.7,16.8 L6.2,17.9 M8.9,51.7 L7.5,53.4 L7.2,53.6 M45.9,26.3 L45.5,28.7 M47.2,72.1 L47.8,74.5 M53.2,53.7 L55.8,53.9 M9.1,53.2 L11.5,54.0 M45.1,26.6 L44.7,29.0 M33.5,73.2 L34.2,72.2 L35.1,71.3 M44.9,26.5 L44.6,28.3 L44.7,28.9 M46.1,26.3 L46.2,27.6 L45.9,28.6 M69.5,97.5 L67.5,98.8 M33.1,73.1 L34.6,71.2","road4":"M79.1,52.5 L79.3,53.1 L79.5,54.8 L80.0,56.2 M77.5,48.7 L77.7,50.0 L78.4,52.2 M62.5,29.5 L63.5,30.5 L64.7,31.3 M77.8,50.8 L78.4,52.5 L78.4,53.2 M62.8,29.5 L63.8,29.7 L64.6,30.6 L64.8,30.7 M76.5,42.8 L76.9,43.1 L77.5,44.0 L77.7,44.5 M74.4,34.2 L74.7,34.9 L74.8,36.3 M77.8,50.4 L78.4,52.4 M75.7,55.0 L76.5,55.2 L76.7,55.0 L76.7,54.8 L77.2,54.8 L77.4,54.5 M79.2,51.0 L79.4,51.2 L79.3,52.0 L79.4,52.9 M78.4,50.7 L79.2,52.5 M79.0,54.5 L79.6,56.3 M74.0,28.2 L73.9,28.3 L72.3,29.0 M63.4,30.0 L63.6,30.4 L64.2,30.8 L64.8,31.2 M77.1,34.3 L77.1,36.1 M87.4,78.8 L88.5,79.1 L88.8,79.7 M73.2,47.4 L72.9,47.3 L71.4,47.6 M78.8,53.8 L78.3,53.9 L77.1,54.2 M78.4,55.1 L78.1,55.7 L77.6,55.9 L77.3,56.3 M49.9,20.7 L51.2,21.9 M61.8,30.4 L63.4,30.8 M70.8,56.1 L70.8,56.6 L70.5,56.7 L70.5,57.0 L70.1,57.4 M78.5,51.0 L79.2,52.5 M76.9,42.6 L77.4,43.4 L77.9,43.8 M78.1,50.4 L78.8,51.9 M72.4,28.4 L72.9,28.4 L73.9,28.0 M80.0,51.1 L80.0,51.3 L79.5,52.6 M76.3,52.2 L76.6,52.7 L77.4,53.3 M75.3,51.7 L75.6,52.0 L76.6,52.6 M27.4,0.3 L26.1,1.3 M71.9,56.0 L71.7,56.0 L71.2,56.3 L70.5,56.4 M80.2,50.2 L80.3,51.2 L80.1,51.6 M78.7,71.2 L78.6,71.5 L77.6,72.2 M81.1,52.9 L79.6,52.6 M94.2,94.6 L94.4,94.8 L94.6,95.9 M86.7,52.3 L86.0,52.4 L85.3,52.8 M78.8,71.3 L77.9,72.4 M72.9,47.6 L71.4,47.9 M78.4,53.6 L76.9,53.7 M86.8,52.7 L86.1,52.8 L85.4,53.1","road5":"M34.2,62.9 L34.1,63.3 L34.2,63.8 L34.0,64.3 L33.9,64.3 L33.0,64.2 L31.1,65.3 M30.1,65.6 L29.6,65.5 L27.3,65.4 L26.9,65.6 L26.6,66.0 M71.3,45.4 L71.3,45.8 L70.9,46.5 L72.0,48.4 M34.3,63.0 L34.2,63.2 L34.4,64.3 L34.3,64.5 L34.0,64.7 L33.4,64.5 L33.1,64.6 M92.9,87.5 L93.1,88.0 L93.4,88.2 L93.2,88.5 L92.3,88.9 L92.3,89.5 M94.2,78.0 L94.1,78.2 L93.7,78.3 L93.2,78.6 L92.4,78.4 L91.7,78.5 M4.0,75.4 L4.1,75.6 L5.8,77.2 M4.1,75.5 L5.9,77.2 M33.1,64.6 L32.6,64.7 L32.5,64.5 L32.4,64.5 L31.1,65.3 M58.9,49.2 L60.6,49.5 L61.2,49.3 M96.9,12.6 L97.2,12.8 L99.0,12.6 M99.0,12.8 L96.9,13.0 M59.0,49.1 L60.1,49.4 L60.6,49.4 L61.1,49.3 M96.1,11.3 L97.8,11.3 L97.8,11.5 L98.0,11.5 M29.5,65.7 L29.1,65.6 L27.5,65.5 M30.1,66.2 L30.1,66.4 L30.0,66.5 L29.1,66.4 L28.4,66.6 M59.1,50.3 L61.0,50.6 M59.0,50.5 L60.9,50.9 M98.0,11.5 L97.9,11.8 L97.6,12.0 L97.7,13.1 M29.6,65.5 L27.7,65.4 M24.5,61.5 L25.1,62.5 L25.5,62.9 M99.2,13.1 L97.4,13.3 M33.9,37.3 L35.4,38.2 M32.0,65.3 L31.8,65.5 L31.7,66.0 L31.2,66.5 L30.9,66.6 M28.5,67.2 L28.6,67.7 L28.2,68.8 M99.0,13.5 L98.4,13.6 L97.6,13.6 L97.4,13.4 M33.8,37.4 L35.3,38.2 M28.0,65.9 L29.0,66.3 L29.6,66.4 M11.1,12.1 L11.5,12.2 L11.5,11.8 L11.7,11.6 L11.8,11.6 L12.1,12.0 M31.5,67.2 L31.9,68.7 M27.0,62.4 L26.3,62.6 L26.0,62.8 L25.5,62.9 M96.9,13.5 L98.6,13.4 M34.7,36.8 L33.9,38.2 M30.4,68.3 L30.0,67.2 L29.7,67.1 M59.6,49.4 L61.2,49.6 M91.7,78.5 L92.3,78.1 L92.9,78.1 L93.0,78.3 M59.7,49.5 L61.2,49.8 M61.1,49.4 L61.2,49.7 L60.9,50.9 M39.1,51.4 L39.1,52.2 L39.6,52.7 M25.2,61.5 L25.3,62.0 L25.7,62.6 L25.7,62.8","road6":"M29.9,50.0 L30.0,55.6 M30.1,50.1 L30.1,55.7 M31.1,50.1 L31.1,55.5 M30.8,50.2 L30.8,55.5 M29.8,50.1 L29.8,55.3 M30.5,50.4 L30.5,55.5 M33.0,52.0 L32.0,52.5 L27.9,52.5 M31.7,51.0 L31.7,55.3 M31.8,50.2 L31.9,54.5 M72.5,52.5 L73.8,52.6 L76.4,53.4 M29.2,52.7 L33.2,52.7 M29.0,51.8 L32.9,51.8 M32.0,51.2 L32.1,54.8 M29.4,51.8 L29.4,55.3 M29.6,51.8 L29.6,55.3 M31.0,50.1 L30.9,53.7 M47.4,54.2 L44.1,55.7 M31.3,50.3 L31.3,53.7 M32.3,52.3 L28.7,52.3 M73.2,52.1 L76.3,52.9 L76.6,52.9 M29.2,51.2 L32.7,51.2 M47.3,54.0 L46.7,54.3 L44.2,55.4 M32.7,53.1 L29.3,53.1 M32.3,50.8 L28.9,50.8 M50.3,83.9 L50.3,87.1 M29.4,51.9 L32.7,52.0 M29.4,52.1 L32.7,52.1 M29.2,52.9 L32.5,52.9 M35.7,39.9 L38.6,41.3 M32.4,53.3 L29.3,53.3 M29.3,53.5 L32.4,53.5 M36.1,39.5 L38.9,40.9 M75.5,51.6 L74.8,54.2 M29.8,51.6 L32.9,51.6 M46.9,54.7 L44.1,55.9 M36.4,39.3 L36.9,39.5 L37.2,39.9 L37.8,40.0 L38.0,40.4 L38.5,40.4 L38.8,40.6 M35.6,40.0 L38.4,41.3 M36.7,39.2 L38.9,40.3 L39.4,40.4 M55.6,45.7 L52.9,47.1 M52.3,73.2 L51.6,76.0"};
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const COLORS = { cyan:[74,202,222], purple:[132,111,205], gold:[216,181,103], slate:[117,145,175] };
-  const PALETTE = [COLORS.cyan,COLORS.purple,COLORS.gold,COLORS.slate];
-  const rgba = (c,a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const mobileQuery = window.matchMedia('(max-width: 760px)');
+  const COLORS = {
+    cyan: [74, 202, 222],
+    purple: [132, 111, 205],
+    gold: [216, 181, 103],
+    slate: [117, 145, 175]
+  };
+  const PALETTE = Object.values(COLORS);
+  const FAMILY_PARALLAX = { roads: .008, numbers: -.004, micro: .005, constellation: .002 };
+  const TEXT_MASK_SELECTOR = 'h1,h2,h3,h4,p,.eyebrow,.category,.card-meta,.meta-label,.meta-value,.tag,.visual-kicker,.visual-caption,.footer-title,.footer-links,.brand,.nav,.btn,.text-link,dt,dd,li,label,legend,blockquote';
+  const PANEL_MASK_SELECTOR = '.card,.service-mini,.editorial-visual,.project-feature,.project-visual,.source-viz-card,.chart-panel,.cta,.principles,.page-aside,.data-library-controls,.topic-filters,.filters,form,table,figure,.dashboard,.map,.panel';
+  const DEBUG_KEY = '__NOSTXLGIA_AMBIENT_DEBUG__'; // disabled in production unless manually set in DevTools
+  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-  const init = () => {
-    if (!document.body) return;
+  const init = async () => {
+    if (!document.body || document.querySelector('.ambient-background-canvas')) return;
+
     const style = document.createElement('style');
     style.dataset.ambientBackground = 'true';
-    style.textContent = `.ambient-background-canvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:0}.site-header,main,.site-footer{position:relative;z-index:1}@media(max-width:760px),(prefers-reduced-motion:reduce){.ambient-background-canvas{display:none!important}}`;
+    style.textContent = `
+      .ambient-background-canvas{
+        position:fixed;
+        inset:0;
+        width:100vw;
+        height:100vh;
+        pointer-events:none;
+        z-index:0
+      }
+      .site-header,main,.site-footer{position:relative;z-index:1}
+    `;
     document.head.appendChild(style);
+
     const canvas = document.createElement('canvas');
     canvas.className = 'ambient-background-canvas';
-    canvas.setAttribute('aria-hidden','true');
+    canvas.setAttribute('aria-hidden', 'true');
     document.body.prepend(canvas);
-    const ctx = canvas.getContext('2d',{alpha:true});
-    if (!ctx) return;
-    const roadKeys = Object.keys(ROAD_PATHS), roadObjects = {};
-    roadKeys.forEach((key) => { try { roadObjects[key] = new Path2D(ROAD_PATHS[key]); } catch (_) {} });
-    let width=0,height=0,dpr=1,docHeight=0,items=[],masks=[],lastMaskUpdate=0,animationId=0,visible=!document.hidden;
-    function randomFactory(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-    function smoothPulse(now,item){const phase=((now/1000+item.offset)%item.period)/item.period;const s=.5-.5*Math.cos(phase*Math.PI*2);return Math.pow(s,1.55);}
-    function buildWorld(){const rnd=randomFactory(831726);docHeight=Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,height);const gap=185,rows=Math.ceil(docHeight/gap)+2;items=[];for(let row=0;row<rows;row++){const baseY=row*gap+115,parity=row%2,x1=parity?.21:.79,x2=parity?.73:.28;items.push(makeItem('roads',x1+(rnd()-.5)*.15,baseY+(rnd()-.5)*65,155+rnd()*85,row,rnd));items.push(makeItem('numbers',x2+(rnd()-.5)*.18,baseY+25+(rnd()-.5)*60,1,row+1,rnd));items.push(makeItem('spark',.50+(rnd()-.5)*.52,baseY-46+(rnd()-.5)*48,105+rnd()*55,row+2,rnd));if(row%2===0)items.push(makeItem('matrix',.18+rnd()*.64,baseY+65+(rnd()-.5)*42,70+rnd()*26,row+3,rnd));if(row%3===1)items.push(makeItem('constellation',.16+rnd()*.68,baseY+6+(rnd()-.5)*52,95+rnd()*45,row+4,rnd));}}
-    function makeItem(type,x,y,size,colorIndex,rnd){return{type,x:Math.max(.06,Math.min(.94,x)),y,size,color:PALETTE[Math.abs(colorIndex)%PALETTE.length],period:10+rnd()*13,offset:rnd()*18,phase:rnd()*Math.PI*2,dx:5+rnd()*8,dy:4+rnd()*7,road:roadKeys[Math.floor(rnd()*roadKeys.length)],seed:rnd()};}
-    function resize(){width=innerWidth;height=innerHeight;dpr=Math.min(devicePixelRatio||1,1.5);canvas.width=Math.max(1,Math.round(width*dpr));canvas.height=Math.max(1,Math.round(height*dpr));canvas.style.width=width+'px';canvas.style.height=height+'px';ctx.setTransform(dpr,0,0,dpr,0,0);buildWorld();updateMasks();}
-    const MASK_SELECTOR=['.site-header','.brand','.nav','h1','h2','h3','h4','p','.eyebrow','.category','.card-meta','.tag-row','.actions','.meta-strip','.editorial-visual','.visual-caption','.color-key','.service-mini','.card','.project-feature','.project-visual','.source-viz-card','.chart-panel','.cta','.principles','.list-clean','.page-aside','.data-library-controls','.topic-filters','.filters','.footer-grid','.footer-bottom','form','table','figure','blockquote','.btn','.text-link'].join(',');
-    function updateMasks(){const next=[];document.querySelectorAll(MASK_SELECTOR).forEach((node)=>{const r=node.getBoundingClientRect();if(r.width<4||r.height<4||r.bottom<-70||r.top>height+70)return;const px=r.width<180?10:16,py=r.height<80?8:12;next.push({x:r.left-px,y:r.top-py,w:r.width+px*2,h:r.height+py*2});});masks=next;lastMaskUpdate=performance.now();}
-    function position(item,now){const scroll=scrollY||0,motion=reducedMotion.matches?0:1;return{x:item.x*width+Math.sin(now*.000055+item.phase)*item.dx*motion,y:item.y-scroll+Math.cos(now*.000047+item.phase*1.37)*item.dy*motion};}
-    function drawRoad(item,p,a){const path=roadObjects[item.road];if(!path)return;const s=item.size/100;ctx.save();ctx.translate(p.x-item.size/2,p.y-item.size/2);ctx.scale(s,s);ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=rgba(item.color,.020*a);ctx.lineWidth=2.4/s;ctx.stroke(path);ctx.strokeStyle=rgba(item.color,.092*a);ctx.lineWidth=.62/s;ctx.stroke(path);ctx.restore();}
-    function drawNumbers(item,p,a,now){ctx.save();ctx.font='500 9px Inter,system-ui,sans-serif';ctx.textBaseline='middle';const values=['01','17','24','38','52','64','73','89','Δ','μ','P50','σ'];for(let r=0;r<3;r++)for(let c=0;c<4;c++){const idx=(r*4+c+Math.floor(now/1700+item.seed*10))%values.length;ctx.fillStyle=rgba(item.color,(.045+((r+c)%3)*.015)*a);ctx.fillText(values[idx],p.x-32+c*19,p.y-13+r*14);}ctx.restore();}
-    function drawSpark(item,p,a,now){const w=item.size,h=w*.34,left=p.x-w/2,top=p.y-h/2,vals=[.68,.56,.61,.43,.48,.31,.36,.20];ctx.save();ctx.strokeStyle=rgba(item.color,.040*a);ctx.lineWidth=.65;ctx.beginPath();ctx.moveTo(left,top+h*.82);ctx.lineTo(left+w,top+h*.82);ctx.stroke();ctx.strokeStyle=rgba(item.color,.13*a);ctx.lineWidth=1.05;ctx.beginPath();vals.forEach((v,i)=>{const x=left+w*i/(vals.length-1),wiggle=reducedMotion.matches?0:Math.sin(now*.001+item.phase+i*.7)*1.7,y=top+h*v+wiggle;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.fillStyle=rgba(item.color,.16*a);[0,3,7].forEach(i=>{const x=left+w*i/(vals.length-1),y=top+h*vals[i];ctx.beginPath();ctx.arc(x,y,1.65,0,Math.PI*2);ctx.fill();});ctx.restore();}
-    function drawMatrix(item,p,a,now){const cols=5,rows=3,cell=7,gap=4,w=cols*cell+(cols-1)*gap,h=rows*cell+(rows-1)*gap,x0=p.x-w/2,y0=p.y-h/2,shift=Math.floor(now/1800);ctx.save();for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ctx.fillStyle=rgba(item.color,(.028+((r*cols+c+shift)%5)*.010)*a);ctx.fillRect(x0+c*(cell+gap),y0+r*(cell+gap),cell,cell);}ctx.restore();}
-    function drawConstellation(item,p,a,now){const pts=[[-.42,.08],[-.19,-.25],[.02,.12],[.23,-.12],[.43,.20]].map((q,i)=>[p.x+q[0]*item.size+Math.sin(now*.00012+item.phase+i)*2,p.y+q[1]*item.size+Math.cos(now*.00010+item.phase+i*.9)*2]);ctx.save();ctx.strokeStyle=rgba(item.color,.055*a);ctx.lineWidth=.7;ctx.beginPath();pts.forEach((q,i)=>i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));ctx.stroke();ctx.fillStyle=rgba(item.color,.12*a);pts.forEach((q,i)=>{ctx.beginPath();ctx.arc(q[0],q[1],i===2?1.8:1.25,0,Math.PI*2);ctx.fill();});ctx.restore();}
-    function eraseContent(){ctx.save();ctx.globalCompositeOperation='destination-out';masks.forEach((m)=>{ctx.fillStyle='rgba(0,0,0,.98)';ctx.fillRect(m.x,m.y,m.w,m.h);});ctx.restore();}
-    function render(now){if(!visible)return;if(now-lastMaskUpdate>1200)updateMasks();ctx.clearRect(0,0,width,height);for(const item of items){const p=position(item,now);if(p.y<-140||p.y>height+140)continue;const a=smoothPulse(now,item);if(a<.04)continue;if(item.type==='roads')drawRoad(item,p,a);else if(item.type==='numbers')drawNumbers(item,p,a,now);else if(item.type==='spark')drawSpark(item,p,a,now);else if(item.type==='matrix')drawMatrix(item,p,a,now);else if(item.type==='constellation')drawConstellation(item,p,a,now);}eraseContent();animationId=requestAnimationFrame(render);}
-    addEventListener('resize',resize,{passive:true});addEventListener('scroll',updateMasks,{passive:true});document.addEventListener('visibilitychange',()=>{visible=!document.hidden;if(visible&&!animationId)animationId=requestAnimationFrame(render);if(!visible&&animationId){cancelAnimationFrame(animationId);animationId=0;}});resize();animationId=requestAnimationFrame(render);
+
+    const sceneCanvas = document.createElement('canvas');
+    const maskCanvas = document.createElement('canvas');
+    const maskSource = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { alpha: true });
+    const sceneCtx = sceneCanvas.getContext('2d', { alpha: true });
+    const maskCtx = maskCanvas.getContext('2d', { alpha: true });
+    const maskSourceCtx = maskSource.getContext('2d', { alpha: true });
+    if (!ctx || !sceneCtx || !maskCtx || !maskSourceCtx) return;
+
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let docHeight = 0;
+    let items = [];
+    let roadCuts = [];
+    let animationId = 0;
+    let visible = !document.hidden;
+    let maskGeometry = [];
+    let maskNodes = [];
+    let maskRaf = 0;
+    let scrollRaf = 0;
+    let resizeRaf = 0;
+    let maskDirty = true;
+    let renderRequested = true;
+    let seedBase = 831726;
+    let resizeObserver = null;
+    let mutationObserver = null;
+
+    function randomFactory(seed) {
+      return () => {
+        seed |= 0;
+        seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    function parseAlpha(value) {
+      if (!value || value === 'transparent') return 0;
+      const m = value.match(/rgba?\(([^)]+)\)/i);
+      if (!m) return 1;
+      const parts = m[1].split(',').map((p) => p.trim());
+      return parts.length > 3 ? Number(parts[3]) || 0 : 1;
+    }
+
+    function ownBackgroundCovers(node) {
+      const cs = getComputedStyle(node);
+      return cs.backgroundImage !== 'none' || parseAlpha(cs.backgroundColor) >= .2;
+    }
+
+    function unionLineRects(rects) {
+      const rows = [];
+      [...rects].forEach((rect) => {
+        if (rect.width < 2 || rect.height < 2) return;
+        const y = rect.top + window.scrollY;
+        const existing = rows.find((r) => Math.abs(r.y - y) < Math.max(3, rect.height * .35));
+        const x = rect.left + window.scrollX;
+        if (existing) {
+          const right = Math.max(existing.x + existing.w, x + rect.width);
+          existing.x = Math.min(existing.x, x);
+          existing.w = right - existing.x;
+          existing.h = Math.max(existing.h, rect.height);
+        } else {
+          rows.push({ x, y, w: rect.width, h: rect.height, feather: 18, kind: 'text' });
+        }
+      });
+      return rows;
+    }
+
+    function textLineRects(node) {
+      const out = [];
+      const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, {
+        acceptNode(textNode) {
+          return textNode.nodeValue && textNode.nodeValue.trim()
+            ? NodeFilter.FILTER_ACCEPT
+            : NodeFilter.FILTER_REJECT;
+        }
+      });
+      let textNode;
+      while ((textNode = walker.nextNode())) {
+        const range = document.createRange();
+        range.selectNodeContents(textNode);
+        out.push(...unionLineRects(range.getClientRects()));
+      }
+      return out;
+    }
+
+    function rebuildMaskGeometry() {
+      maskDirty = false;
+      const next = [];
+      const nodes = new Set();
+
+      document.querySelectorAll(TEXT_MASK_SELECTOR).forEach((node) => {
+        if (node.closest('.ambient-background-canvas')) return;
+        const cs = getComputedStyle(node);
+        if (cs.display === 'none' || cs.visibility === 'hidden') return;
+        textLineRects(node).forEach((r) => {
+          r.feather = clamp(Math.round(r.h * .8), 12, 24);
+          next.push(r);
+        });
+        nodes.add(node);
+      });
+
+      document.querySelectorAll(PANEL_MASK_SELECTOR).forEach((node) => {
+        if (ownBackgroundCovers(node)) return;
+        const rect = node.getBoundingClientRect();
+        if (rect.width < 4 || rect.height < 4) return;
+        next.push({
+          x: rect.left + window.scrollX,
+          y: rect.top + window.scrollY,
+          w: rect.width,
+          h: rect.height,
+          feather: clamp(Math.round(Math.min(rect.width, rect.height) * .06), 16, 30),
+          kind: 'panel'
+        });
+        nodes.add(node);
+      });
+
+      maskGeometry = next;
+      maskNodes = [...nodes];
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+        resizeObserver.observe(document.documentElement);
+        resizeObserver.observe(document.body);
+        maskNodes.forEach((node) => resizeObserver.observe(node));
+      }
+      renderRequested = true;
+    }
+
+    function scheduleMaskRebuild() {
+      maskDirty = true;
+      if (maskRaf) return;
+      maskRaf = requestAnimationFrame(() => {
+        maskRaf = 0;
+        rebuildMaskGeometry();
+        if (reducedMotion.matches) draw(performance.now());
+      });
+    }
+
+    function resizeSurfaces() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      [canvas, sceneCanvas, maskCanvas, maskSource].forEach((surface) => {
+        surface.width = Math.max(1, Math.round(width * dpr));
+        surface.height = Math.max(1, Math.round(height * dpr));
+      });
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      [ctx, sceneCtx, maskCtx, maskSourceCtx].forEach((c) => c.setTransform(dpr, 0, 0, dpr, 0, 0));
+      buildWorld();
+      scheduleMaskRebuild();
+      renderRequested = true;
+    }
+
+    async function loadRoadCuts() {
+      try {
+        const url = new URL('../data/ambient-road-cuts.json?v=20260818-1', currentScript.src);
+        const response = await fetch(url, { cache: 'force-cache' });
+        if (!response.ok) return;
+        const data = await response.json();
+        roadCuts = (data.cuts || []).map((cut) => {
+          let primary = null;
+          let secondary = null;
+          try { if (cut.primary) primary = new Path2D(cut.primary); } catch (_) {}
+          try { if (cut.secondary) secondary = new Path2D(cut.secondary); } catch (_) {}
+          return { ...cut, primary, secondary };
+        }).filter((cut) => cut.primary || cut.secondary);
+      } catch (_) {
+        roadCuts = [];
+      }
+    }
+
+    function familyFor(rnd) {
+      const r = rnd();
+      if (r < .25) return 'roads';
+      if (r < .49) return 'numbers';
+      if (r < .79) return 'micro';
+      return 'constellation';
+    }
+
+    function statDataset(rnd) {
+      const candidates = [
+        () => `${Math.round(18 + rnd() * 78)}.${Math.round(rnd() * 9)}%`,
+        () => `n=${Math.round(120 + rnd() * 4800).toLocaleString('en-US')}`,
+        () => `P50 ${Math.round(32 + rnd() * 58)}.${Math.round(rnd() * 9)}`,
+        () => `Δ ${rnd() > .5 ? '+' : '−'}${(rnd() * 8.9).toFixed(1)}%`,
+        () => `σ ${(0.8 + rnd() * 4.2).toFixed(1)}`,
+        () => `idx ${(45 + rnd() * 50).toFixed(1)}`,
+        () => `${(23.6 + rnd() * 1.8).toFixed(2)}, −${(103.8 + rnd() * 2.1).toFixed(2)}`
+      ];
+      const count = 2 + Math.floor(rnd() * 3);
+      return Array.from({ length: count }, (_, i) => ({
+        label: candidates[Math.floor(rnd() * candidates.length)](),
+        ox: (rnd() - .5) * 92,
+        oy: (i - (count - 1) / 2) * (14 + rnd() * 5) + (rnd() - .5) * 7
+      }));
+    }
+
+    function microDataset(rnd) {
+      const variants = ['sparkline', 'bars', 'dotplot', 'distribution'];
+      const variant = variants[Math.floor(rnd() * variants.length)];
+      const count = variant === 'bars' ? 5 + Math.floor(rnd() * 3) : 7 + Math.floor(rnd() * 4);
+      const values = Array.from({ length: count }, () => .12 + rnd() * .76);
+      values.forEach((_, i) => {
+        if (i && variant !== 'dotplot') values[i] = clamp(values[i - 1] * .55 + values[i] * .45, .08, .92);
+      });
+      return { variant, values };
+    }
+
+    function constellationDataset(rnd) {
+      const count = 6 + Math.floor(rnd() * 3);
+      const points = Array.from({ length: count }, () => ({
+        x: (rnd() - .5) * .9,
+        y: (rnd() - .5) * .62,
+        r: 1 + rnd() * 1.15
+      }));
+      const edges = [];
+      for (let i = 1; i < count; i++) {
+        if (rnd() < .58) edges.push([i, Math.floor(rnd() * i)]);
+      }
+      return { points, edges: edges.slice(0, Math.max(2, Math.floor(count * .65))) };
+    }
+
+    function respawn(item, now, rnd) {
+      item.respawns = (item.respawns || 0) + 1;
+      item.x = (item.stratum * .61803398875 + rnd() + item.respawns * .137) % 1;
+      item.x = .035 + item.x * .93;
+      const band = docHeight / item.stratumCount;
+      item.y = item.stratum * band + rnd() * band;
+      item.size = item.type === 'roads' ? 145 + rnd() * 105
+        : item.type === 'micro' ? 88 + rnd() * 68
+        : item.type === 'constellation' ? 86 + rnd() * 62
+        : 1;
+      item.color = PALETTE[Math.floor(rnd() * PALETTE.length)];
+      item.phase = rnd() * Math.PI * 2;
+      item.dx = 3 + rnd() * 8;
+      item.dy = 2 + rnd() * 6;
+      item.parallax = FAMILY_PARALLAX[item.type] || 0;
+      if (item.type === 'roads' && roadCuts.length) item.road = roadCuts[Math.floor(rnd() * roadCuts.length)];
+      if (item.type === 'numbers') item.dataset = statDataset(rnd);
+      if (item.type === 'micro') item.dataset = microDataset(rnd);
+      if (item.type === 'constellation') item.dataset = constellationDataset(rnd);
+
+      item.durations = {
+        hidden: 700 + rnd() * 1500,
+        fadeIn: 1000 + rnd() * 1000,
+        hold: item.type === 'roads' ? 9000 + rnd() * 6500 : 4300 + rnd() * 5000,
+        fadeOut: 1300 + rnd() * 1100
+      };
+      item.state = 'hidden';
+      item.stateStart = now;
+    }
+
+    function buildWorld() {
+      docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, height);
+      const mobile = mobileQuery.matches;
+      const targetDensity = mobile ? 4.15 : 10.7;
+      const count = Math.max(mobile ? 4 : 10, Math.ceil((docHeight / Math.max(height, 1)) * targetDensity));
+      const rnd = randomFactory(seedBase + Math.round(docHeight) + Math.round(width));
+      const now = performance.now();
+      items = Array.from({ length: count }, (_, index) => {
+        const item = {
+          type: familyFor(rnd),
+          stratum: index,
+          stratumCount: count,
+          respawns: 0
+        };
+        respawn(item, now, rnd);
+        const cycle = item.durations.hidden + item.durations.fadeIn + item.durations.hold + item.durations.fadeOut;
+        item.stateStart = now - rnd() * cycle;
+        return item;
+      });
+    }
+
+    function transition(item, next, now, rnd) {
+      item.state = next;
+      item.stateStart = now;
+      if (next === 'hidden') respawn(item, now, rnd);
+    }
+
+    function lifecycleAlpha(item, now) {
+      if (reducedMotion.matches) return .72;
+      const rnd = randomFactory((item.stratum + 1) * 991 + item.respawns * 8191);
+      let guard = 0;
+      while (guard++ < 8) {
+        const elapsed = now - item.stateStart;
+        const duration = item.durations[item.state];
+        if (elapsed < duration) {
+          if (item.state === 'hidden') return 0;
+          if (item.state === 'fadeIn') {
+            const t = clamp(elapsed / duration, 0, 1);
+            return t * t * (3 - 2 * t);
+          }
+          if (item.state === 'hold') return 1;
+          if (item.state === 'fadeOut') {
+            const t = clamp(elapsed / duration, 0, 1);
+            return 1 - t * t * (3 - 2 * t);
+          }
+        }
+        if (item.state === 'hidden') transition(item, 'fadeIn', item.stateStart + duration, rnd);
+        else if (item.state === 'fadeIn') transition(item, 'hold', item.stateStart + duration, rnd);
+        else if (item.state === 'hold') transition(item, 'fadeOut', item.stateStart + duration, rnd);
+        else transition(item, 'hidden', item.stateStart + duration, rnd);
+      }
+      return 0;
+    }
+
+    function position(item, now) {
+      const motion = reducedMotion.matches ? 0 : 1;
+      const scroll = window.scrollY || 0;
+      return {
+        x: item.x * width + Math.sin(now * .000045 + item.phase) * item.dx * motion,
+        y: item.y - scroll * (1 - item.parallax)
+          + Math.cos(now * .000038 + item.phase * 1.37) * item.dy * motion
+      };
+    }
+
+    function drawRoad(item, p, alpha) {
+      const cut = item.road;
+      if (!cut) return;
+      const [minX, minY, boxW, boxH] = cut.viewBox || [0, 0, 100, 100];
+      const maxDim = Math.max(boxW, boxH, 1);
+      const scale = item.size / maxDim;
+      const drawW = boxW * scale;
+      const drawH = boxH * scale;
+      sceneCtx.save();
+      sceneCtx.translate(p.x - drawW / 2 - minX * scale, p.y - drawH / 2 - minY * scale);
+      sceneCtx.scale(scale, scale);
+      sceneCtx.lineCap = 'round';
+      sceneCtx.lineJoin = 'round';
+      if (cut.secondary) {
+        sceneCtx.strokeStyle = rgba(item.color, .075 * alpha);
+        sceneCtx.lineWidth = .58 / scale;
+        sceneCtx.stroke(cut.secondary);
+      }
+      if (cut.primary) {
+        sceneCtx.strokeStyle = rgba(item.color, .13 * alpha);
+        sceneCtx.lineWidth = 1.08 / scale;
+        sceneCtx.stroke(cut.primary);
+      }
+      sceneCtx.restore();
+    }
+
+    function drawNumbers(item, p, alpha) {
+      sceneCtx.save();
+      sceneCtx.font = '500 9.5px Inter,system-ui,sans-serif';
+      sceneCtx.textBaseline = 'middle';
+      item.dataset.forEach((entry, i) => {
+        sceneCtx.fillStyle = rgba(item.color, (.10 + (i % 2) * .025) * alpha);
+        sceneCtx.fillText(entry.label, p.x + entry.ox, p.y + entry.oy);
+      });
+      sceneCtx.restore();
+    }
+
+    function drawMicro(item, p, alpha) {
+      const data = item.dataset;
+      const w = item.size;
+      const h = w * .34;
+      const left = p.x - w / 2;
+      const top = p.y - h / 2;
+      const values = data.values;
+      sceneCtx.save();
+      sceneCtx.lineCap = 'round';
+      sceneCtx.lineJoin = 'round';
+
+      if (data.variant === 'sparkline') {
+        sceneCtx.strokeStyle = rgba(item.color, .14 * alpha);
+        sceneCtx.lineWidth = 1;
+        sceneCtx.beginPath();
+        values.forEach((v, i) => {
+          const x = left + i * w / (values.length - 1);
+          const y = top + h * (1 - v);
+          i ? sceneCtx.lineTo(x, y) : sceneCtx.moveTo(x, y);
+        });
+        sceneCtx.stroke();
+        sceneCtx.fillStyle = rgba(item.color, .18 * alpha);
+        [0, Math.floor(values.length / 2), values.length - 1].forEach((i) => {
+          const x = left + i * w / (values.length - 1);
+          const y = top + h * (1 - values[i]);
+          sceneCtx.beginPath();
+          sceneCtx.arc(x, y, 1.5, 0, Math.PI * 2);
+          sceneCtx.fill();
+        });
+      } else if (data.variant === 'bars') {
+        const gap = 4;
+        const bw = (w - gap * (values.length - 1)) / values.length;
+        sceneCtx.fillStyle = rgba(item.color, .12 * alpha);
+        values.forEach((v, i) => {
+          const bh = h * v;
+          sceneCtx.fillRect(left + i * (bw + gap), top + h - bh, bw, bh);
+        });
+      } else if (data.variant === 'dotplot') {
+        const baseY = p.y;
+        sceneCtx.strokeStyle = rgba(item.color, .055 * alpha);
+        sceneCtx.lineWidth = .6;
+        sceneCtx.beginPath();
+        sceneCtx.moveTo(left, baseY);
+        sceneCtx.lineTo(left + w, baseY);
+        sceneCtx.stroke();
+        sceneCtx.fillStyle = rgba(item.color, .17 * alpha);
+        values.forEach((v, i) => {
+          const x = left + v * w;
+          const y = baseY + ((i % 3) - 1) * 6 + (i % 2 ? 2 : -1);
+          sceneCtx.beginPath();
+          sceneCtx.arc(x, y, 1.25 + (i % 3) * .22, 0, Math.PI * 2);
+          sceneCtx.fill();
+        });
+      } else {
+        sceneCtx.strokeStyle = rgba(item.color, .13 * alpha);
+        sceneCtx.lineWidth = 1;
+        sceneCtx.beginPath();
+        values.forEach((v, i) => {
+          const x = left + i * w / (values.length - 1);
+          const centered = Math.sin(i / (values.length - 1) * Math.PI);
+          const y = top + h - h * (.18 + centered * .68 * v);
+          i ? sceneCtx.lineTo(x, y) : sceneCtx.moveTo(x, y);
+        });
+        sceneCtx.stroke();
+      }
+      sceneCtx.restore();
+    }
+
+    function drawConstellation(item, p, alpha) {
+      const data = item.dataset;
+      const pts = data.points.map((q) => [p.x + q.x * item.size, p.y + q.y * item.size]);
+      sceneCtx.save();
+      sceneCtx.strokeStyle = rgba(item.color, .065 * alpha);
+      sceneCtx.lineWidth = .7;
+      data.edges.forEach(([a, b]) => {
+        sceneCtx.beginPath();
+        sceneCtx.moveTo(pts[a][0], pts[a][1]);
+        sceneCtx.lineTo(pts[b][0], pts[b][1]);
+        sceneCtx.stroke();
+      });
+      sceneCtx.fillStyle = rgba(item.color, .15 * alpha);
+      pts.forEach((q, i) => {
+        sceneCtx.beginPath();
+        sceneCtx.arc(q[0], q[1], data.points[i].r, 0, Math.PI * 2);
+        sceneCtx.fill();
+      });
+      sceneCtx.restore();
+    }
+
+    function buildMask() {
+      maskSourceCtx.clearRect(0, 0, width, height);
+      const scrollX = window.scrollX || 0;
+      const scrollY = window.scrollY || 0;
+
+      maskGeometry.forEach((m) => {
+        const x = m.x - scrollX;
+        const y = m.y - scrollY;
+        if (x > width + m.feather || y > height + m.feather || x + m.w < -m.feather || y + m.h < -m.feather) return;
+        const pad = m.kind === 'text' ? 4 : 7;
+        maskSourceCtx.fillStyle = m.kind === 'text' ? 'rgba(255,255,255,.78)' : 'rgba(255,255,255,.68)';
+        maskSourceCtx.fillRect(x - pad, y - pad, m.w + pad * 2, m.h + pad * 2);
+      });
+
+      maskCtx.clearRect(0, 0, width, height);
+      maskCtx.save();
+      maskCtx.filter = 'blur(18px)';
+      maskCtx.globalAlpha = .72;
+      maskCtx.drawImage(maskSource, 0, 0, width * dpr, height * dpr, 0, 0, width, height);
+      maskCtx.restore();
+      maskCtx.save();
+      maskCtx.globalAlpha = .48;
+      maskCtx.drawImage(maskSource, 0, 0, width * dpr, height * dpr, 0, 0, width, height);
+      maskCtx.restore();
+    }
+
+    function composite() {
+      ctx.clearRect(0, 0, width, height);
+      const mode = window[DEBUG_KEY];
+      if (mode === 'mask') {
+        ctx.drawImage(maskCanvas, 0, 0, width * dpr, height * dpr, 0, 0, width, height);
+        return;
+      }
+      ctx.drawImage(sceneCanvas, 0, 0, width * dpr, height * dpr, 0, 0, width, height);
+      if (mode === 'raw') return;
+      ctx.save();
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.drawImage(maskCanvas, 0, 0, width * dpr, height * dpr, 0, 0, width, height);
+      ctx.restore();
+    }
+
+    function draw(now) {
+      if (!visible) return;
+      animationId = 0;
+      sceneCtx.clearRect(0, 0, width, height);
+
+      const candidates = [];
+      for (const item of items) {
+        const alpha = lifecycleAlpha(item, now);
+        if (alpha < .035) continue;
+        const p = position(item, now);
+        const margin = item.type === 'roads' ? 170 : 105;
+        if (p.y < -margin || p.y > height + margin || p.x < -margin || p.x > width + margin) continue;
+        candidates.push({ item, p, alpha });
+      }
+
+      const cap = mobileQuery.matches ? 5 : 12;
+      candidates.sort((a, b) => Math.abs(a.p.y - height / 2) - Math.abs(b.p.y - height / 2));
+      candidates.slice(0, cap).forEach(({ item, p, alpha }) => {
+        if (item.type === 'roads') drawRoad(item, p, alpha);
+        else if (item.type === 'numbers') drawNumbers(item, p, alpha);
+        else if (item.type === 'micro') drawMicro(item, p, alpha);
+        else drawConstellation(item, p, alpha);
+      });
+
+      buildMask();
+      composite();
+      renderRequested = false;
+
+      if (!reducedMotion.matches && visible) animationId = requestAnimationFrame(draw);
+    }
+
+    function wake() {
+      renderRequested = true;
+      if (!animationId && visible) animationId = requestAnimationFrame(draw);
+    }
+
+    resizeObserver = new ResizeObserver(() => {
+      scheduleMaskRebuild();
+      wake();
+    });
+
+    mutationObserver = new MutationObserver(() => {
+      scheduleMaskRebuild();
+    });
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ['class', 'style', 'hidden', 'open']
+    });
+
+    window.addEventListener('resize', () => {
+      if (resizeRaf) return;
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = 0;
+        resizeSurfaces();
+        wake();
+      });
+    }, { passive: true });
+
+    window.addEventListener('scroll', () => {
+      if (scrollRaf) return;
+      scrollRaf = requestAnimationFrame(() => {
+        scrollRaf = 0;
+        wake();
+      });
+    }, { passive: true });
+
+    document.addEventListener('visibilitychange', () => {
+      visible = !document.hidden;
+      if (!visible && animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = 0;
+      } else if (visible) {
+        wake();
+      }
+    });
+
+    reducedMotion.addEventListener?.('change', () => {
+      buildWorld();
+      wake();
+    });
+    mobileQuery.addEventListener?.('change', () => {
+      buildWorld();
+      wake();
+    });
+
+    await loadRoadCuts();
+    resizeSurfaces();
+    rebuildMaskGeometry();
+
+    if (reducedMotion.matches) {
+      draw(performance.now());
+    } else {
+      animationId = requestAnimationFrame(draw);
+    }
   };
-  if(document.body)init();else document.addEventListener('DOMContentLoaded',init,{once:true});
+
+  if (document.body) init();
+  else document.addEventListener('DOMContentLoaded', init, { once: true });
 })();
