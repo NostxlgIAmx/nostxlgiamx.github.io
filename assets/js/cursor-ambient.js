@@ -100,7 +100,7 @@
   const current = document.currentScript;
   if (!current || document.querySelector('script[data-ambient-background]')) return;
   const script = document.createElement('script');
-  script.src = new URL('ambient-background.js?v=20260818-1', current.src).href;
+  script.src = new URL('ambient-background-v2.js?v=20260818-2', current.src).href;
   script.dataset.ambientBackground = 'true';
   script.async = false;
   document.head.appendChild(script);
