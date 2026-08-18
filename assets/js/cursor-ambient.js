@@ -95,13 +95,13 @@
   else document.addEventListener('DOMContentLoaded', init, { once: true });
 })();
 
-/* Fondo ambiental editorial: datos fantasma + micrográfica + cartografía abierta + constelación. */
+/* Fondo ambiental editorial: datos escasos + micrográfica + cartografía abierta + constelación. */
 (() => {
   'use strict';
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const smallViewport = window.matchMedia('(max-width: 760px)');
-  if (reducedMotion.matches || smallViewport.matches || document.querySelector('.ambient-intelligence-layer')) return;
+  const compact = window.matchMedia('(max-width: 760px)');
+  if (reducedMotion.matches || compact.matches || document.querySelector('.ambient-intelligence-layer')) return;
 
   const init = () => {
     if (!document.body || document.querySelector('.ambient-intelligence-layer')) return;
@@ -117,153 +117,111 @@
         pointer-events:none;
         z-index:0;
         overflow:hidden;
+        opacity:.92;
         mix-blend-mode:screen;
       }
-      .ambient-intelligence-layer svg{
-        width:100%;
-        height:100%;
-        display:block;
-        filter:saturate(1.08);
+      .ambient-intelligence-layer text{
+        font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+        letter-spacing:.08em;
       }
+      .ambient-intelligence-layer .ambient-drift-a{animation:ambientDriftA 24s ease-in-out infinite alternate}
+      .ambient-intelligence-layer .ambient-drift-b{animation:ambientDriftB 29s ease-in-out infinite alternate}
+      .ambient-intelligence-layer .ambient-drift-c{animation:ambientDriftC 32s ease-in-out infinite alternate}
+      .ambient-intelligence-layer .ambient-pulse{animation:ambientPulse 9s ease-in-out infinite alternate}
+      .ambient-intelligence-layer .ambient-trace{stroke-dasharray:6 10;animation:ambientTrace 32s linear infinite}
       main,.site-footer{position:relative;z-index:1}
       .site-header{z-index:50}
-
-      .ai-map{animation:ai-map-drift 34s ease-in-out infinite alternate;transform-origin:center}
-      .ai-chart{animation:ai-chart-drift 28s ease-in-out infinite alternate;transform-origin:center}
-      .ai-data{animation:ai-data-float 24s ease-in-out infinite alternate;transform-origin:center}
-      .ai-network{animation:ai-network-float 30s ease-in-out infinite alternate;transform-origin:center}
-      .ai-chart-line{stroke-dasharray:10 12;animation:ai-chart-flow 26s linear infinite}
-      .ai-network-node{animation:ai-node-pulse 9s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}
-      .ai-network-node:nth-of-type(2n){animation-delay:-3s}
-      .ai-network-node:nth-of-type(3n){animation-delay:-6s}
-
-      @keyframes ai-map-drift{
-        from{transform:translate3d(-4px,-3px,0)}
-        to{transform:translate3d(10px,7px,0)}
-      }
-      @keyframes ai-chart-drift{
-        from{transform:translate3d(-8px,4px,0)}
-        to{transform:translate3d(7px,-5px,0)}
-      }
-      @keyframes ai-data-float{
-        from{transform:translate3d(0,5px,0);opacity:.78}
-        to{transform:translate3d(8px,-7px,0);opacity:1}
-      }
-      @keyframes ai-network-float{
-        from{transform:translate3d(-5px,4px,0)}
-        to{transform:translate3d(8px,-6px,0)}
-      }
-      @keyframes ai-chart-flow{
-        to{stroke-dashoffset:-88}
-      }
-      @keyframes ai-node-pulse{
-        from{transform:scale(.88);opacity:.62}
-        to{transform:scale(1.16);opacity:1}
-      }
-
-      @media (max-width:1100px){
-        .ai-data{opacity:.72}
-        .ai-network{opacity:.8}
-      }
+      @keyframes ambientDriftA{from{transform:translate3d(0,0,0)}to{transform:translate3d(12px,-8px,0)}}
+      @keyframes ambientDriftB{from{transform:translate3d(0,0,0)}to{transform:translate3d(-10px,10px,0)}}
+      @keyframes ambientDriftC{from{transform:translate3d(0,0,0)}to{transform:translate3d(8px,7px,0)}}
+      @keyframes ambientPulse{from{opacity:.66}to{opacity:1}}
+      @keyframes ambientTrace{to{stroke-dashoffset:-160}}
       @media (max-width:760px),(prefers-reduced-motion:reduce){
         .ambient-intelligence-layer{display:none!important}
       }
     `;
     document.head.appendChild(style);
 
-    const layer = document.createElement('div');
-    layer.className = 'ambient-intelligence-layer';
-    layer.setAttribute('aria-hidden', 'true');
-    layer.innerHTML = `
-      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    const holder = document.createElement('div');
+    holder.innerHTML = `
+      <svg class="ambient-intelligence-layer" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
-          <linearGradient id="aiChartGradient" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stop-color="#55c8da" stop-opacity=".13"/>
-            <stop offset=".56" stop-color="#8d79df" stop-opacity=".22"/>
-            <stop offset="1" stop-color="#d7b36b" stop-opacity=".16"/>
+          <linearGradient id="ambientLine" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#43c7da" stop-opacity=".05"/>
+            <stop offset=".48" stop-color="#8a6fea" stop-opacity=".22"/>
+            <stop offset="1" stop-color="#d8b466" stop-opacity=".08"/>
           </linearGradient>
-          <linearGradient id="aiMapGradient" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0" stop-color="#55c8da" stop-opacity=".17"/>
-            <stop offset="1" stop-color="#8d79df" stop-opacity=".09"/>
+          <linearGradient id="ambientLine2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#8a6fea" stop-opacity=".06"/>
+            <stop offset=".55" stop-color="#43c7da" stop-opacity=".18"/>
+            <stop offset="1" stop-color="#d8b466" stop-opacity=".08"/>
           </linearGradient>
-          <filter id="aiSoftGlow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="2.2" result="blur"/>
-            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          <filter id="ambientSoft" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="5"/>
           </filter>
         </defs>
 
-        <!-- 1. Datos fantasma: pocos, ordenados y deliberados. -->
-        <g class="ai-data" transform="translate(1015 665)" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="13" letter-spacing="1.5" fill="#d7b36b" opacity=".15">
-          <text x="0" y="0">P50</text>
-          <text x="72" y="0" fill="#62c7d7">μ</text>
-          <text x="132" y="0" fill="#8d79df">σ</text>
-          <text x="0" y="27" fill="#62c7d7">x₁</text>
-          <text x="72" y="27">Q3</text>
-          <text x="132" y="27" fill="#8d79df">β</text>
-          <text x="0" y="54" fill="#8d79df">Δ</text>
-          <text x="72" y="54" fill="#62c7d7">r</text>
-          <text x="132" y="54">n</text>
-          <path d="M0 72 H156" stroke="#6f8da6" stroke-opacity=".12" stroke-width="1"/>
-        </g>
-
-        <!-- 2. Micrográfica amplia, reconocible y sin cifras inventadas. -->
-        <g class="ai-chart" transform="translate(70 620)" opacity=".9">
-          <path d="M0 120 H470" stroke="#6f8da6" stroke-opacity=".08" stroke-width="1"/>
-          <path d="M0 78 H470" stroke="#6f8da6" stroke-opacity=".045" stroke-width="1"/>
-          <path d="M0 36 H470" stroke="#6f8da6" stroke-opacity=".035" stroke-width="1"/>
-          <path class="ai-chart-line" d="M8 105 C58 93 96 70 140 78 S222 92 265 58 S342 26 392 41 S439 58 466 23" fill="none" stroke="url(#aiChartGradient)" stroke-width="2" stroke-linecap="round"/>
-          <g filter="url(#aiSoftGlow)">
-            <circle cx="8" cy="105" r="3" fill="#55c8da" fill-opacity=".17"/>
-            <circle cx="140" cy="78" r="3" fill="#8d79df" fill-opacity=".17"/>
-            <circle cx="265" cy="58" r="3" fill="#55c8da" fill-opacity=".2"/>
-            <circle cx="392" cy="41" r="3" fill="#d7b36b" fill-opacity=".18"/>
-            <circle cx="466" cy="23" r="3.5" fill="#8d79df" fill-opacity=".2"/>
+        <g class="ambient-drift-a" transform="translate(135 155)">
+          <g fill="none" stroke-linecap="round" stroke-width="1.25">
+            <path d="M18 36 L96 70 L170 32 L248 88 L332 54" stroke="#43c7da" stroke-opacity=".16"/>
+            <path d="M170 32 L202 122 L286 154" stroke="#8a6fea" stroke-opacity=".14"/>
+            <path d="M96 70 L70 146" stroke="#d8b466" stroke-opacity=".11"/>
+          </g>
+          <g class="ambient-pulse">
+            <circle cx="18" cy="36" r="3.1" fill="#43c7da" fill-opacity=".28"/>
+            <circle cx="96" cy="70" r="2.7" fill="#8a6fea" fill-opacity=".28"/>
+            <circle cx="170" cy="32" r="3.3" fill="#43c7da" fill-opacity=".25"/>
+            <circle cx="248" cy="88" r="2.6" fill="#d8b466" fill-opacity=".27"/>
+            <circle cx="332" cy="54" r="3" fill="#43c7da" fill-opacity=".2"/>
+            <circle cx="202" cy="122" r="2.5" fill="#8a6fea" fill-opacity=".26"/>
+            <circle cx="286" cy="154" r="2.4" fill="#43c7da" fill-opacity=".2"/>
+            <circle cx="70" cy="146" r="2.5" fill="#d8b466" fill-opacity=".19"/>
           </g>
         </g>
 
-        <!-- 3. Cartografía abstracta: curvas ABIERTAS, nunca polígonos cerrados. -->
-        <g class="ai-map" transform="translate(1090 105)" fill="none" stroke="url(#aiMapGradient)" stroke-linecap="round">
-          <path d="M-30 52 C65 -4 144 8 223 47 C302 86 370 84 470 22" stroke-width="1.6"/>
-          <path d="M-15 82 C72 31 151 39 226 73 C313 113 385 105 492 47" stroke-width="1.2" stroke-opacity=".78"/>
-          <path d="M12 111 C88 72 158 75 232 104 C316 137 393 137 510 83" stroke-width="1" stroke-opacity=".58"/>
-          <path d="M72 8 C94 42 117 68 154 94 C186 116 226 134 268 143" stroke-width=".9" stroke-opacity=".5"/>
-          <path d="M306 37 C286 69 285 99 303 129 C318 154 344 173 381 189" stroke-width=".9" stroke-opacity=".45"/>
-          <path d="M410 17 C395 48 400 74 423 101" stroke-width=".85" stroke-opacity=".38"/>
+        <g class="ambient-drift-b" fill="none" stroke-linecap="round" transform="translate(1060 145)">
+          <path d="M0 72 C72 15 152 18 218 56 C286 95 337 79 422 28" stroke="#43c7da" stroke-opacity=".14" stroke-width="1.25"/>
+          <path d="M-18 112 C62 56 148 58 224 94 C302 132 368 116 454 62" stroke="#8a6fea" stroke-opacity=".13" stroke-width="1.15"/>
+          <path d="M-30 151 C54 99 143 100 236 132 C314 160 390 155 478 105" stroke="#d8b466" stroke-opacity=".10" stroke-width="1"/>
+          <path d="M65 14 C105 55 146 82 206 83 C269 85 313 56 360 21" stroke="#6fa6be" stroke-opacity=".08" stroke-width=".9"/>
         </g>
 
-        <!-- 5. Constelación de observaciones: estructura legible y conexiones suaves. -->
-        <g class="ai-network" transform="translate(1140 500)">
-          <g fill="none" stroke="#62c7d7" stroke-opacity=".115" stroke-width="1">
-            <path d="M18 136 L88 82 L156 119 L221 54 L293 96 L359 38"/>
-            <path d="M88 82 L112 18 L221 54"/>
-            <path d="M156 119 L204 171 L293 96"/>
-            <path d="M293 96 L344 158 L414 113"/>
-            <path d="M359 38 L414 113"/>
+        <g class="ambient-drift-c" transform="translate(1000 595)">
+          <g stroke="#71859c" stroke-opacity=".07" stroke-width="1">
+            <line x1="0" y1="120" x2="470" y2="120"/>
+            <line x1="0" y1="72" x2="470" y2="72"/>
+            <line x1="0" y1="24" x2="470" y2="24"/>
           </g>
-          <g filter="url(#aiSoftGlow)">
-            <circle class="ai-network-node" cx="18" cy="136" r="3.2" fill="#55c8da" fill-opacity=".17"/>
-            <circle class="ai-network-node" cx="88" cy="82" r="4.2" fill="#8d79df" fill-opacity=".18"/>
-            <circle class="ai-network-node" cx="112" cy="18" r="2.8" fill="#d7b36b" fill-opacity=".19"/>
-            <circle class="ai-network-node" cx="156" cy="119" r="3.1" fill="#55c8da" fill-opacity=".18"/>
-            <circle class="ai-network-node" cx="204" cy="171" r="2.7" fill="#8d79df" fill-opacity=".15"/>
-            <circle class="ai-network-node" cx="221" cy="54" r="4.7" fill="#55c8da" fill-opacity=".21"/>
-            <circle class="ai-network-node" cx="293" cy="96" r="3.4" fill="#d7b36b" fill-opacity=".18"/>
-            <circle class="ai-network-node" cx="344" cy="158" r="2.7" fill="#55c8da" fill-opacity=".15"/>
-            <circle class="ai-network-node" cx="359" cy="38" r="3.1" fill="#8d79df" fill-opacity=".18"/>
-            <circle class="ai-network-node" cx="414" cy="113" r="4" fill="#55c8da" fill-opacity=".18"/>
+          <path class="ambient-trace" d="M0 112 C50 100 83 92 118 86 S188 68 230 74 S302 51 350 47 S417 30 470 18" fill="none" stroke="url(#ambientLine)" stroke-width="2"/>
+          <g class="ambient-pulse">
+            <circle cx="118" cy="86" r="3" fill="#43c7da" fill-opacity=".25"/>
+            <circle cx="230" cy="74" r="3" fill="#8a6fea" fill-opacity=".24"/>
+            <circle cx="350" cy="47" r="3" fill="#d8b466" fill-opacity=".22"/>
+            <circle cx="470" cy="18" r="3.2" fill="#43c7da" fill-opacity=".27"/>
           </g>
+          <text x="2" y="145" font-size="11" fill="#7f90a5" fill-opacity=".11">t1</text>
+          <text x="226" y="145" font-size="11" fill="#7f90a5" fill-opacity=".11">t2</text>
+          <text x="452" y="145" font-size="11" fill="#7f90a5" fill-opacity=".11">t3</text>
         </g>
 
-        <!-- Pequeñas observaciones periféricas para dar continuidad sin ruido. -->
-        <g fill="#62c7d7" fill-opacity=".105">
-          <circle cx="86" cy="206" r="1.8"/><circle cx="148" cy="245" r="1.3"/><circle cx="236" cy="183" r="1.6"/>
-          <circle cx="718" cy="124" r="1.4"/><circle cx="792" cy="162" r="1.8"/><circle cx="890" cy="117" r="1.3"/>
-          <circle cx="682" cy="780" r="1.4"/><circle cx="742" cy="744" r="1.7"/><circle cx="826" cy="798" r="1.2"/>
-          <circle cx="1518" cy="364" r="1.6"/><circle cx="1552" cy="426" r="1.2"/>
+        <g class="ambient-drift-a" transform="translate(210 650)">
+          <text x="0" y="0" font-size="12" fill="#43c7da" fill-opacity=".12">P50</text>
+          <text x="72" y="0" font-size="12" fill="#8a6fea" fill-opacity=".11">Δ +0.42</text>
+          <text x="172" y="0" font-size="12" fill="#d8b466" fill-opacity=".10">Q3</text>
+          <text x="256" y="0" font-size="12" fill="#6fa6be" fill-opacity=".11">σ 1.07</text>
+          <line x1="0" y1="18" x2="316" y2="18" stroke="#6fa6be" stroke-opacity=".07"/>
+          <circle cx="34" cy="42" r="2" fill="#43c7da" fill-opacity=".15"/>
+          <circle cx="112" cy="53" r="2" fill="#8a6fea" fill-opacity=".15"/>
+          <circle cx="205" cy="35" r="2" fill="#d8b466" fill-opacity=".13"/>
+          <circle cx="286" cy="48" r="2" fill="#43c7da" fill-opacity=".13"/>
         </g>
+
+        <ellipse cx="810" cy="455" rx="240" ry="145" fill="#596fa2" fill-opacity=".018" filter="url(#ambientSoft)"/>
       </svg>
     `;
 
+    const layer = holder.firstElementChild;
+    if (!layer) return;
     document.body.prepend(layer);
   };
 
