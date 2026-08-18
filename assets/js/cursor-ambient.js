@@ -95,7 +95,7 @@
   else document.addEventListener('DOMContentLoaded', init, { once: true });
 })();
 
-/* Fondo ambiental: datos fantasma + micrográficas + cartografía abstracta + constelaciones. */
+/* Fondo ambiental editorial: datos fantasma + micrográfica + cartografía abierta + constelación. */
 (() => {
   'use strict';
 
@@ -116,313 +116,155 @@
         height:100vh;
         pointer-events:none;
         z-index:0;
-        opacity:.78;
+        overflow:hidden;
+        mix-blend-mode:screen;
+      }
+      .ambient-intelligence-layer svg{
+        width:100%;
+        height:100%;
+        display:block;
+        filter:saturate(1.08);
       }
       main,.site-footer{position:relative;z-index:1}
       .site-header{z-index:50}
+
+      .ai-map{animation:ai-map-drift 34s ease-in-out infinite alternate;transform-origin:center}
+      .ai-chart{animation:ai-chart-drift 28s ease-in-out infinite alternate;transform-origin:center}
+      .ai-data{animation:ai-data-float 24s ease-in-out infinite alternate;transform-origin:center}
+      .ai-network{animation:ai-network-float 30s ease-in-out infinite alternate;transform-origin:center}
+      .ai-chart-line{stroke-dasharray:10 12;animation:ai-chart-flow 26s linear infinite}
+      .ai-network-node{animation:ai-node-pulse 9s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}
+      .ai-network-node:nth-of-type(2n){animation-delay:-3s}
+      .ai-network-node:nth-of-type(3n){animation-delay:-6s}
+
+      @keyframes ai-map-drift{
+        from{transform:translate3d(-4px,-3px,0)}
+        to{transform:translate3d(10px,7px,0)}
+      }
+      @keyframes ai-chart-drift{
+        from{transform:translate3d(-8px,4px,0)}
+        to{transform:translate3d(7px,-5px,0)}
+      }
+      @keyframes ai-data-float{
+        from{transform:translate3d(0,5px,0);opacity:.78}
+        to{transform:translate3d(8px,-7px,0);opacity:1}
+      }
+      @keyframes ai-network-float{
+        from{transform:translate3d(-5px,4px,0)}
+        to{transform:translate3d(8px,-6px,0)}
+      }
+      @keyframes ai-chart-flow{
+        to{stroke-dashoffset:-88}
+      }
+      @keyframes ai-node-pulse{
+        from{transform:scale(.88);opacity:.62}
+        to{transform:scale(1.16);opacity:1}
+      }
+
+      @media (max-width:1100px){
+        .ai-data{opacity:.72}
+        .ai-network{opacity:.8}
+      }
       @media (max-width:760px),(prefers-reduced-motion:reduce){
         .ambient-intelligence-layer{display:none!important}
       }
     `;
     document.head.appendChild(style);
 
-    const canvas = document.createElement('canvas');
-    canvas.className = 'ambient-intelligence-layer';
-    canvas.setAttribute('aria-hidden', 'true');
-    document.body.prepend(canvas);
+    const layer = document.createElement('div');
+    layer.className = 'ambient-intelligence-layer';
+    layer.setAttribute('aria-hidden', 'true');
+    layer.innerHTML = `
+      <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="aiChartGradient" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stop-color="#55c8da" stop-opacity=".13"/>
+            <stop offset=".56" stop-color="#8d79df" stop-opacity=".22"/>
+            <stop offset="1" stop-color="#d7b36b" stop-opacity=".16"/>
+          </linearGradient>
+          <linearGradient id="aiMapGradient" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0" stop-color="#55c8da" stop-opacity=".17"/>
+            <stop offset="1" stop-color="#8d79df" stop-opacity=".09"/>
+          </linearGradient>
+          <filter id="aiSoftGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="2.2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
 
-    const ctx = canvas.getContext('2d', { alpha: true });
-    if (!ctx) {
-      canvas.remove();
-      return;
-    }
+        <!-- 1. Datos fantasma: pocos, ordenados y deliberados. -->
+        <g class="ai-data" transform="translate(1015 665)" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="13" letter-spacing="1.5" fill="#d7b36b" opacity=".15">
+          <text x="0" y="0">P50</text>
+          <text x="72" y="0" fill="#62c7d7">μ</text>
+          <text x="132" y="0" fill="#8d79df">σ</text>
+          <text x="0" y="27" fill="#62c7d7">x₁</text>
+          <text x="72" y="27">Q3</text>
+          <text x="132" y="27" fill="#8d79df">β</text>
+          <text x="0" y="54" fill="#8d79df">Δ</text>
+          <text x="72" y="54" fill="#62c7d7">r</text>
+          <text x="132" y="54">n</text>
+          <path d="M0 72 H156" stroke="#6f8da6" stroke-opacity=".12" stroke-width="1"/>
+        </g>
 
-    const palette = [
-      [91, 201, 216],
-      [132, 111, 205],
-      [214, 179, 111],
-      [123, 157, 180]
-    ];
-    const tokens = ['0.42', '1.07', 'P50', 'Q3', 'Δ', 'x₁', 'x₂', 'μ', 'σ', 'n', 'β', 'r'];
-    const motifs = [];
-    const basePoints = [];
-    let width = 0;
-    let height = 0;
-    let dpr = 1;
-    let running = true;
-    let lastFrame = 0;
-    let lastSpawn = 0;
-    let frame = 0;
+        <!-- 2. Micrográfica amplia, reconocible y sin cifras inventadas. -->
+        <g class="ai-chart" transform="translate(70 620)" opacity=".9">
+          <path d="M0 120 H470" stroke="#6f8da6" stroke-opacity=".08" stroke-width="1"/>
+          <path d="M0 78 H470" stroke="#6f8da6" stroke-opacity=".045" stroke-width="1"/>
+          <path d="M0 36 H470" stroke="#6f8da6" stroke-opacity=".035" stroke-width="1"/>
+          <path class="ai-chart-line" d="M8 105 C58 93 96 70 140 78 S222 92 265 58 S342 26 392 41 S439 58 466 23" fill="none" stroke="url(#aiChartGradient)" stroke-width="2" stroke-linecap="round"/>
+          <g filter="url(#aiSoftGlow)">
+            <circle cx="8" cy="105" r="3" fill="#55c8da" fill-opacity=".17"/>
+            <circle cx="140" cy="78" r="3" fill="#8d79df" fill-opacity=".17"/>
+            <circle cx="265" cy="58" r="3" fill="#55c8da" fill-opacity=".2"/>
+            <circle cx="392" cy="41" r="3" fill="#d7b36b" fill-opacity=".18"/>
+            <circle cx="466" cy="23" r="3.5" fill="#8d79df" fill-opacity=".2"/>
+          </g>
+        </g>
 
-    const rand = (min, max) => min + Math.random() * (max - min);
-    const pick = (items) => items[Math.floor(Math.random() * items.length)];
-    const rgba = (rgb, alpha) => `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`;
+        <!-- 3. Cartografía abstracta: curvas ABIERTAS, nunca polígonos cerrados. -->
+        <g class="ai-map" transform="translate(1090 105)" fill="none" stroke="url(#aiMapGradient)" stroke-linecap="round">
+          <path d="M-30 52 C65 -4 144 8 223 47 C302 86 370 84 470 22" stroke-width="1.6"/>
+          <path d="M-15 82 C72 31 151 39 226 73 C313 113 385 105 492 47" stroke-width="1.2" stroke-opacity=".78"/>
+          <path d="M12 111 C88 72 158 75 232 104 C316 137 393 137 510 83" stroke-width="1" stroke-opacity=".58"/>
+          <path d="M72 8 C94 42 117 68 154 94 C186 116 226 134 268 143" stroke-width=".9" stroke-opacity=".5"/>
+          <path d="M306 37 C286 69 285 99 303 129 C318 154 344 173 381 189" stroke-width=".9" stroke-opacity=".45"/>
+          <path d="M410 17 C395 48 400 74 423 101" stroke-width=".85" stroke-opacity=".38"/>
+        </g>
 
-    const resize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      canvas.width = Math.max(1, Math.round(width * dpr));
-      canvas.height = Math.max(1, Math.round(height * dpr));
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        <!-- 5. Constelación de observaciones: estructura legible y conexiones suaves. -->
+        <g class="ai-network" transform="translate(1140 500)">
+          <g fill="none" stroke="#62c7d7" stroke-opacity=".115" stroke-width="1">
+            <path d="M18 136 L88 82 L156 119 L221 54 L293 96 L359 38"/>
+            <path d="M88 82 L112 18 L221 54"/>
+            <path d="M156 119 L204 171 L293 96"/>
+            <path d="M293 96 L344 158 L414 113"/>
+            <path d="M359 38 L414 113"/>
+          </g>
+          <g filter="url(#aiSoftGlow)">
+            <circle class="ai-network-node" cx="18" cy="136" r="3.2" fill="#55c8da" fill-opacity=".17"/>
+            <circle class="ai-network-node" cx="88" cy="82" r="4.2" fill="#8d79df" fill-opacity=".18"/>
+            <circle class="ai-network-node" cx="112" cy="18" r="2.8" fill="#d7b36b" fill-opacity=".19"/>
+            <circle class="ai-network-node" cx="156" cy="119" r="3.1" fill="#55c8da" fill-opacity=".18"/>
+            <circle class="ai-network-node" cx="204" cy="171" r="2.7" fill="#8d79df" fill-opacity=".15"/>
+            <circle class="ai-network-node" cx="221" cy="54" r="4.7" fill="#55c8da" fill-opacity=".21"/>
+            <circle class="ai-network-node" cx="293" cy="96" r="3.4" fill="#d7b36b" fill-opacity=".18"/>
+            <circle class="ai-network-node" cx="344" cy="158" r="2.7" fill="#55c8da" fill-opacity=".15"/>
+            <circle class="ai-network-node" cx="359" cy="38" r="3.1" fill="#8d79df" fill-opacity=".18"/>
+            <circle class="ai-network-node" cx="414" cy="113" r="4" fill="#55c8da" fill-opacity=".18"/>
+          </g>
+        </g>
 
-      basePoints.length = 0;
-      const count = Math.max(13, Math.min(24, Math.round(width / 75)));
-      for (let i = 0; i < count; i += 1) {
-        basePoints.push({
-          x: rand(0.03, 0.97),
-          y: rand(0.05, 0.95),
-          r: rand(0.8, 1.8),
-          phase: rand(0, Math.PI * 2),
-          speed: rand(0.00008, 0.00016),
-          color: pick(palette)
-        });
-      }
-      running = width > 760 && !document.hidden;
-    };
+        <!-- Pequeñas observaciones periféricas para dar continuidad sin ruido. -->
+        <g fill="#62c7d7" fill-opacity=".105">
+          <circle cx="86" cy="206" r="1.8"/><circle cx="148" cy="245" r="1.3"/><circle cx="236" cy="183" r="1.6"/>
+          <circle cx="718" cy="124" r="1.4"/><circle cx="792" cy="162" r="1.8"/><circle cx="890" cy="117" r="1.3"/>
+          <circle cx="682" cy="780" r="1.4"/><circle cx="742" cy="744" r="1.7"/><circle cx="826" cy="798" r="1.2"/>
+          <circle cx="1518" cy="364" r="1.6"/><circle cx="1552" cy="426" r="1.2"/>
+        </g>
+      </svg>
+    `;
 
-    const makeMotif = (now, forcedType) => {
-      const type = forcedType || pick(['data', 'chart', 'map', 'cluster']);
-      const marginX = Math.min(130, width * 0.09);
-      const marginY = Math.min(105, height * 0.1);
-      const dots = Array.from({ length: 7 }, (_, index) => ({
-        x: rand(0.06, 0.94),
-        y: rand(0.16, 0.84),
-        color: palette[(index + 1) % palette.length]
-      }));
-
-      motifs.push({
-        type,
-        x: rand(marginX, Math.max(marginX + 20, width - marginX)),
-        y: rand(marginY, Math.max(marginY + 20, height - marginY)),
-        birth: now,
-        life: rand(12000, 19000),
-        scale: rand(0.78, 1.24),
-        phase: rand(0, Math.PI * 2),
-        color: pick(palette),
-        seed: Math.random(),
-        dots
-      });
-    };
-
-    const envelope = (t) => {
-      if (t <= 0 || t >= 1) return 0;
-      const edge = 0.18;
-      if (t < edge) return t / edge;
-      if (t > 1 - edge) return (1 - t) / edge;
-      return 1;
-    };
-
-    const drawBaseConstellation = (now) => {
-      const pts = basePoints.map((point) => ({
-        x: point.x * width + Math.sin(now * point.speed + point.phase) * 7,
-        y: point.y * height + Math.cos(now * point.speed * 0.8 + point.phase) * 5,
-        r: point.r,
-        color: point.color
-      }));
-
-      ctx.lineWidth = 0.7;
-      for (let i = 0; i < pts.length; i += 1) {
-        for (let j = i + 1; j < pts.length; j += 1) {
-          const dx = pts[i].x - pts[j].x;
-          const dy = pts[i].y - pts[j].y;
-          const distance = Math.hypot(dx, dy);
-          if (distance > 105) continue;
-          ctx.strokeStyle = rgba(pts[i].color, 0.018 * (1 - distance / 105));
-          ctx.beginPath();
-          ctx.moveTo(pts[i].x, pts[i].y);
-          ctx.lineTo(pts[j].x, pts[j].y);
-          ctx.stroke();
-        }
-      }
-
-      pts.forEach((point) => {
-        ctx.fillStyle = rgba(point.color, 0.07);
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, point.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
-    };
-
-    const drawData = (motif, alpha, now) => {
-      ctx.save();
-      ctx.translate(motif.x - 48 * motif.scale, motif.y + Math.sin(now * 0.00012 + motif.phase) * 5);
-      ctx.rotate(-0.045 + Math.sin(motif.phase) * 0.02);
-      ctx.font = `${Math.round(10 * motif.scale)}px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace`;
-      ctx.textAlign = 'left';
-      const rows = 4 + Math.floor(motif.seed * 3);
-      for (let row = 0; row < rows; row += 1) {
-        const cols = 2 + ((row + Math.floor(motif.seed * 10)) % 3);
-        for (let col = 0; col < cols; col += 1) {
-          const token = tokens[(row * 3 + col + Math.floor(motif.seed * tokens.length)) % tokens.length];
-          ctx.fillStyle = rgba(motif.color, alpha * (0.038 + col * 0.008));
-          ctx.fillText(token, col * 42 * motif.scale, row * 18 * motif.scale);
-        }
-      }
-      ctx.restore();
-    };
-
-    const drawChart = (motif, alpha, now) => {
-      ctx.save();
-      ctx.translate(motif.x, motif.y + Math.sin(now * 0.0001 + motif.phase) * 4);
-      const w = 125 * motif.scale;
-      const h = 58 * motif.scale;
-      const left = -w / 2;
-      const top = -h / 2;
-
-      ctx.strokeStyle = rgba(motif.color, alpha * 0.035);
-      ctx.lineWidth = 0.7;
-      ctx.beginPath();
-      ctx.moveTo(left, top + h);
-      ctx.lineTo(left + w, top + h);
-      ctx.stroke();
-
-      const points = 7;
-      ctx.strokeStyle = rgba(motif.color, alpha * 0.085);
-      ctx.lineWidth = 1.1;
-      ctx.beginPath();
-      for (let i = 0; i < points; i += 1) {
-        const x = left + (w / (points - 1)) * i;
-        const normalized = 0.54 + Math.sin(i * 1.17 + motif.seed * 7.2) * 0.22 + i * 0.035;
-        const y = top + h - Math.max(0.12, Math.min(0.88, normalized)) * h;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-
-      motif.dots.forEach((dot) => {
-        ctx.fillStyle = rgba(dot.color, alpha * 0.075);
-        ctx.beginPath();
-        ctx.arc(left + dot.x * w, top + dot.y * h, 1.4 * motif.scale, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      ctx.restore();
-    };
-
-    const drawMap = (motif, alpha, now) => {
-      ctx.save();
-      ctx.translate(motif.x, motif.y + Math.sin(now * 0.000085 + motif.phase) * 4);
-      ctx.rotate(Math.sin(motif.phase) * 0.08);
-      const w = 150 * motif.scale;
-      const h = 105 * motif.scale;
-      const rings = 3;
-
-      for (let ring = 0; ring < rings; ring += 1) {
-        const inset = ring * 11 * motif.scale;
-        ctx.strokeStyle = rgba(motif.color, alpha * (0.035 + ring * 0.008));
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        const count = 9;
-        for (let i = 0; i < count; i += 1) {
-          const angle = (Math.PI * 2 * i) / count;
-          const wobble = 0.78 + 0.16 * Math.sin(i * 2.31 + motif.seed * 9 + ring);
-          const x = Math.cos(angle) * (w * 0.44 - inset) * wobble;
-          const y = Math.sin(angle) * (h * 0.43 - inset * 0.55) * (0.88 + 0.1 * Math.cos(i * 1.7 + motif.seed * 4));
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.closePath();
-        ctx.stroke();
-      }
-      ctx.restore();
-    };
-
-    const drawCluster = (motif, alpha, now) => {
-      ctx.save();
-      ctx.translate(motif.x, motif.y);
-      const pts = [];
-      const count = 7;
-
-      for (let i = 0; i < count; i += 1) {
-        const angle = i * 2.13 + motif.seed * 5.4;
-        const radius = (22 + (i % 3) * 14) * motif.scale;
-        pts.push({
-          x: Math.cos(angle) * radius + Math.sin(now * 0.00011 + i) * 2,
-          y: Math.sin(angle) * radius * 0.72 + Math.cos(now * 0.00009 + i) * 2
-        });
-      }
-
-      ctx.lineWidth = 0.8;
-      for (let i = 0; i < pts.length; i += 1) {
-        for (let j = i + 1; j < pts.length; j += 1) {
-          const distance = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
-          const limit = 52 * motif.scale;
-          if (distance > limit) continue;
-          ctx.strokeStyle = rgba(motif.color, alpha * 0.055 * (1 - distance / limit));
-          ctx.beginPath();
-          ctx.moveTo(pts[i].x, pts[i].y);
-          ctx.lineTo(pts[j].x, pts[j].y);
-          ctx.stroke();
-        }
-      }
-
-      pts.forEach((point, index) => {
-        ctx.fillStyle = rgba(palette[(index + 2) % palette.length], alpha * 0.11);
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, (index % 3 === 0 ? 2.1 : 1.3) * motif.scale, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      ctx.restore();
-    };
-
-    const drawMotifs = (now) => {
-      for (let i = motifs.length - 1; i >= 0; i -= 1) {
-        const motif = motifs[i];
-        const t = (now - motif.birth) / motif.life;
-        if (t >= 1) {
-          motifs.splice(i, 1);
-          continue;
-        }
-        const alpha = envelope(t);
-        if (motif.type === 'data') drawData(motif, alpha, now);
-        else if (motif.type === 'chart') drawChart(motif, alpha, now);
-        else if (motif.type === 'map') drawMap(motif, alpha, now);
-        else drawCluster(motif, alpha, now);
-      }
-    };
-
-    const tick = (now) => {
-      if (!running) {
-        frame = 0;
-        return;
-      }
-
-      if (now - lastFrame < 42) {
-        frame = requestAnimationFrame(tick);
-        return;
-      }
-      lastFrame = now;
-
-      ctx.clearRect(0, 0, width, height);
-      drawBaseConstellation(now);
-      drawMotifs(now);
-
-      if (!lastSpawn || now - lastSpawn > 4300) {
-        lastSpawn = now;
-        if (motifs.length < 5) makeMotif(now);
-      }
-      frame = requestAnimationFrame(tick);
-    };
-
-    resize();
-    const now = performance.now();
-    ['map', 'chart', 'data', 'cluster'].forEach((type, index) => {
-      makeMotif(now - index * 2200, type);
-    });
-
-    window.addEventListener('resize', () => {
-      resize();
-      if (running && !frame) frame = requestAnimationFrame(tick);
-    }, { passive: true });
-
-    document.addEventListener('visibilitychange', () => {
-      running = !document.hidden && window.innerWidth > 760;
-      if (running && !frame) frame = requestAnimationFrame(tick);
-    });
-
-    if (running) frame = requestAnimationFrame(tick);
+    document.body.prepend(layer);
   };
 
   if (document.body) init();
