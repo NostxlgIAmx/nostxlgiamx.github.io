@@ -9,11 +9,11 @@
     document.head.appendChild(polish);
   }
 
-  /* Luz ambiental sutil que sigue al cursor en dispositivos con puntero fino. */
-  if (currentScript && !document.querySelector('script[data-cursor-ambient]')) {
+  /* Fondo ambiental analítico cargado directamente, sin dependencia del cursor. */
+  if (currentScript && !document.querySelector('script[data-ambient-background]')) {
     const ambientScript = document.createElement('script');
-    ambientScript.src = new URL('cursor-ambient.js?v=20260817-1', currentScript.src).href;
-    ambientScript.dataset.cursorAmbient = 'true';
+    ambientScript.src = new URL('ambient-background-v2.js?v=20260818-3', currentScript.src).href;
+    ambientScript.dataset.ambientBackground = 'true';
     ambientScript.async = false;
     document.head.appendChild(ambientScript);
   }
