@@ -2,625 +2,212 @@
   'use strict';
 
   const currentScript = document.currentScript;
-  if (!currentScript) return;
+  if (!currentScript || document.querySelector('.ambient-background-canvas')) return;
 
-  document.querySelectorAll('.ambient-bg,.ambient-background-canvas').forEach((node) => node.remove());
-  document.querySelectorAll('style[data-ambient-background]').forEach((node) => node.remove());
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const mobile = matchMedia('(max-width: 760px)');
+  const COLORS = [[78,205,229],[138,108,220],[219,184,105],[122,151,181]];
+  const rgba = (c,a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
+  const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+  const TEXT_QUERY = 'h1,h2,h3,h4,p,.eyebrow,.category,.card-meta,.meta-label,.meta-value,.tag,.visual-kicker,.visual-caption,.footer-title,.footer-links,.brand,.nav,.btn,.text-link,dt,dd,li,label,legend,blockquote';
+  const PANEL_QUERY = '.card,.service-mini,.editorial-visual,.project-feature,.project-visual,.source-viz-card,.chart-panel,.cta,.principles,.page-aside,.data-library-controls,.topic-filters,.filters,form,table,figure,.dashboard,.map,.panel';
+  const DEBUG_KEY = '__NOSTXLGIA_AMBIENT_DEBUG__';
 
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const mobileQuery = window.matchMedia('(max-width: 760px)');
-  const COLORS = {
-    cyan: [74, 202, 222],
-    purple: [132, 111, 205],
-    gold: [216, 181, 103],
-    slate: [117, 145, 175]
-  };
-  const PALETTE = Object.values(COLORS);
-  const FAMILY_PARALLAX = { roads: .008, numbers: -.004, micro: .005, constellation: .002 };
-  const TEXT_PROTECTION_QUERY = 'h1,h2,h3,h4,p,.eyebrow,.category,.card-meta,.meta-label,.meta-value,.tag,.visual-kicker,.visual-caption,.footer-title,.footer-links,.brand,.nav,.btn,.text-link,dt,dd,li,label,legend,blockquote';
-  const PANEL_PROTECTION_QUERY = '.card,.service-mini,.editorial-visual,.project-feature,.project-visual,.source-viz-card,.chart-panel,.cta,.principles,.page-aside,.data-library-controls,.topic-filters,.filters,form,table,figure,.dashboard,.map,.panel';
-  const DEBUG_KEY = '__NOSTXLGIA_AMBIENT_DEBUG__'; // disabled in production unless manually set in DevTools
-  const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
-  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296;};}
+  function parseAlpha(v){if(!v||v==='transparent')return 0;const m=v.match(/rgba?\(([^)]+)\)/i);if(!m)return 1;const p=m[1].split(',').map(s=>s.trim());return p.length>3?Number(p[3])||0:1;}
+  function hasOwnBg(node){const cs=getComputedStyle(node);return cs.backgroundImage!=='none'||parseAlpha(cs.backgroundColor)>=.18;}
 
-  const init = async () => {
-    if (!document.body || document.querySelector('.ambient-background-canvas')) return;
-
-    const style = document.createElement('style');
-    style.dataset.ambientBackground = 'true';
-    style.textContent = `
-      .ambient-background-canvas{
-        position:fixed;
-        inset:0;
-        width:100vw;
-        height:100vh;
-        pointer-events:none;
-        z-index:0
-      }
-      main,.site-footer{position:relative;z-index:1}
-      .site-header{z-index:50}
-    `;
+  async function init(){
+    const style=document.createElement('style');
+    style.dataset.ambientBackground='true';
+    style.textContent='.ambient-background-canvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:0}.site-header,main,.site-footer{position:relative;z-index:1}.site-header{z-index:50}';
     document.head.appendChild(style);
 
-    const canvas = document.createElement('canvas');
-    canvas.className = 'ambient-background-canvas';
-    canvas.setAttribute('aria-hidden', 'true');
+    const canvas=document.createElement('canvas');
+    canvas.className='ambient-background-canvas';
+    canvas.setAttribute('aria-hidden','true');
     document.body.prepend(canvas);
+    const scene=document.createElement('canvas');
+    const mask=document.createElement('canvas');
+    const ctx=canvas.getContext('2d',{alpha:true});
+    const sctx=scene.getContext('2d',{alpha:true});
+    const mctx=mask.getContext('2d',{alpha:true});
+    if(!ctx||!sctx||!mctx)return;
 
-    const sceneCanvas = document.createElement('canvas');
-    const maskCanvas = document.createElement('canvas');
-    const maskSource = document.createElement('canvas');
-    const ctx = canvas.getContext('2d', { alpha: true });
-    const sceneCtx = sceneCanvas.getContext('2d', { alpha: true });
-    const maskCtx = maskCanvas.getContext('2d', { alpha: true });
-    const maskSourceCtx = maskSource.getContext('2d', { alpha: true });
-    if (!ctx || !sceneCtx || !maskCtx || !maskSourceCtx) return;
+    let w=0,h=0,dpr=1,docH=0,items=[],cuts=[],maskGeometry=[],raf=0,maskRaf=0,resizeRaf=0,visible=!document.hidden;
 
-    let width = 0;
-    let height = 0;
-    let dpr = 1;
-    let docHeight = 0;
-    let items = [];
-    let roadCuts = [];
-    let animationId = 0;
-    let visible = !document.hidden;
-    let maskGeometry = [];
-    let maskNodes = [];
-    let maskRaf = 0;
-    let scrollRaf = 0;
-    let resizeRaf = 0;
-    let resizeObserver = null;
-    let mutationObserver = null;
-    const seedBase = 831726;
+    try{
+      const url=new URL('../data/ambient-road-cuts.json?v=20260818-4',currentScript.src);
+      const r=await fetch(url,{cache:'no-cache'});
+      if(r.ok){const data=await r.json();cuts=(data.cuts||[]).map(c=>({
+        ...c,
+        primary:c.primary?new Path2D(c.primary):null,
+        secondary:c.secondary?new Path2D(c.secondary):null
+      }));}
+    }catch(_){cuts=[];}
 
-    function randomFactory(seed) {
-      return () => {
-        seed |= 0;
-        seed = seed + 0x6D2B79F5 | 0;
-        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
-        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-        return ((t ^ t >>> 14) >>> 0) / 4294967296;
-      };
-    }
-
-    function parseAlpha(value) {
-      if (!value || value === 'transparent') return 0;
-      const m = value.match(/rgba?\(([^)]+)\)/i);
-      if (!m) return 1;
-      const parts = m[1].split(',').map((p) => p.trim());
-      return parts.length > 3 ? Number(parts[3]) || 0 : 1;
-    }
-
-    function ownBackgroundCovers(node) {
-      const cs = getComputedStyle(node);
-      return cs.backgroundImage !== 'none' || parseAlpha(cs.backgroundColor) >= .2;
-    }
-
-    function unionLineRects(rects) {
-      const rows = [];
-      [...rects].forEach((rect) => {
-        if (rect.width < 2 || rect.height < 2) return;
-        const y = rect.top + window.scrollY;
-        const existing = rows.find((r) => Math.abs(r.y - y) < Math.max(3, rect.height * .35));
-        const x = rect.left + window.scrollX;
-        if (existing) {
-          const right = Math.max(existing.x + existing.w, x + rect.width);
-          existing.x = Math.min(existing.x, x);
-          existing.w = right - existing.x;
-          existing.h = Math.max(existing.h, rect.height);
-        } else {
-          rows.push({ x, y, w: rect.width, h: rect.height, feather: 18, kind: 'text' });
-        }
-      });
-      return rows;
-    }
-
-    function textLineRects(node) {
-      const out = [];
-      const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, {
-        acceptNode(textNode) {
-          return textNode.nodeValue && textNode.nodeValue.trim()
-            ? NodeFilter.FILTER_ACCEPT
-            : NodeFilter.FILTER_REJECT;
-        }
-      });
-      let textNode;
-      while ((textNode = walker.nextNode())) {
-        const range = document.createRange();
-        range.selectNodeContents(textNode);
-        out.push(...unionLineRects(range.getClientRects()));
-      }
-      return out;
-    }
-
-    function rebuildMaskGeometry() {
-      const next = [];
-      const nodes = new Set();
-
-      document.querySelectorAll(TEXT_PROTECTION_QUERY).forEach((node) => {
-        if (node.closest('.ambient-background-canvas')) return;
-        const cs = getComputedStyle(node);
-        if (cs.display === 'none' || cs.visibility === 'hidden') return;
-        textLineRects(node).forEach((r) => {
-          r.feather = clamp(Math.round(r.h * .8), 12, 24);
-          next.push(r);
-        });
-        nodes.add(node);
-      });
-
-      document.querySelectorAll(PANEL_PROTECTION_QUERY).forEach((node) => {
-        if (ownBackgroundCovers(node)) return;
-        const rect = node.getBoundingClientRect();
-        if (rect.width < 4 || rect.height < 4) return;
-        next.push({
-          x: rect.left + window.scrollX,
-          y: rect.top + window.scrollY,
-          w: rect.width,
-          h: rect.height,
-          feather: clamp(Math.round(Math.min(rect.width, rect.height) * .06), 16, 30),
-          kind: 'panel'
-        });
-        nodes.add(node);
-      });
-
-      maskGeometry = next;
-      maskNodes = [...nodes];
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-        resizeObserver.observe(document.documentElement);
-        resizeObserver.observe(document.body);
-        maskNodes.forEach((node) => resizeObserver.observe(node));
-      }
-    }
-
-    function scheduleMaskRebuild() {
-      if (maskRaf) return;
-      maskRaf = requestAnimationFrame(() => {
-        maskRaf = 0;
-        rebuildMaskGeometry();
-        if (reducedMotion.matches) draw(performance.now());
-      });
-    }
-
-    function resizeSurfaces() {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      [canvas, sceneCanvas, maskCanvas, maskSource].forEach((surface) => {
-        surface.width = Math.max(1, Math.round(width * dpr));
-        surface.height = Math.max(1, Math.round(height * dpr));
-      });
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      [ctx, sceneCtx, maskCtx, maskSourceCtx].forEach((c) => c.setTransform(dpr, 0, 0, dpr, 0, 0));
-      buildWorld();
-      scheduleMaskRebuild();
-    }
-
-    async function loadRoadCuts() {
-      try {
-        const url = new URL('../data/ambient-road-cuts.json?v=20260818-1', currentScript.src);
-        const response = await fetch(url, { cache: 'force-cache' });
-        if (!response.ok) return;
-        const data = await response.json();
-        roadCuts = (data.cuts || []).map((cut) => {
-          let primary = null;
-          let secondary = null;
-          try { if (cut.primary) primary = new Path2D(cut.primary); } catch (_) {}
-          try { if (cut.secondary) secondary = new Path2D(cut.secondary); } catch (_) {}
-          return { ...cut, primary, secondary };
-        }).filter((cut) => cut.primary || cut.secondary);
-      } catch (_) {
-        roadCuts = [];
-      }
-    }
-
-    function familyFor(rnd) {
-      const r = rnd();
-      if (r < .25) return 'roads';
-      if (r < .49) return 'numbers';
-      if (r < .79) return 'micro';
-      return 'constellation';
-    }
-
-    function statDataset(rnd) {
-      const candidates = [
-        () => `${Math.round(18 + rnd() * 78)}.${Math.round(rnd() * 9)}%`,
-        () => `n=${Math.round(120 + rnd() * 4800).toLocaleString('en-US')}`,
-        () => `P50 ${Math.round(32 + rnd() * 58)}.${Math.round(rnd() * 9)}`,
-        () => `Δ ${rnd() > .5 ? '+' : '−'}${(rnd() * 8.9).toFixed(1)}%`,
-        () => `σ ${(0.8 + rnd() * 4.2).toFixed(1)}`,
-        () => `idx ${(45 + rnd() * 50).toFixed(1)}`,
-        () => `${(23.6 + rnd() * 1.8).toFixed(2)}, −${(103.8 + rnd() * 2.1).toFixed(2)}`
+    function statData(q){
+      const pool=[
+        ()=>`${(18+q()*78).toFixed(1)}%`,
+        ()=>`n=${Math.round(80+q()*9200).toLocaleString('en-US')}`,
+        ()=>`P50 ${(35+q()*55).toFixed(1)}`,
+        ()=>`Δ ${q()>.5?'+':'−'}${(q()*9.8).toFixed(1)}%`,
+        ()=>`σ ${(0.8+q()*4.5).toFixed(1)}`,
+        ()=>`idx ${(48+q()*46).toFixed(1)}`
       ];
-      const count = 2 + Math.floor(rnd() * 3);
-      return Array.from({ length: count }, (_, i) => ({
-        label: candidates[Math.floor(rnd() * candidates.length)](),
-        ox: (rnd() - .5) * 92,
-        oy: (i - (count - 1) / 2) * (14 + rnd() * 5) + (rnd() - .5) * 7
-      }));
+      return Array.from({length:2+Math.floor(q()*3)},(_,i)=>({t:pool[Math.floor(q()*pool.length)](),x:(q()-.5)*90,y:(i-1)*16+(q()-.5)*5}));
     }
 
-    function microDataset(rnd) {
-      const variants = ['sparkline', 'bars', 'dotplot', 'distribution'];
-      const variant = variants[Math.floor(rnd() * variants.length)];
-      const count = variant === 'bars' ? 5 + Math.floor(rnd() * 3) : 7 + Math.floor(rnd() * 4);
-      const values = Array.from({ length: count }, () => .12 + rnd() * .76);
-      values.forEach((_, i) => {
-        if (i && variant !== 'dotplot') values[i] = clamp(values[i - 1] * .55 + values[i] * .45, .08, .92);
-      });
-      return { variant, values };
+    function microData(q){
+      const variants=['spark','bars','dots','dist'];
+      const variant=variants[Math.floor(q()*variants.length)];
+      const n=variant==='bars'?6:8;
+      const v=Array.from({length:n},()=>.12+q()*.76);
+      for(let i=1;i<v.length;i++) if(variant!=='dots') v[i]=clamp(v[i-1]*.45+v[i]*.55,.08,.92);
+      return {variant,v};
     }
 
-    function constellationDataset(rnd) {
-      const count = 6 + Math.floor(rnd() * 3);
-      const points = Array.from({ length: count }, () => ({
-        x: (rnd() - .5) * .9,
-        y: (rnd() - .5) * .62,
-        r: 1 + rnd() * 1.15
-      }));
-      const edges = [];
-      for (let i = 1; i < count; i++) {
-        if (rnd() < .58) edges.push([i, Math.floor(rnd() * i)]);
-      }
-      return { points, edges: edges.slice(0, Math.max(2, Math.floor(count * .65))) };
+    function constellationData(q){
+      const n=7+Math.floor(q()*4);
+      const pts=Array.from({length:n},()=>({x:(q()-.5),y:(q()-.5)*.72,r:1+q()*1.4}));
+      const edges=[];
+      for(let i=1;i<n;i++) if(q()<.55) edges.push([i,Math.floor(q()*i)]);
+      return {pts,edges};
     }
 
-    function respawn(item, now, rnd) {
-      item.respawns = (item.respawns || 0) + 1;
-      item.x = (item.stratum * .61803398875 + rnd() + item.respawns * .137) % 1;
-      item.x = .035 + item.x * .93;
-      const band = docHeight / item.stratumCount;
-      item.y = item.stratum * band + rnd() * band;
-      item.size = item.type === 'roads' ? 145 + rnd() * 105
-        : item.type === 'micro' ? 88 + rnd() * 68
-        : item.type === 'constellation' ? 86 + rnd() * 62
-        : 1;
-      item.color = PALETTE[Math.floor(rnd() * PALETTE.length)];
-      item.phase = rnd() * Math.PI * 2;
-      item.dx = 3 + rnd() * 8;
-      item.dy = 2 + rnd() * 6;
-      item.parallax = FAMILY_PARALLAX[item.type] || 0;
-      if (item.type === 'roads' && roadCuts.length) item.road = roadCuts[Math.floor(rnd() * roadCuts.length)];
-      if (item.type === 'numbers') item.dataset = statDataset(rnd);
-      if (item.type === 'micro') item.dataset = microDataset(rnd);
-      if (item.type === 'constellation') item.dataset = constellationDataset(rnd);
-
-      item.durations = {
-        hidden: 700 + rnd() * 1500,
-        fadeIn: 1000 + rnd() * 1000,
-        hold: item.type === 'roads' ? 9000 + rnd() * 6500 : 4300 + rnd() * 5000,
-        fadeOut: 1300 + rnd() * 1100
-      };
-      item.state = 'hidden';
-      item.stateStart = now;
+    function respawn(it,now,q){
+      it.respawns=(it.respawns||0)+1;
+      const band=docH/it.total;
+      it.x=.04+((it.i*.61803398875+q()+it.respawns*.137)%1)*.92;
+      it.y=it.i*band+q()*band;
+      it.phase=q()*Math.PI*2;
+      it.color=COLORS[Math.floor(q()*COLORS.length)];
+      it.size=it.type==='road'?170+q()*125:it.type==='micro'?100+q()*75:it.type==='constellation'?105+q()*75:1;
+      it.dx=5+q()*11;it.dy=4+q()*8;
+      it.parallax=it.type==='road'?.045:it.type==='micro'?.03:it.type==='constellation'?.02:.015;
+      if(it.type==='road'&&cuts.length)it.cut=cuts[Math.floor(q()*cuts.length)];
+      if(it.type==='numbers')it.data=statData(q);
+      if(it.type==='micro')it.data=microData(q);
+      if(it.type==='constellation')it.data=constellationData(q);
+      it.d={hidden:400+q()*900,fadeIn:700+q()*700,hold:it.type==='road'?9000+q()*6000:4200+q()*3800,fadeOut:900+q()*800};
+      it.state='hidden';it.t0=now;
     }
 
-    function buildWorld() {
-      docHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, height);
-      const mobile = mobileQuery.matches;
-      const targetDensity = mobile ? 4.15 : 10.7;
-      const count = Math.max(mobile ? 4 : 10, Math.ceil((docHeight / Math.max(height, 1)) * targetDensity));
-      const rnd = randomFactory(seedBase + Math.round(docHeight) + Math.round(width));
-      const now = performance.now();
-      items = Array.from({ length: count }, (_, index) => {
-        const item = {
-          type: familyFor(rnd),
-          stratum: index,
-          stratumCount: count,
-          respawns: 0
-        };
-        respawn(item, now, rnd);
-        const cycle = item.durations.hidden + item.durations.fadeIn + item.durations.hold + item.durations.fadeOut;
-        item.stateStart = now - rnd() * cycle;
-        return item;
+    function buildWorld(){
+      docH=Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,h);
+      const viewports=Math.max(1,docH/Math.max(h,1));
+      const total=Math.ceil(viewports*(mobile.matches?9:24));
+      const q=rng(831726+Math.round(docH)+Math.round(w));
+      const now=performance.now();
+      items=Array.from({length:total},(_,i)=>{
+        const r=q();
+        const type=r<.28?'road':r<.5?'numbers':r<.78?'micro':'constellation';
+        const it={i,total,type,respawns:0};respawn(it,now,q);
+        const cycle=it.d.hidden+it.d.fadeIn+it.d.hold+it.d.fadeOut;
+        it.t0=now-q()*cycle;
+        return it;
       });
     }
 
-    function transition(item, next, now, rnd) {
-      item.state = next;
-      item.stateStart = now;
-      if (next === 'hidden') respawn(item, now, rnd);
-    }
-
-    function lifecycleAlpha(item, now) {
-      if (reducedMotion.matches) return .72;
-      const rnd = randomFactory((item.stratum + 1) * 991 + item.respawns * 8191);
-      let guard = 0;
-      while (guard++ < 8) {
-        const elapsed = now - item.stateStart;
-        const duration = item.durations[item.state];
-        if (elapsed < duration) {
-          if (item.state === 'hidden') return 0;
-          if (item.state === 'fadeIn') {
-            const t = clamp(elapsed / duration, 0, 1);
-            return t * t * (3 - 2 * t);
-          }
-          if (item.state === 'hold') return 1;
-          if (item.state === 'fadeOut') {
-            const t = clamp(elapsed / duration, 0, 1);
-            return 1 - t * t * (3 - 2 * t);
-          }
+    function alpha(it,now){
+      if(reducedMotion.matches)return .78;
+      let guard=0;
+      while(guard++<8){
+        const e=now-it.t0,d=it.d[it.state];
+        if(e<d){
+          if(it.state==='hidden')return 0;
+          if(it.state==='fadeIn'){const t=clamp(e/d,0,1);return t*t*(3-2*t);}
+          if(it.state==='hold')return 1;
+          const t=clamp(e/d,0,1);return 1-t*t*(3-2*t);
         }
-        if (item.state === 'hidden') transition(item, 'fadeIn', item.stateStart + duration, rnd);
-        else if (item.state === 'fadeIn') transition(item, 'hold', item.stateStart + duration, rnd);
-        else if (item.state === 'hold') transition(item, 'fadeOut', item.stateStart + duration, rnd);
-        else transition(item, 'hidden', item.stateStart + duration, rnd);
+        if(it.state==='hidden')it.state='fadeIn';
+        else if(it.state==='fadeIn')it.state='hold';
+        else if(it.state==='hold')it.state='fadeOut';
+        else{const q=rng((it.i+1)*977+it.respawns*7919+Math.floor(now));respawn(it,now,q);}
+        it.t0=now;
       }
       return 0;
     }
 
-    function position(item, now) {
-      const motion = reducedMotion.matches ? 0 : 1;
-      const scroll = window.scrollY || 0;
+    function position(it,now){
+      const motion=reducedMotion.matches?0:1;
       return {
-        x: item.x * width + Math.sin(now * .000045 + item.phase) * item.dx * motion,
-        y: item.y - scroll * (1 - item.parallax)
-          + Math.cos(now * .000038 + item.phase * 1.37) * item.dy * motion
+        x:it.x*w+Math.sin(now*.00008+it.phase)*it.dx*motion,
+        y:it.y-window.scrollY-window.scrollY*it.parallax+Math.cos(now*.000065+it.phase*1.3)*it.dy*motion
       };
     }
 
-    function drawRoad(item, p, alpha) {
-      const cut = item.road;
-      if (!cut) return;
-      const [minX, minY, boxW, boxH] = cut.viewBox || [0, 0, 100, 100];
-      const maxDim = Math.max(boxW, boxH, 1);
-      const scale = item.size / maxDim;
-      const drawW = boxW * scale;
-      const drawH = boxH * scale;
-      sceneCtx.save();
-      sceneCtx.translate(p.x - drawW / 2 - minX * scale, p.y - drawH / 2 - minY * scale);
-      sceneCtx.scale(scale, scale);
-      sceneCtx.lineCap = 'round';
-      sceneCtx.lineJoin = 'round';
-      if (cut.secondary) {
-        sceneCtx.strokeStyle = rgba(item.color, .075 * alpha);
-        sceneCtx.lineWidth = .58 / scale;
-        sceneCtx.stroke(cut.secondary);
-      }
-      if (cut.primary) {
-        sceneCtx.strokeStyle = rgba(item.color, .13 * alpha);
-        sceneCtx.lineWidth = 1.08 / scale;
-        sceneCtx.stroke(cut.primary);
-      }
-      sceneCtx.restore();
+    function drawRoad(it,p,a){
+      if(!it.cut)return;
+      const sc=it.size/100;
+      sctx.save();sctx.translate(p.x-it.size/2,p.y-it.size/2);sctx.scale(sc,sc);sctx.lineCap='round';sctx.lineJoin='round';sctx.globalCompositeOperation='screen';
+      if(it.cut.secondary){sctx.strokeStyle=rgba(COLORS[3],.14*a);sctx.lineWidth=.9/sc;sctx.stroke(it.cut.secondary);}
+      if(it.cut.primary){sctx.shadowBlur=7;sctx.shadowColor=rgba(it.color,.24*a);sctx.strokeStyle=rgba(it.color,.44*a);sctx.lineWidth=1.7/sc;sctx.stroke(it.cut.primary);}
+      sctx.restore();
     }
 
-    function drawNumbers(item, p, alpha) {
-      sceneCtx.save();
-      sceneCtx.font = '500 9.5px Inter,system-ui,sans-serif';
-      sceneCtx.textBaseline = 'middle';
-      item.dataset.forEach((entry, i) => {
-        sceneCtx.fillStyle = rgba(item.color, (.10 + (i % 2) * .025) * alpha);
-        sceneCtx.fillText(entry.label, p.x + entry.ox, p.y + entry.oy);
-      });
-      sceneCtx.restore();
+    function drawNumbers(it,p,a){
+      sctx.save();sctx.translate(p.x,p.y);sctx.font='600 11px ui-monospace,SFMono-Regular,Menlo,monospace';sctx.textBaseline='middle';sctx.globalCompositeOperation='screen';
+      it.data.forEach((d,i)=>{sctx.fillStyle=rgba(it.color,(.25+i*.06)*a);sctx.fillText(d.t,d.x,d.y);});
+      sctx.restore();
     }
 
-    function drawMicro(item, p, alpha) {
-      const data = item.dataset;
-      const w = item.size;
-      const h = w * .34;
-      const left = p.x - w / 2;
-      const top = p.y - h / 2;
-      const values = data.values;
-      sceneCtx.save();
-      sceneCtx.lineCap = 'round';
-      sceneCtx.lineJoin = 'round';
-
-      if (data.variant === 'sparkline') {
-        sceneCtx.strokeStyle = rgba(item.color, .14 * alpha);
-        sceneCtx.lineWidth = 1;
-        sceneCtx.beginPath();
-        values.forEach((v, i) => {
-          const x = left + i * w / (values.length - 1);
-          const y = top + h * (1 - v);
-          i ? sceneCtx.lineTo(x, y) : sceneCtx.moveTo(x, y);
-        });
-        sceneCtx.stroke();
-        sceneCtx.fillStyle = rgba(item.color, .18 * alpha);
-        [0, Math.floor(values.length / 2), values.length - 1].forEach((i) => {
-          const x = left + i * w / (values.length - 1);
-          const y = top + h * (1 - values[i]);
-          sceneCtx.beginPath();
-          sceneCtx.arc(x, y, 1.5, 0, Math.PI * 2);
-          sceneCtx.fill();
-        });
-      } else if (data.variant === 'bars') {
-        const gap = 4;
-        const bw = (w - gap * (values.length - 1)) / values.length;
-        sceneCtx.fillStyle = rgba(item.color, .12 * alpha);
-        values.forEach((v, i) => {
-          const bh = h * v;
-          sceneCtx.fillRect(left + i * (bw + gap), top + h - bh, bw, bh);
-        });
-      } else if (data.variant === 'dotplot') {
-        const baseY = p.y;
-        sceneCtx.strokeStyle = rgba(item.color, .055 * alpha);
-        sceneCtx.lineWidth = .6;
-        sceneCtx.beginPath();
-        sceneCtx.moveTo(left, baseY);
-        sceneCtx.lineTo(left + w, baseY);
-        sceneCtx.stroke();
-        sceneCtx.fillStyle = rgba(item.color, .17 * alpha);
-        values.forEach((v, i) => {
-          const x = left + v * w;
-          const y = baseY + ((i % 3) - 1) * 6 + (i % 2 ? 2 : -1);
-          sceneCtx.beginPath();
-          sceneCtx.arc(x, y, 1.25 + (i % 3) * .22, 0, Math.PI * 2);
-          sceneCtx.fill();
-        });
-      } else {
-        sceneCtx.strokeStyle = rgba(item.color, .13 * alpha);
-        sceneCtx.lineWidth = 1;
-        sceneCtx.beginPath();
-        values.forEach((v, i) => {
-          const x = left + i * w / (values.length - 1);
-          const centered = Math.sin(i / (values.length - 1) * Math.PI);
-          const y = top + h - h * (.18 + centered * .68 * v);
-          i ? sceneCtx.lineTo(x, y) : sceneCtx.moveTo(x, y);
-        });
-        sceneCtx.stroke();
-      }
-      sceneCtx.restore();
+    function drawMicro(it,p,a){
+      const W=it.size,H=W*.42,l=p.x-W/2,t=p.y-H/2;
+      sctx.save();sctx.globalCompositeOperation='screen';sctx.strokeStyle=rgba(COLORS[3],.12*a);sctx.lineWidth=.7;sctx.strokeRect(l,t,W,H);
+      const v=it.data.v,left=l+9,right=l+W-9,top=t+8,bottom=t+H-8;
+      sctx.strokeStyle=rgba(it.color,.38*a);sctx.fillStyle=rgba(it.color,.28*a);sctx.lineWidth=1.1;
+      if(it.data.variant==='spark'){sctx.beginPath();v.forEach((x,i)=>{const px=left+(right-left)*i/(v.length-1),py=bottom-(bottom-top)*x;i?sctx.lineTo(px,py):sctx.moveTo(px,py);});sctx.stroke();}
+      else if(it.data.variant==='bars'){const gap=(right-left)/v.length;v.forEach((x,i)=>{const py=bottom-(bottom-top)*x;sctx.fillRect(left+i*gap+gap*.22,py,gap*.55,bottom-py);});}
+      else if(it.data.variant==='dots'){v.forEach((x,i)=>{const px=left+(right-left)*i/(v.length-1),py=bottom-(bottom-top)*x;sctx.beginPath();sctx.arc(px,py,2.2,0,Math.PI*2);sctx.fill();});}
+      else{v.forEach((x,i)=>{const px=left+(right-left)*i/(v.length-1),py=bottom-(bottom-top)*x;sctx.beginPath();sctx.moveTo(px,bottom);sctx.lineTo(px,py);sctx.stroke();});}
+      sctx.restore();
     }
 
-    function drawConstellation(item, p, alpha) {
-      const data = item.dataset;
-      const pts = data.points.map((q) => [p.x + q.x * item.size, p.y + q.y * item.size]);
-      sceneCtx.save();
-      sceneCtx.strokeStyle = rgba(item.color, .065 * alpha);
-      sceneCtx.lineWidth = .7;
-      data.edges.forEach(([a, b]) => {
-        sceneCtx.beginPath();
-        sceneCtx.moveTo(pts[a][0], pts[a][1]);
-        sceneCtx.lineTo(pts[b][0], pts[b][1]);
-        sceneCtx.stroke();
-      });
-      sceneCtx.fillStyle = rgba(item.color, .15 * alpha);
-      pts.forEach((q, i) => {
-        sceneCtx.beginPath();
-        sceneCtx.arc(q[0], q[1], data.points[i].r, 0, Math.PI * 2);
-        sceneCtx.fill();
-      });
-      sceneCtx.restore();
+    function drawConstellation(it,p,a){
+      sctx.save();sctx.translate(p.x,p.y);sctx.globalCompositeOperation='screen';sctx.strokeStyle=rgba(it.color,.17*a);sctx.lineWidth=.8;
+      it.data.edges.forEach(([u,v])=>{const a1=it.data.pts[u],b1=it.data.pts[v];sctx.beginPath();sctx.moveTo(a1.x*it.size*.45,a1.y*it.size*.45);sctx.lineTo(b1.x*it.size*.45,b1.y*it.size*.45);sctx.stroke();});
+      sctx.fillStyle=rgba(it.color,.36*a);it.data.pts.forEach(pt=>{sctx.beginPath();sctx.arc(pt.x*it.size*.45,pt.y*it.size*.45,pt.r,0,Math.PI*2);sctx.fill();});sctx.restore();
     }
 
-    function buildMask() {
-      maskSourceCtx.clearRect(0, 0, width, height);
-      const scrollX = window.scrollX || 0;
-      const scrollY = window.scrollY || 0;
-
-      maskGeometry.forEach((m) => {
-        const x = m.x - scrollX;
-        const y = m.y - scrollY;
-        if (x > width + m.feather || y > height + m.feather || x + m.w < -m.feather || y + m.h < -m.feather) return;
-        const pad = m.kind === 'text' ? 4 : 7;
-        maskSourceCtx.save();
-        maskSourceCtx.shadowColor = m.kind === 'text'
-          ? 'rgba(255,255,255,.54)'
-          : 'rgba(255,255,255,.46)';
-        maskSourceCtx.shadowBlur = m.feather;
-        maskSourceCtx.fillStyle = m.kind === 'text'
-          ? 'rgba(255,255,255,.72)'
-          : 'rgba(255,255,255,.60)';
-        maskSourceCtx.fillRect(x - pad, y - pad, m.w + pad * 2, m.h + pad * 2);
-        maskSourceCtx.restore();
-      });
-
-      maskCtx.clearRect(0, 0, width, height);
-      maskCtx.drawImage(maskSource, 0, 0, width * dpr, height * dpr, 0, 0, width, height);
+    function lineRects(node){
+      const out=[];const walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT,{acceptNode(n){return n.nodeValue&&n.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}});let n;
+      while((n=walker.nextNode())){const range=document.createRange();range.selectNodeContents(n);[...range.getClientRects()].forEach(r=>{if(r.width>2&&r.height>2)out.push({x:r.left+scrollX,y:r.top+scrollY,w:r.width,h:r.height,f:clamp(Math.round(r.height*.9),12,24),o:.94});});}
+      return out;
     }
 
-    function composite() {
-      ctx.clearRect(0, 0, width, height);
-      const mode = window[DEBUG_KEY];
-      if (mode === 'mask') {
-        ctx.drawImage(maskCanvas, 0, 0, width * dpr, height * dpr, 0, 0, width, height);
-        return;
-      }
-      ctx.drawImage(sceneCanvas, 0, 0, width * dpr, height * dpr, 0, 0, width, height);
-      if (mode === 'raw') return;
-      ctx.save();
-      ctx.globalCompositeOperation = 'destination-out';
-      ctx.drawImage(maskCanvas, 0, 0, width * dpr, height * dpr, 0, 0, width, height);
-      ctx.restore();
+    function rebuildMask(){
+      const next=[];
+      document.querySelectorAll(TEXT_QUERY).forEach(n=>{const cs=getComputedStyle(n);if(cs.display==='none'||cs.visibility==='hidden')return;next.push(...lineRects(n));});
+      document.querySelectorAll(PANEL_QUERY).forEach(n=>{if(hasOwnBg(n))return;const r=n.getBoundingClientRect();if(r.width>4&&r.height>4)next.push({x:r.left+scrollX,y:r.top+scrollY,w:r.width,h:r.height,f:clamp(Math.round(Math.min(r.width,r.height)*.06),16,30),o:.8});});
+      maskGeometry=next;
     }
 
-    function draw(now) {
-      if (!visible) return;
-      animationId = 0;
-      sceneCtx.clearRect(0, 0, width, height);
+    function scheduleMask(){if(maskRaf)return;maskRaf=requestAnimationFrame(()=>{maskRaf=0;rebuildMask();if(reducedMotion.matches)draw(performance.now());});}
 
-      const candidates = [];
-      for (const item of items) {
-        const alpha = lifecycleAlpha(item, now);
-        if (alpha < .035) continue;
-        const p = position(item, now);
-        const margin = item.type === 'roads' ? 170 : 105;
-        if (p.y < -margin || p.y > height + margin || p.x < -margin || p.x > width + margin) continue;
-        candidates.push({ item, p, alpha });
-      }
-
-      const cap = mobileQuery.matches ? 5 : 12;
-      candidates.sort((a, b) => Math.abs(a.p.y - height / 2) - Math.abs(b.p.y - height / 2));
-      candidates.slice(0, cap).forEach(({ item, p, alpha }) => {
-        if (item.type === 'roads') drawRoad(item, p, alpha);
-        else if (item.type === 'numbers') drawNumbers(item, p, alpha);
-        else if (item.type === 'micro') drawMicro(item, p, alpha);
-        else drawConstellation(item, p, alpha);
-      });
-
-      buildMask();
-      composite();
-
-      if (!reducedMotion.matches && visible) animationId = requestAnimationFrame(draw);
+    function resize(){
+      w=innerWidth;h=innerHeight;dpr=Math.min(devicePixelRatio||1,1.5);
+      [canvas,scene,mask].forEach(c=>{c.width=Math.max(1,Math.round(w*dpr));c.height=Math.max(1,Math.round(h*dpr));});
+      canvas.style.width=w+'px';canvas.style.height=h+'px';[ctx,sctx,mctx].forEach(c=>c.setTransform(dpr,0,0,dpr,0,0));buildWorld();rebuildMask();
     }
 
-    function wake() {
-      if (!animationId && visible) animationId = requestAnimationFrame(draw);
+    function drawMask(){mctx.clearRect(0,0,w,h);maskGeometry.forEach(m=>{const x=m.x-scrollX,y=m.y-scrollY;if(x+m.w<-40||x>w+40||y+m.h<-40||y>h+40)return;mctx.save();mctx.globalAlpha=m.o;mctx.shadowBlur=m.f;mctx.shadowColor='rgba(0,0,0,.95)';mctx.fillStyle='rgba(0,0,0,.95)';mctx.fillRect(x,y,m.w,m.h);mctx.restore();});}
+
+    function draw(now){
+      sctx.clearRect(0,0,w,h);
+      items.forEach(it=>{const a=alpha(it,now);if(a<.025)return;const p=position(it,now);if(p.y<-180||p.y>h+180)return;if(it.type==='road')drawRoad(it,p,a);else if(it.type==='numbers')drawNumbers(it,p,a);else if(it.type==='micro')drawMicro(it,p,a);else drawConstellation(it,p,a);});
+      drawMask();ctx.clearRect(0,0,w,h);const debug=String(window[DEBUG_KEY]||'').toLowerCase();if(debug==='raw'){ctx.drawImage(scene,0,0,w,h);return;}if(debug==='mask'){ctx.drawImage(mask,0,0,w,h);return;}ctx.drawImage(scene,0,0,w,h);ctx.globalCompositeOperation='destination-out';ctx.drawImage(mask,0,0,w,h);ctx.globalCompositeOperation='source-over';
     }
 
-    resizeObserver = new ResizeObserver(() => {
-      scheduleMaskRebuild();
-      wake();
-    });
+    function loop(now){if(!visible)return;draw(now);raf=requestAnimationFrame(loop);}
+    addEventListener('resize',()=>{if(resizeRaf)return;resizeRaf=requestAnimationFrame(()=>{resizeRaf=0;resize();});},{passive:true});
+    addEventListener('scroll',scheduleMask,{passive:true});
+    new ResizeObserver(scheduleMask).observe(document.body);
+    new MutationObserver(scheduleMask).observe(document.body,{subtree:true,childList:true,characterData:true});
+    document.addEventListener('visibilitychange',()=>{visible=!document.hidden;if(!visible&&raf){cancelAnimationFrame(raf);raf=0;}else if(visible&&!raf&&!reducedMotion.matches)raf=requestAnimationFrame(loop);});
+    resize();
+    if(reducedMotion.matches)draw(performance.now());else raf=requestAnimationFrame(loop);
+  }
 
-    mutationObserver = new MutationObserver(() => {
-      scheduleMaskRebuild();
-    });
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-      attributes: true,
-      attributeFilter: ['class', 'style', 'hidden', 'open']
-    });
-
-    window.addEventListener('resize', () => {
-      if (resizeRaf) return;
-      resizeRaf = requestAnimationFrame(() => {
-        resizeRaf = 0;
-        resizeSurfaces();
-        wake();
-      });
-    }, { passive: true });
-
-    window.addEventListener('scroll', () => {
-      if (scrollRaf) return;
-      scrollRaf = requestAnimationFrame(() => {
-        scrollRaf = 0;
-        wake();
-      });
-    }, { passive: true });
-
-    document.addEventListener('visibilitychange', () => {
-      visible = !document.hidden;
-      if (!visible && animationId) {
-        cancelAnimationFrame(animationId);
-        animationId = 0;
-      } else if (visible) {
-        wake();
-      }
-    });
-
-    reducedMotion.addEventListener?.('change', () => {
-      buildWorld();
-      wake();
-    });
-    mobileQuery.addEventListener?.('change', () => {
-      buildWorld();
-      wake();
-    });
-
-    await loadRoadCuts();
-    resizeSurfaces();
-    rebuildMaskGeometry();
-
-    if (reducedMotion.matches) draw(performance.now());
-    else animationId = requestAnimationFrame(draw);
-  };
-
-  if (document.body) init();
-  else document.addEventListener('DOMContentLoaded', init, { once: true });
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
