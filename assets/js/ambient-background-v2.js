@@ -17,8 +17,8 @@
   };
   const PALETTE = Object.values(COLORS);
   const FAMILY_PARALLAX = { roads: .008, numbers: -.004, micro: .005, constellation: .002 };
-  const TEXT_MASK_SELECTOR = 'h1,h2,h3,h4,p,.eyebrow,.category,.card-meta,.meta-label,.meta-value,.tag,.visual-kicker,.visual-caption,.footer-title,.footer-links,.brand,.nav,.btn,.text-link,dt,dd,li,label,legend,blockquote';
-  const PANEL_MASK_SELECTOR = '.card,.service-mini,.editorial-visual,.project-feature,.project-visual,.source-viz-card,.chart-panel,.cta,.principles,.page-aside,.data-library-controls,.topic-filters,.filters,form,table,figure,.dashboard,.map,.panel';
+  const TEXT_PROTECTION_QUERY = 'h1,h2,h3,h4,p,.eyebrow,.category,.card-meta,.meta-label,.meta-value,.tag,.visual-kicker,.visual-caption,.footer-title,.footer-links,.brand,.nav,.btn,.text-link,dt,dd,li,label,legend,blockquote';
+  const PANEL_PROTECTION_QUERY = '.card,.service-mini,.editorial-visual,.project-feature,.project-visual,.source-viz-card,.chart-panel,.cta,.principles,.page-aside,.data-library-controls,.topic-filters,.filters,form,table,figure,.dashboard,.map,.panel';
   const DEBUG_KEY = '__NOSTXLGIA_AMBIENT_DEBUG__'; // disabled in production unless manually set in DevTools
   const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
   const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
@@ -37,7 +37,8 @@
         pointer-events:none;
         z-index:0
       }
-      .site-header,main,.site-footer{position:relative;z-index:1}
+      main,.site-footer{position:relative;z-index:1}
+      .site-header{z-index:50}
     `;
     document.head.appendChild(style);
 
@@ -68,11 +69,9 @@
     let maskRaf = 0;
     let scrollRaf = 0;
     let resizeRaf = 0;
-    let maskDirty = true;
-    let renderRequested = true;
-    let seedBase = 831726;
     let resizeObserver = null;
     let mutationObserver = null;
+    const seedBase = 831726;
 
     function randomFactory(seed) {
       return () => {
@@ -135,11 +134,10 @@
     }
 
     function rebuildMaskGeometry() {
-      maskDirty = false;
       const next = [];
       const nodes = new Set();
 
-      document.querySelectorAll(TEXT_MASK_SELECTOR).forEach((node) => {
+      document.querySelectorAll(TEXT_PROTECTION_QUERY).forEach((node) => {
         if (node.closest('.ambient-background-canvas')) return;
         const cs = getComputedStyle(node);
         if (cs.display === 'none' || cs.visibility === 'hidden') return;
@@ -150,7 +148,7 @@
         nodes.add(node);
       });
 
-      document.querySelectorAll(PANEL_MASK_SELECTOR).forEach((node) => {
+      document.querySelectorAll(PANEL_PROTECTION_QUERY).forEach((node) => {
         if (ownBackgroundCovers(node)) return;
         const rect = node.getBoundingClientRect();
         if (rect.width < 4 || rect.height < 4) return;
@@ -173,11 +171,9 @@
         resizeObserver.observe(document.body);
         maskNodes.forEach((node) => resizeObserver.observe(node));
       }
-      renderRequested = true;
     }
 
     function scheduleMaskRebuild() {
-      maskDirty = true;
       if (maskRaf) return;
       maskRaf = requestAnimationFrame(() => {
         maskRaf = 0;
@@ -199,7 +195,6 @@
       [ctx, sceneCtx, maskCtx, maskSourceCtx].forEach((c) => c.setTransform(dpr, 0, 0, dpr, 0, 0));
       buildWorld();
       scheduleMaskRebuild();
-      renderRequested = true;
     }
 
     async function loadRoadCuts() {
@@ -501,20 +496,20 @@
         const y = m.y - scrollY;
         if (x > width + m.feather || y > height + m.feather || x + m.w < -m.feather || y + m.h < -m.feather) return;
         const pad = m.kind === 'text' ? 4 : 7;
-        maskSourceCtx.fillStyle = m.kind === 'text' ? 'rgba(255,255,255,.78)' : 'rgba(255,255,255,.68)';
+        maskSourceCtx.save();
+        maskSourceCtx.shadowColor = m.kind === 'text'
+          ? 'rgba(255,255,255,.54)'
+          : 'rgba(255,255,255,.46)';
+        maskSourceCtx.shadowBlur = m.feather;
+        maskSourceCtx.fillStyle = m.kind === 'text'
+          ? 'rgba(255,255,255,.72)'
+          : 'rgba(255,255,255,.60)';
         maskSourceCtx.fillRect(x - pad, y - pad, m.w + pad * 2, m.h + pad * 2);
+        maskSourceCtx.restore();
       });
 
       maskCtx.clearRect(0, 0, width, height);
-      maskCtx.save();
-      maskCtx.filter = 'blur(18px)';
-      maskCtx.globalAlpha = .72;
       maskCtx.drawImage(maskSource, 0, 0, width * dpr, height * dpr, 0, 0, width, height);
-      maskCtx.restore();
-      maskCtx.save();
-      maskCtx.globalAlpha = .48;
-      maskCtx.drawImage(maskSource, 0, 0, width * dpr, height * dpr, 0, 0, width, height);
-      maskCtx.restore();
     }
 
     function composite() {
@@ -558,13 +553,11 @@
 
       buildMask();
       composite();
-      renderRequested = false;
 
       if (!reducedMotion.matches && visible) animationId = requestAnimationFrame(draw);
     }
 
     function wake() {
-      renderRequested = true;
       if (!animationId && visible) animationId = requestAnimationFrame(draw);
     }
 
@@ -624,11 +617,8 @@
     resizeSurfaces();
     rebuildMaskGeometry();
 
-    if (reducedMotion.matches) {
-      draw(performance.now());
-    } else {
-      animationId = requestAnimationFrame(draw);
-    }
+    if (reducedMotion.matches) draw(performance.now());
+    else animationId = requestAnimationFrame(draw);
   };
 
   if (document.body) init();
