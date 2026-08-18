@@ -15,24 +15,24 @@
         position:fixed;
         left:0;
         top:0;
-        width:280px;
-        height:280px;
+        width:200px;
+        height:200px;
         border-radius:50%;
         pointer-events:none;
         z-index:999;
         opacity:0;
-        transform:translate3d(-400px,-400px,0);
+        transform:translate3d(-320px,-320px,0);
         background:radial-gradient(circle at center,
-          rgba(216,224,230,.135) 0%,
-          rgba(205,196,222,.085) 24%,
-          rgba(222,207,184,.045) 44%,
-          rgba(176,190,211,.018) 58%,
-          transparent 72%);
-        filter:blur(10px);
-        transition:opacity .28s ease;
+          rgba(92,220,235,.22) 0%,
+          rgba(137,107,232,.14) 24%,
+          rgba(225,190,112,.075) 43%,
+          rgba(91,150,205,.025) 60%,
+          transparent 74%);
+        filter:blur(7px);
+        transition:opacity .25s ease;
         will-change:transform,opacity;
       }
-      .cursor-ambient-glow.is-visible{opacity:.82}
+      .cursor-ambient-glow.is-visible{opacity:.92}
       @media (hover:none),(pointer:coarse),(prefers-reduced-motion:reduce){
         .cursor-ambient-glow{display:none!important}
       }
@@ -44,7 +44,7 @@
     glow.setAttribute('aria-hidden', 'true');
     document.body.appendChild(glow);
 
-    const radius = 140;
+    const radius = 100;
     let targetX = window.innerWidth / 2;
     let targetY = window.innerHeight / 2;
     let currentX = targetX;
