@@ -3,7 +3,8 @@
   "source": {
     "file": "10e.shp",
     "area": "Durango, Mexico",
-    "provenance": "Local road windows selected from the real 10e.shp-derived geometry already used by the NostxlgIA ambient background. The raw SHP is not stored in this repository.",
+    "provenance": "Provisional local road windows retained from geometry previously used by the NostxlgIA ambient background. The raw 10e.shp and its CRS files are not stored in this repository, so these cuts were not regenerated or independently reprojected for this revision.",
+    "status": "provisional-until-source-shp-is-available",
     "runtime_processing": false
   },
   "normalization": {
