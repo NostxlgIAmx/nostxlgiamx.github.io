@@ -19,7 +19,7 @@
   }
   if (currentScript && !document.querySelector('script[data-ambient-background]')) {
     const ambientScript = document.createElement('script');
-    ambientScript.src = new URL('ambient-background-v2.js?v=20260818-saturated', currentScript.src).href;
+    ambientScript.src = new URL('ambient-background-v2.js?v=20260818-checklist', currentScript.src).href;
     ambientScript.dataset.ambientBackground = 'true';
     ambientScript.async = false;
     document.head.appendChild(ambientScript);

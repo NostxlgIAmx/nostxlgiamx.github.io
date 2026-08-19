@@ -1,75 +1,733 @@
-(()=>{
-'use strict';
-const S=document.currentScript;if(!S)return;
-document.querySelectorAll('.ambient-background-canvas').forEach(n=>n.remove());
-document.querySelectorAll('style[data-ambient-background]').forEach(n=>n.remove());
-const RM=matchMedia('(prefers-reduced-motion: reduce)');
-const MOBILE=matchMedia('(max-width:760px)');
-const COLORS=[[88,214,238],[102,165,226],[151,115,232],[232,193,113],[134,220,186],[145,161,185]];
-const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const smooth=t=>t*t*(3-2*t);
-const TEXT_QUERY='h1,h2,h3,h4,p,.eyebrow,.category,.card-meta,.meta-label,.meta-value,.tag,.visual-kicker,.visual-caption,.footer-title,.footer-links,.brand,.nav,.btn,.text-link,dt,dd,li,label,legend,blockquote,.filter-chip';
-const PANEL_QUERY='.card,.service-mini,.editorial-visual,.project-feature,.project-visual,.source-viz-card,.chart-panel,.cta,.principles,.data-library-controls,.topic-filters,.filters,form,table,figure,.dashboard,.map,.panel';
-function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296}}
-function halton(i,b){let f=1,r=0;while(i>0){f/=b;r+=f*(i%b);i=Math.floor(i/b)}return r}
-function parseAlpha(v){if(!v||v==='transparent')return 0;const m=v.match(/rgba?\(([^)]+)\)/i);if(!m)return 1;const p=m[1].split(',').map(s=>s.trim());return p.length>3?Number(p[3])||0:1}
-function hasOwnBg(n){const s=getComputedStyle(n);return s.backgroundImage!=='none'||parseAlpha(s.backgroundColor)>=.18}
-function rings(g){if(!g)return[];if(g.type==='Polygon')return g.coordinates||[];if(g.type==='MultiPolygon')return(g.coordinates||[]).flat();return[]}
-function bounds(rs){const pts=rs.flat().filter(p=>Array.isArray(p)&&Number.isFinite(p[0])&&Number.isFinite(p[1]));if(!pts.length)return null;const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);return[Math.min(...xs),Math.min(...ys),Math.max(...xs),Math.max(...ys)]}
-function unionBounds(bs){bs=bs.filter(Boolean);if(!bs.length)return null;return[Math.min(...bs.map(b=>b[0])),Math.min(...bs.map(b=>b[1])),Math.max(...bs.map(b=>b[2])),Math.max(...bs.map(b=>b[3]))]}
-function projector(b,pad=4){const dx=Math.max(1e-9,b[2]-b[0]),dy=Math.max(1e-9,b[3]-b[1]),s=(100-pad*2)/Math.max(dx,dy),ox=(100-dx*s)/2,oy=(100-dy*s)/2;return([x,y])=>[ox+(x-b[0])*s,100-(oy+(y-b[1])*s)]}
-function pathOf(rs,proj){const p=new Path2D();for(const r of rs){let started=false;for(const pt of r){if(!Array.isArray(pt))continue;const q=proj(pt);started?p.lineTo(q[0],q[1]):(p.moveTo(q[0],q[1]),started=true)}if(started)p.closePath()}return p}
-function countPath(d){const m=(String(d||'').match(/[ML]\s*[-\d.]+,[-\d.]+/g)||[]).length,sub=(String(d||'').match(/M\s*[-\d.]+,[-\d.]+/g)||[]).length;return{points:m,subpaths:sub}}
-async function init(){
-  if(!document.body)return;
-  const style=document.createElement('style');style.dataset.ambientBackground='true';style.textContent='.ambient-background-canvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:0}.site-header,main,.site-footer{position:relative;z-index:1}.site-header{z-index:50}';document.head.append(style);
-  const canvas=document.createElement('canvas');canvas.className='ambient-background-canvas';canvas.setAttribute('aria-hidden','true');document.body.prepend(canvas);
-  const scene=document.createElement('canvas'),maskCanvas=document.createElement('canvas');
-  const ctx=canvas.getContext('2d',{alpha:true}),sctx=scene.getContext('2d',{alpha:true}),mctx=maskCanvas.getContext('2d',{alpha:true});if(!ctx||!sctx||!mctx)return;
-  let W=0,H=0,DPR=1,DH=0,items=[],roads=[],denseRoads=[],munis=[],stateFeature=null,stateBounds=null,statePath=null,maskGeometry=[],raf=0,maskRaf=0,resizeRaf=0,scrollRaf=0,visible=!document.hidden;
-  let resizeObserver=null,mutationObserver=null;const pointer={x:0,y:0,active:false};
-  async function load(){
-    try{const r=await fetch(new URL('../data/ambient-road-cuts.json?v=20260818-carto-validated',S.src),{cache:'force-cache'}),j=await r.json();roads=(j.cuts||[]).map(c=>{let p=null,q=null;try{if(c.primary)p=new Path2D(c.primary)}catch{}try{if(c.secondary)q=new Path2D(c.secondary)}catch{}const a=countPath(c.primary),b=countPath(c.secondary);return{...c,primaryPath:p,secondaryPath:q,pointCount:a.points+b.points,subpathCount:a.subpaths+b.subpaths}}).filter(c=>c.primaryPath||c.secondaryPath);denseRoads=roads.filter(c=>c.pointCount>=10);if(!denseRoads.length)denseRoads=roads}
-    catch{roads=[];denseRoads=[]}
-    try{const r=await fetch(new URL('../data/recursos/durango_municipios_simplificado.geojson?v=20260818-carto-validated',S.src),{cache:'force-cache'}),j=await r.json();stateFeature=(j.features||[]).find(f=>f?.properties?.kind==='state')||null;munis=(j.features||[]).filter(f=>f?.properties?.kind==='municipality').map(f=>{const rs=rings(f.geometry),b=bounds(rs);return b?{code:String(f.properties?.cve_mun||'').padStart(3,'0'),name:String(f.properties?.name||'Municipio'),rings:rs,bounds:b,vertices:rs.reduce((s,r)=>s+r.length,0)}:null}).filter(Boolean);stateBounds=stateFeature?bounds(rings(stateFeature.geometry)):unionBounds(munis.map(m=>m.bounds));if(stateBounds){const sp=projector(stateBounds,3);statePath=stateFeature?pathOf(rings(stateFeature.geometry),sp):null;for(const m of munis){m.statePath=pathOf(m.rings,sp);m.localPath=pathOf(m.rings,projector(m.bounds,5));const b=m.bounds,mx=(b[0]+b[2])/2,my=(b[1]+b[3])/2,q=sp([mx,my]);m.statePoint={x:q[0],y:q[1]}}}}
-    catch{munis=[];stateFeature=null;stateBounds=null;statePath=null}
+(() => {
+  'use strict';
+
+  const currentScript = document.currentScript;
+  if (!currentScript) return;
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const mobileViewport = window.matchMedia('(max-width: 760px)');
+  const query = new URLSearchParams(window.location.search);
+  const debugMode = query.get('ambientDebug');
+  const renderMode = ['raw', 'mask', 'composite'].includes(debugMode) ? debugMode : 'composite';
+  const debugReducedMotion = Boolean(debugMode) && query.get('ambientMotion') === 'reduce';
+  const shouldReduceMotion = () => reducedMotion.matches || debugReducedMotion;
+  const roadAssetUrl = new URL('../data/ambient-road-cuts.json?v=20260818-checklist', currentScript.src);
+
+  const TEXT_SELECTOR = [
+    'h1', 'h2', 'h3', 'h4', 'p', 'blockquote', 'dt', 'dd', 'li', 'label', 'legend',
+    '.eyebrow', '.category', '.card-meta', '.meta-label', '.meta-value', '.tag',
+    '.visual-kicker', '.visual-caption', '.footer-title', '.footer-links', '.brand',
+    '.nav', '.btn', '.text-link', '.filter-chip'
+  ].join(',');
+  const SURFACE_SELECTOR = [
+    '.card', '.service-mini', '.editorial-visual', '.project-feature', '.project-visual',
+    '.source-viz-card', '.chart-panel', '.cta', '.principles', '.data-library-controls',
+    '.topic-filters', '.filters', 'form', 'table', 'figure', '.dashboard', '.map', '.panel'
+  ].join(',');
+
+  const PALETTE = [
+    [78, 199, 222],
+    [101, 151, 211],
+    [139, 105, 211],
+    [218, 181, 103],
+    [126, 143, 169]
+  ];
+  const TYPE_DECK = [
+    'road', 'numbers', 'microchart', 'constellation', 'numbers',
+    'road', 'microchart', 'numbers', 'constellation', 'microchart', 'numbers'
+  ];
+  const NUMBER_FACTORIES = [
+    (q) => (38 + q() * 54).toFixed(1),
+    (q) => `${(7 + q() * 26).toFixed(1)} %`,
+    (q) => `n=${Math.floor(64 + q() * 286)}`,
+    (q) => `P${[25, 50, 75, 90][Math.floor(q() * 4)]}`,
+    (q) => `Δ ${(q() > 0.42 ? '+' : '-')}${(0.8 + q() * 6.4).toFixed(1)}`,
+    (q) => `σ ${(0.6 + q() * 2.8).toFixed(1)}`,
+    (q) => `μ ${(24 + q() * 43).toFixed(1)}`,
+    (q) => `IDX ${(0.42 + q() * 0.48).toFixed(2)}`,
+    (q) => `${(23.8 + q() * 2.1).toFixed(3)}°N`,
+    (q) => `${(103.7 + q() * 2.3).toFixed(3)}°W`,
+    (q) => `+${(3 + q() * 16).toFixed(1)} %`
+  ];
+
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const smooth = (value) => value * value * (3 - 2 * value);
+  const rgba = (color, alpha) => `rgba(${color[0]},${color[1]},${color[2]},${alpha})`;
+
+  function createRng(seed) {
+    return () => {
+      seed |= 0;
+      seed = (seed + 0x6D2B79F5) | 0;
+      let value = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      value ^= value + Math.imul(value ^ (value >>> 7), 61 | value);
+      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    };
   }
-  function roadStats(q){if(!roads.length)return null;const start=Math.floor(q()*roads.length),n=Math.min(8,roads.length),sample=Array.from({length:n},(_,i)=>roads[(start+i)%roads.length]),raw=sample.map(r=>r.pointCount),hi=Math.max(1,...raw);return{mode:'vértices / cortes',values:raw.map(v=>v/hi),raw}}
-  function muniStats(q){if(!munis.length)return null;const start=Math.floor(q()*munis.length),n=Math.min(8,munis.length),sample=Array.from({length:n},(_,i)=>munis[(start+i)%munis.length]),raw=sample.map(m=>m.vertices),hi=Math.max(1,...raw);return{mode:'vértices / municipios',values:raw.map(v=>v/hi),raw}}
-  function realChain(q){if(munis.length&&(!roads.length||q()<.62)){const m=munis[Math.floor(q()*munis.length)],b=m.bounds;return[`CVE ${m.code} · ${m.name}`,`VERT ${m.vertices}`,`${b[0].toFixed(3)}°, ${b[1].toFixed(3)}°`,`→ ${b[2].toFixed(3)}°, ${b[3].toFixed(3)}°`]}
-    if(roads.length){const r=roads[Math.floor(q()*roads.length)],vb=Array.isArray(r.viewBox)?r.viewBox:[0,0,100,100];return[`${r.id||'corte vial'}`,`VERT ${r.pointCount} · TRZ ${r.subpathCount}`,`VB ${Number(vb[2]||0).toFixed(1)} × ${Number(vb[3]||0).toFixed(1)}`]}return[]}
-  const desktopPattern=['state','municipality','road','micro-road','meta','state','municipality','micro-muni','road','meta','municipality','state','micro-road','road','micro-muni','municipality'];
-  const mobilePattern=['state','municipality','road','micro-muni','meta'];
-  function fresh(o,now,q,initial=false){o.g=(o.g||0)+1;const pattern=MOBILE.matches?mobilePattern:desktopPattern;o.type=pattern[o.i%pattern.length];const idx=o.i+o.g*7;o.X=W*(.055+.89*((halton(idx+3,2)+q()*.08)%1));o.Y=DH*((halton(idx+5,3)+q()*.06)%1);o.phase=q()*Math.PI*2;o.color=COLORS[Math.floor(q()*COLORS.length)];o.color2=COLORS[Math.floor(q()*COLORS.length)];o.dx=4+q()*9;o.dy=3+q()*7;o.parallax=.012+q()*.03;o.muni=null;o.road=null;o.stat=null;o.rows=null;o.highlights=[];
-    if(o.type==='state'){o.size=335+q()*125;if(munis.length){const n=2+Math.floor(q()*3);o.highlights=Array.from({length:n},()=>munis[Math.floor(q()*munis.length)])}}
-    else if(o.type==='municipality'){o.size=190+q()*85;o.muni=munis.length?munis[Math.floor(q()*munis.length)]:null}
-    else if(o.type==='road'){o.size=205+q()*105;o.road=denseRoads.length?denseRoads[Math.floor(q()*denseRoads.length)]:null}
-    else if(o.type==='micro-road'){o.size=150+q()*65;o.stat=roadStats(q)}
-    else if(o.type==='micro-muni'){o.size=150+q()*65;o.stat=muniStats(q)}
-    else{o.size=145+q()*55;o.rows=realChain(q)}
-    const long=['state','municipality','road'].includes(o.type);o.d={hidden:220+q()*420,fadeIn:700+q()*500,hold:long?12500+q()*8500:6800+q()*4200,fadeOut:950+q()*650};o.state=initial?'hold':'hidden';o.t0=initial?now-q()*o.d.hold:now;
+
+  function halton(index, base) {
+    let fraction = 1;
+    let result = 0;
+    while (index > 0) {
+      fraction /= base;
+      result += fraction * (index % base);
+      index = Math.floor(index / base);
+    }
+    return result;
   }
-  function buildWorld(){DH=Math.max(document.documentElement.scrollHeight,document.body.scrollHeight,H);const screens=Math.max(1,DH/Math.max(1,H)),per=MOBILE.matches?5:16,total=Math.ceil(screens*per),q=rng(618231+Math.round(W)+Math.round(DH)),now=performance.now();items=Array.from({length:total},(_,i)=>{const o={i,g:0};fresh(o,now,q,true);return o})}
-  function lifecycle(o,now){if(RM.matches)return .82;let guard=0;while(guard++<8){const e=now-o.t0,d=o.d[o.state];if(e<d){if(o.state==='hidden')return 0;if(o.state==='fadeIn')return smooth(clamp(e/d,0,1));if(o.state==='hold')return 1;return 1-smooth(clamp(e/d,0,1))}if(o.state==='hidden')o.state='fadeIn';else if(o.state==='fadeIn')o.state='hold';else if(o.state==='hold')o.state='fadeOut';else{fresh(o,now,rng(991+o.i*1291+o.g*7919+Math.floor(now)),false);return 0}o.t0=now}return 0}
-  function position(o,now){const m=RM.matches?0:1;return{x:o.X+Math.sin(now*.00007+o.phase)*o.dx*m,y:o.Y-scrollY*(1-o.parallax)+Math.cos(now*.000061+o.phase*1.27)*o.dy*m}}
-  function boost(p,size){if(!pointer.active)return 1;const d=Math.hypot(pointer.x-p.x,pointer.y-p.y),r=Math.max(130,size*.6);return d>=r?1:1+(1-d/r)*.28}
-  function drawState(o,p,a,b){if(!stateBounds||!munis.length)return;const s=o.size,k=s/100;sctx.save();sctx.translate(p.x-s/2,p.y-s/2);sctx.scale(k,k);sctx.globalCompositeOperation='screen';if(statePath){sctx.fillStyle=rgba(o.color,.012*a*b);sctx.fill(statePath,'evenodd')}
-    const hi=new Set(o.highlights.map(m=>m.code));for(const m of munis){if(hi.has(m.code)){sctx.fillStyle=rgba(o.color2,.032*a*b);sctx.fill(m.statePath,'evenodd')}sctx.strokeStyle=rgba(hi.has(m.code)?o.color2:o.color,hi.has(m.code)?.40*a*b:.22*a*b);sctx.lineWidth=(hi.has(m.code)?1.05:.62)/k;sctx.stroke(m.statePath)}
-    if(statePath){sctx.strokeStyle=rgba(o.color,.46*a*b);sctx.lineWidth=1.4/k;sctx.shadowBlur=4/k;sctx.shadowColor=rgba(o.color,.14*a*b);sctx.stroke(statePath)}for(const m of munis){sctx.fillStyle=rgba(o.color2,.17*a*b);sctx.beginPath();sctx.arc(m.statePoint.x,m.statePoint.y,.9/k,0,Math.PI*2);sctx.fill()}sctx.restore()}
-  function drawMunicipality(o,p,a,b){if(!o.muni)return;const s=o.size,k=s/100;sctx.save();sctx.translate(p.x-s/2,p.y-s/2);sctx.scale(k,k);sctx.globalCompositeOperation='screen';sctx.fillStyle=rgba(o.color,.02*a*b);sctx.strokeStyle=rgba(o.color,.44*a*b);sctx.lineWidth=1.3/k;sctx.shadowBlur=3/k;sctx.shadowColor=rgba(o.color,.10*a*b);sctx.fill(o.muni.localPath,'evenodd');sctx.stroke(o.muni.localPath);sctx.restore();sctx.save();sctx.globalCompositeOperation='screen';sctx.font='600 9px ui-monospace,SFMono-Regular,Menlo,monospace';sctx.fillStyle=rgba(o.color2,.29*a*b);sctx.fillText(`${o.muni.name} · CVE ${o.muni.code}`,p.x-s*.39,p.y+s*.46);sctx.restore()}
-  function drawRoadPath(r,x,y,size,color,a,b){if(!r)return;const vb=Array.isArray(r.viewBox)&&r.viewBox.length===4?r.viewBox:[0,0,100,100],vx=Number(vb[0])||0,vy=Number(vb[1])||0,vw=Math.max(.001,Number(vb[2])||100),vh=Math.max(.001,Number(vb[3])||100),k=size/Math.max(vw,vh),dw=vw*k,dh=vh*k;sctx.save();sctx.translate(x-dw/2,y-dh/2);sctx.scale(k,k);sctx.translate(-vx,-vy);sctx.lineCap='round';sctx.lineJoin='round';sctx.globalCompositeOperation='screen';if(r.secondaryPath){sctx.strokeStyle=rgba(COLORS[5],.24*a*b);sctx.lineWidth=.95/k;sctx.stroke(r.secondaryPath)}if(r.primaryPath){sctx.strokeStyle=rgba(color,.55*a*b);sctx.lineWidth=1.7/k;sctx.shadowBlur=4/k;sctx.shadowColor=rgba(color,.13*a*b);sctx.stroke(r.primaryPath)}sctx.restore()}
-  function drawRoad(o,p,a,b){if(!o.road)return;drawRoadPath(o.road,p.x,p.y,o.size,o.color,a,b);sctx.save();sctx.globalCompositeOperation='screen';sctx.font='600 9px ui-monospace,SFMono-Regular,Menlo,monospace';sctx.fillStyle=rgba(o.color2,.27*a*b);sctx.fillText(`${o.road.id||'corte'} · VERT ${o.road.pointCount}`,p.x-o.size*.39,p.y+o.size*.43);sctx.restore()}
-  function drawMicro(o,p,a,b){const d=o.stat;if(!d)return;const w=o.size,h=w*.38,L=p.x-w/2,R=p.x+w/2,T=p.y-h/2,B=p.y+h/2,gap=w/d.values.length;sctx.save();sctx.globalCompositeOperation='screen';sctx.strokeStyle=rgba(o.color,.40*a*b);sctx.fillStyle=rgba(o.color,.27*a*b);sctx.lineWidth=1.1;const variant=o.i%3;if(variant===0){sctx.beginPath();d.values.forEach((v,i)=>{const X=L+(R-L)*i/Math.max(1,d.values.length-1),Y=B-(B-T)*(.12+v*.76);i?sctx.lineTo(X,Y):sctx.moveTo(X,Y)});sctx.stroke()}else if(variant===1){d.values.forEach((v,i)=>{const Y=B-(B-T)*(.12+v*.76);sctx.fillRect(L+i*gap+gap*.28,Y,gap*.44,B-Y)})}else d.values.forEach((v,i)=>{const X=L+(R-L)*i/Math.max(1,d.values.length-1),Y=B-(B-T)*(.12+v*.76);sctx.beginPath();sctx.arc(X,Y,2.1,0,Math.PI*2);sctx.fill()});sctx.font='600 9px ui-monospace,SFMono-Regular,Menlo,monospace';sctx.fillStyle=rgba(o.color2,.30*a*b);sctx.fillText(d.mode,L,B+14);sctx.restore()}
-  function drawMeta(o,p,a,b){if(!o.rows?.length)return;sctx.save();sctx.translate(p.x-o.size*.42,p.y-o.size*.22);sctx.globalCompositeOperation='screen';sctx.font='600 9.5px ui-monospace,SFMono-Regular,Menlo,monospace';o.rows.forEach((r,i)=>{sctx.fillStyle=rgba(i===0?o.color2:o.color,(i===0?.36:.24)*a*b);sctx.fillText(r,0,i*13)});sctx.restore()}
-  function lineRects(node){const out=[],walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT,{acceptNode(n){return n.nodeValue&&n.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}});let n;while((n=walker.nextNode())){const range=document.createRange();range.selectNodeContents(n);[...range.getClientRects()].forEach(r=>{if(r.width>2&&r.height>2)out.push({x:r.left+scrollX,y:r.top+scrollY,w:r.width,h:r.height,f:clamp(Math.round(r.height*.8),11,22),o:.94})})}return out}
-  function rebuildMask(){const next=[];document.querySelectorAll(TEXT_QUERY).forEach(n=>{const s=getComputedStyle(n);if(s.display==='none'||s.visibility==='hidden')return;next.push(...lineRects(n))});document.querySelectorAll(PANEL_QUERY).forEach(n=>{if(hasOwnBg(n))return;const r=n.getBoundingClientRect();if(r.width>4&&r.height>4)next.push({x:r.left+scrollX,y:r.top+scrollY,w:r.width,h:r.height,f:clamp(Math.round(Math.min(r.width,r.height)*.05),14,26),o:.80})});maskGeometry=next}
-  function scheduleMask(){if(maskRaf)return;maskRaf=requestAnimationFrame(()=>{maskRaf=0;rebuildMask();if(RM.matches)draw(performance.now())})}
-  function drawMask(){mctx.clearRect(0,0,W,H);for(const m of maskGeometry){const x=m.x-scrollX,y=m.y-scrollY;if(x+m.w<-35||x>W+35||y+m.h<-35||y>H+35)continue;mctx.save();mctx.globalAlpha=m.o;mctx.shadowBlur=m.f;mctx.shadowColor='rgba(0,0,0,.96)';mctx.fillStyle='rgba(0,0,0,.96)';mctx.fillRect(x,y,m.w,m.h);mctx.restore()}}
-  function draw(now){sctx.clearRect(0,0,W,H);for(const o of items){const a=lifecycle(o,now);if(a<.02)continue;const p=position(o,now),margin=o.size*.7;if(p.x<-margin||p.x>W+margin||p.y<-margin||p.y>H+margin)continue;const b=boost(p,o.size);if(o.type==='state')drawState(o,p,a,b);else if(o.type==='municipality')drawMunicipality(o,p,a,b);else if(o.type==='road')drawRoad(o,p,a,b);else if(o.type.startsWith('micro'))drawMicro(o,p,a,b);else drawMeta(o,p,a,b)}drawMask();ctx.clearRect(0,0,W,H);ctx.drawImage(scene,0,0,W,H);ctx.globalCompositeOperation='destination-out';ctx.drawImage(maskCanvas,0,0,W,H);ctx.globalCompositeOperation='source-over'}
-  function resize(){W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,1.5);[canvas,scene,maskCanvas].forEach(c=>{c.width=Math.max(1,Math.round(W*DPR));c.height=Math.max(1,Math.round(H*DPR))});canvas.style.width=W+'px';canvas.style.height=H+'px';[ctx,sctx,mctx].forEach(c=>c.setTransform(DPR,0,0,DPR,0,0));buildWorld();rebuildMask();if(RM.matches)draw(performance.now())}
-  function loop(now){if(!visible)return;draw(now);raf=requestAnimationFrame(loop)}
-  await load();resizeObserver=new ResizeObserver(scheduleMask);resizeObserver.observe(document.documentElement);resizeObserver.observe(document.body);mutationObserver=new MutationObserver(scheduleMask);mutationObserver.observe(document.body,{childList:true,subtree:true,characterData:true});resize();addEventListener('pointermove',e=>{pointer.x=e.clientX;pointer.y=e.clientY;pointer.active=true},{passive:true});addEventListener('pointerleave',()=>pointer.active=false,{passive:true});addEventListener('resize',()=>{if(resizeRaf)return;resizeRaf=requestAnimationFrame(()=>{resizeRaf=0;resize()})},{passive:true});addEventListener('scroll',()=>{if(scrollRaf)return;scrollRaf=requestAnimationFrame(()=>{scrollRaf=0;scheduleMask();if(RM.matches)draw(performance.now())})},{passive:true});document.addEventListener('visibilitychange',()=>{visible=!document.hidden;if(visible&&!RM.matches&&!raf)raf=requestAnimationFrame(loop);else if(!visible&&raf){cancelAnimationFrame(raf);raf=0}});if(RM.matches)draw(performance.now());else raf=requestAnimationFrame(loop)
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+
+  function alphaFromCss(value) {
+    if (!value || value === 'transparent') return 0;
+    const match = value.match(/rgba?\(([^)]+)\)/i);
+    if (!match) return 1;
+    const parts = match[1].split(',').map((part) => part.trim());
+    return parts.length > 3 ? Number(parts[3]) || 0 : 1;
+  }
+
+  function hasOpaqueSurface(element) {
+    const style = getComputedStyle(element);
+    return style.backgroundImage !== 'none' || alphaFromCss(style.backgroundColor) >= 0.92;
+  }
+
+  function buildTextRects(element, target, seen) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        return node.nodeValue && node.nodeValue.trim()
+          ? NodeFilter.FILTER_ACCEPT
+          : NodeFilter.FILTER_REJECT;
+      }
+    });
+    let textNode;
+    while ((textNode = walker.nextNode())) {
+      const range = document.createRange();
+      range.selectNodeContents(textNode);
+      for (const rect of range.getClientRects()) {
+        if (rect.width < 2 || rect.height < 2) continue;
+        const key = `${Math.round(rect.left)}:${Math.round(rect.top)}:${Math.round(rect.width)}:${Math.round(rect.height)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        target.push({
+          documentX: rect.left + window.scrollX,
+          documentY: rect.top + window.scrollY,
+          width: rect.width,
+          height: rect.height,
+          feather: clamp(Math.round(rect.height * 0.9), 12, 24),
+          opacity: 0.96
+        });
+      }
+    }
+  }
+
+  async function start() {
+    if (!document.body) return;
+
+    document.querySelectorAll('.ambient-background-canvas').forEach((node) => node.remove());
+    document.querySelectorAll('style[data-ambient-background]').forEach((node) => node.remove());
+
+    const style = document.createElement('style');
+    style.dataset.ambientBackground = 'true';
+    style.textContent = `
+      .ambient-background-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .site-header, main, .site-footer { position: relative; z-index: 1; }
+      .site-header { z-index: 50; }
+    `;
+    document.head.appendChild(style);
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'ambient-background-canvas';
+    canvas.setAttribute('aria-hidden', 'true');
+    document.body.prepend(canvas);
+
+    const sceneCanvas = document.createElement('canvas');
+    const maskCanvas = document.createElement('canvas');
+    const context = canvas.getContext('2d', { alpha: true });
+    const sceneContext = sceneCanvas.getContext('2d', { alpha: true });
+    const maskContext = maskCanvas.getContext('2d', { alpha: true });
+    if (!context || !sceneContext || !maskContext) return;
+
+    const roadPathCache = new Map();
+    let roadCuts = [];
+    let items = [];
+    let maskGeometry = [];
+    let viewportWidth = 0;
+    let viewportHeight = 0;
+    let documentHeight = 0;
+    let dpr = 1;
+    let scrollPosition = window.scrollY;
+    let animationFrame = 0;
+    let resizeFrame = 0;
+    let geometryFrame = 0;
+    let scrollFrame = 0;
+    let pageVisible = !document.hidden;
+
+    async function loadRoadCuts() {
+      try {
+        const response = await fetch(roadAssetUrl, { cache: 'force-cache' });
+        if (!response.ok) throw new Error(`Road asset returned ${response.status}`);
+        const payload = await response.json();
+        roadCuts = (payload.cuts || []).filter((cut) => cut.id && cut.primary && cut.secondary);
+        for (const cut of roadCuts) {
+          try {
+            const viewBox = Array.isArray(cut.viewBox) && cut.viewBox.length === 4
+              ? cut.viewBox.map(Number)
+              : [0, 0, 100, 100];
+            roadPathCache.set(cut.id, {
+              primary: new Path2D(cut.primary),
+              secondary: new Path2D(cut.secondary),
+              viewBox
+            });
+          } catch {
+            // Ignore only the malformed cut; the rest of the scene remains available.
+          }
+        }
+        roadCuts = roadCuts.filter((cut) => roadPathCache.has(cut.id));
+      } catch {
+        roadCuts = [];
+        roadPathCache.clear();
+      }
+    }
+
+    function chooseDocumentPosition(item, q, initialIndex = null) {
+      if (initialIndex !== null) {
+        const rotationX = 0.173;
+        const rotationY = 0.419;
+        item.documentX = ((halton(initialIndex + 19, 2) + rotationX) % 1) * viewportWidth;
+        item.documentY = ((halton(initialIndex + 31, 3) + rotationY) % 1) * documentHeight;
+        return;
+      }
+
+      let bestX = q() * viewportWidth;
+      let bestY = q() * documentHeight;
+      let bestDistance = -1;
+      for (let candidate = 0; candidate < 7; candidate += 1) {
+        const x = q() * viewportWidth;
+        const y = q() * documentHeight;
+        let nearest = Infinity;
+        for (const other of items) {
+          if (other === item) continue;
+          const dx = x - other.documentX;
+          const dy = (y - other.documentY) * (viewportWidth / Math.max(documentHeight, 1));
+          nearest = Math.min(nearest, dx * dx + dy * dy);
+        }
+        if (nearest > bestDistance) {
+          bestDistance = nearest;
+          bestX = x;
+          bestY = y;
+        }
+      }
+      item.documentX = bestX;
+      item.documentY = bestY;
+    }
+
+    function configureNumbers(item, q) {
+      const count = 2 + Math.floor(q() * 3);
+      const used = new Set();
+      item.annotations = [];
+      while (item.annotations.length < count) {
+        const factoryIndex = Math.floor(q() * NUMBER_FACTORIES.length);
+        if (used.has(factoryIndex)) continue;
+        used.add(factoryIndex);
+        item.annotations.push({
+          text: NUMBER_FACTORIES[factoryIndex](q),
+          x: (q() - 0.5) * item.size * 0.7,
+          y: (item.annotations.length - (count - 1) / 2) * (12 + q() * 4) + (q() - 0.5) * 8,
+          emphasis: q() > 0.72
+        });
+      }
+    }
+
+    function configureMicrochart(item, q) {
+      item.variant = Math.floor(q() * 4);
+      const count = 5 + Math.floor(q() * 4);
+      item.values = [];
+      let value = 0.24 + q() * 0.42;
+      for (let index = 0; index < count; index += 1) {
+        value = clamp(value + (q() - 0.48) * 0.32, 0.08, 0.92);
+        item.values.push(value);
+      }
+    }
+
+    function configureConstellation(item, q) {
+      const count = 5 + Math.floor(q() * 5);
+      item.points = [];
+      item.edges = [];
+      for (let index = 0; index < count; index += 1) {
+        item.points.push({
+          x: (q() - 0.5) * item.size,
+          y: (q() - 0.5) * item.size * 0.62,
+          radius: 0.8 + q() * 1.35
+        });
+        if (index > 0 && q() > 0.42) {
+          item.edges.push([Math.floor(q() * index), index]);
+        }
+      }
+      if (item.edges.length < 2) {
+        item.edges.push([0, 2], [1, Math.min(4, count - 1)]);
+      }
+    }
+
+    function setDurations(item, q) {
+      if (item.type === 'road') {
+        item.fadeInDuration = 3000 + q() * 1000;
+        item.holdDuration = 12000 + q() * 8000;
+        item.fadeOutDuration = 4000 + q() * 2000;
+      } else if (item.type === 'numbers') {
+        item.fadeInDuration = 1500 + q() * 1000;
+        item.holdDuration = 4000 + q() * 4000;
+        item.fadeOutDuration = 2000 + q() * 1000;
+      } else if (item.type === 'microchart') {
+        item.fadeInDuration = 1800 + q() * 700;
+        item.holdDuration = 6000 + q() * 4000;
+        item.fadeOutDuration = 2500 + q() * 700;
+      } else {
+        item.fadeInDuration = 2000 + q() * 1000;
+        item.holdDuration = 7000 + q() * 4000;
+        item.fadeOutDuration = 2800 + q() * 700;
+      }
+      item.hiddenDuration = 450 + q() * 950;
+    }
+
+    function configureItem(item, q, forcedType = null) {
+      item.seed = Math.floor(q() * 0x7fffffff);
+      item.type = forcedType || TYPE_DECK[Math.floor(q() * TYPE_DECK.length)];
+      if (item.type === 'road' && !roadCuts.length) item.type = 'microchart';
+      item.color = PALETTE[Math.floor(q() * PALETTE.length)];
+      item.secondaryColor = PALETTE[Math.floor(q() * PALETTE.length)];
+      item.phase = q() * Math.PI * 2;
+      item.driftX = 3 + q() * (mobileViewport.matches ? 4 : 8);
+      item.driftY = 2 + q() * (mobileViewport.matches ? 3 : 6);
+      item.speedX = 0.000035 + q() * 0.000035;
+      item.speedY = 0.00003 + q() * 0.00003;
+      item.rotation = (q() - 0.5) * 0.22;
+      item.baseOpacity = 0.42 + q() * 0.24;
+
+      if (item.type === 'road') {
+        item.size = (mobileViewport.matches ? 115 : 165) + q() * (mobileViewport.matches ? 55 : 100);
+        item.parallax = 0.985 + q() * 0.015;
+        item.road = roadCuts[Math.floor(q() * roadCuts.length)];
+      } else if (item.type === 'numbers') {
+        item.size = (mobileViewport.matches ? 90 : 115) + q() * (mobileViewport.matches ? 45 : 70);
+        item.parallax = 1;
+        configureNumbers(item, q);
+      } else if (item.type === 'microchart') {
+        item.size = (mobileViewport.matches ? 90 : 110) + q() * (mobileViewport.matches ? 45 : 70);
+        item.parallax = 0.995;
+        configureMicrochart(item, q);
+      } else {
+        item.size = (mobileViewport.matches ? 85 : 105) + q() * (mobileViewport.matches ? 45 : 70);
+        item.parallax = 1.005;
+        configureConstellation(item, q);
+      }
+      setDurations(item, q);
+    }
+
+    function respawnItem(item) {
+      item.generation += 1;
+      const q = createRng(item.seed + item.generation * 7919 + 104729);
+      chooseDocumentPosition(item, q);
+      configureItem(item, q);
+    }
+
+    function primeLifecycle(item, now, q) {
+      if (shouldReduceMotion()) {
+        item.state = 'hold';
+        item.stateStartedAt = now;
+        return;
+      }
+      const phase = q();
+      if (phase < 0.06) item.state = 'hidden';
+      else if (phase < 0.17) item.state = 'fadeIn';
+      else if (phase < 0.87) item.state = 'hold';
+      else item.state = 'fadeOut';
+      const duration = item[`${item.state}Duration`];
+      item.stateStartedAt = now - q() * duration;
+    }
+
+    function buildWorld() {
+      documentHeight = Math.max(
+        viewportHeight,
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight
+      );
+      const screens = Math.max(1, documentHeight / Math.max(1, viewportHeight));
+      const density = shouldReduceMotion() ? 5 : mobileViewport.matches ? 5 : 11;
+      const total = Math.max(density, Math.ceil(screens * density));
+      const q = createRng(618231 + Math.round(viewportWidth) * 31 + Math.round(documentHeight));
+      const now = performance.now();
+      items = [];
+      for (let index = 0; index < total; index += 1) {
+        const item = { index, generation: 0 };
+        chooseDocumentPosition(item, q, index);
+        configureItem(item, q);
+        primeLifecycle(item, now, q);
+        items.push(item);
+      }
+      if (mobileViewport.matches && roadCuts.length) {
+        const bandCount = Math.max(1, Math.ceil(documentHeight / viewportHeight));
+        for (let band = 0; band < bandCount; band += 1) {
+          const bandStart = band * viewportHeight;
+          const bandEnd = Math.min(documentHeight, bandStart + viewportHeight);
+          const candidates = items.filter((item) => item.documentY >= bandStart && item.documentY < bandEnd);
+          if (!candidates.length || candidates.some((item) => item.type === 'road')) continue;
+          const bandCenter = (bandStart + bandEnd) / 2;
+          candidates.sort((left, right) => Math.abs(left.documentY - bandCenter) - Math.abs(right.documentY - bandCenter));
+          const roadItem = candidates[0];
+          const roadRng = createRng(880301 + roadItem.index * 1291);
+          configureItem(roadItem, roadRng, 'road');
+          roadItem.state = 'hold';
+          roadItem.stateStartedAt = now;
+        }
+      }
+    }
+
+    function stateOpacity(item, now) {
+      if (shouldReduceMotion()) return 0.82;
+      for (let guard = 0; guard < 8; guard += 1) {
+        const duration = item[`${item.state}Duration`];
+        const elapsed = now - item.stateStartedAt;
+        if (elapsed < duration) {
+          const progress = clamp(elapsed / duration, 0, 1);
+          if (item.state === 'hidden') return 0;
+          if (item.state === 'fadeIn') return smooth(progress);
+          if (item.state === 'hold') return 1;
+          return 1 - smooth(progress);
+        }
+        item.stateStartedAt += duration;
+        if (item.state === 'hidden') {
+          respawnItem(item);
+          item.state = 'fadeIn';
+        } else if (item.state === 'fadeIn') {
+          item.state = 'hold';
+        } else if (item.state === 'hold') {
+          item.state = 'fadeOut';
+        } else {
+          item.state = 'hidden';
+        }
+      }
+      return 0;
+    }
+
+    function drawRoad(item, x, y, opacity) {
+      const paths = roadPathCache.get(item.road?.id);
+      if (!paths) return;
+      const viewBox = paths.viewBox;
+      const width = Math.max(0.001, viewBox[2]);
+      const height = Math.max(0.001, viewBox[3]);
+      const scale = item.size / Math.max(width, height);
+      const drawnWidth = width * scale;
+      const drawnHeight = height * scale;
+
+      sceneContext.save();
+      sceneContext.translate(x, y);
+      sceneContext.rotate(item.rotation);
+      sceneContext.translate(-drawnWidth / 2, -drawnHeight / 2);
+      sceneContext.scale(scale, scale);
+      sceneContext.translate(-viewBox[0], -viewBox[1]);
+      sceneContext.lineCap = 'round';
+      sceneContext.lineJoin = 'round';
+      sceneContext.globalCompositeOperation = 'screen';
+      sceneContext.strokeStyle = rgba(item.secondaryColor, 0.38 * opacity);
+      sceneContext.lineWidth = 0.8 / scale;
+      sceneContext.stroke(paths.secondary);
+      sceneContext.strokeStyle = rgba(item.color, 0.72 * opacity);
+      sceneContext.lineWidth = 1.45 / scale;
+      sceneContext.shadowBlur = 3 / scale;
+      sceneContext.shadowColor = rgba(item.color, 0.16 * opacity);
+      sceneContext.stroke(paths.primary);
+      sceneContext.restore();
+    }
+
+    function drawNumbers(item, x, y, opacity) {
+      sceneContext.save();
+      sceneContext.translate(x, y);
+      sceneContext.globalCompositeOperation = 'screen';
+      sceneContext.textBaseline = 'middle';
+      for (const annotation of item.annotations) {
+        sceneContext.font = `${annotation.emphasis ? 600 : 500} ${annotation.emphasis ? 10.5 : 9}px ui-monospace, SFMono-Regular, Menlo, monospace`;
+        sceneContext.fillStyle = rgba(
+          annotation.emphasis ? item.secondaryColor : item.color,
+          (annotation.emphasis ? 0.72 : 0.5) * opacity
+        );
+        sceneContext.fillText(annotation.text, annotation.x, annotation.y);
+      }
+      sceneContext.restore();
+    }
+
+    function drawMicrochart(item, x, y, opacity) {
+      const width = item.size;
+      const height = item.size * 0.34;
+      const left = x - width / 2;
+      const top = y - height / 2;
+      const step = width / Math.max(1, item.values.length - 1);
+      sceneContext.save();
+      sceneContext.globalCompositeOperation = 'screen';
+      sceneContext.strokeStyle = rgba(item.color, 0.64 * opacity);
+      sceneContext.fillStyle = rgba(item.secondaryColor, 0.58 * opacity);
+      sceneContext.lineWidth = 1;
+
+      if (item.variant === 0) {
+        sceneContext.beginPath();
+        for (let index = 0; index < item.values.length; index += 1) {
+          const pointX = left + index * step;
+          const pointY = top + height * (0.92 - item.values[index] * 0.78);
+          if (index === 0) sceneContext.moveTo(pointX, pointY);
+          else sceneContext.lineTo(pointX, pointY);
+        }
+        sceneContext.stroke();
+        for (let index = 0; index < item.values.length; index += 2) {
+          const pointX = left + index * step;
+          const pointY = top + height * (0.92 - item.values[index] * 0.78);
+          sceneContext.beginPath();
+          sceneContext.arc(pointX, pointY, 1.5, 0, Math.PI * 2);
+          sceneContext.fill();
+        }
+      } else if (item.variant === 1) {
+        const barWidth = width / item.values.length;
+        for (let index = 0; index < item.values.length; index += 1) {
+          const barHeight = height * item.values[index] * 0.78;
+          sceneContext.fillRect(left + index * barWidth + barWidth * 0.28, top + height - barHeight, barWidth * 0.4, barHeight);
+        }
+      } else if (item.variant === 2) {
+        for (let index = 0; index < item.values.length; index += 1) {
+          const pointX = left + index * step;
+          const pointY = top + height * (0.82 - item.values[index] * 0.64);
+          sceneContext.beginPath();
+          sceneContext.arc(pointX, pointY, 1.4 + (index % 3) * 0.45, 0, Math.PI * 2);
+          sceneContext.fill();
+        }
+      } else {
+        const centerX = x;
+        const baseline = y + height * 0.36;
+        for (let index = 0; index < item.values.length; index += 1) {
+          const column = index - (item.values.length - 1) / 2;
+          const stack = 1 + Math.round(item.values[index] * 3);
+          for (let dot = 0; dot < stack; dot += 1) {
+            sceneContext.beginPath();
+            sceneContext.arc(centerX + column * 8, baseline - dot * 7, 1.25, 0, Math.PI * 2);
+            sceneContext.fill();
+          }
+        }
+      }
+      sceneContext.restore();
+    }
+
+    function drawConstellation(item, x, y, opacity) {
+      sceneContext.save();
+      sceneContext.translate(x, y);
+      sceneContext.globalCompositeOperation = 'screen';
+      sceneContext.lineWidth = 0.75;
+      sceneContext.strokeStyle = rgba(item.color, 0.38 * opacity);
+      for (const edge of item.edges) {
+        const startPoint = item.points[edge[0]];
+        const endPoint = item.points[edge[1]];
+        sceneContext.beginPath();
+        sceneContext.moveTo(startPoint.x, startPoint.y);
+        sceneContext.lineTo(endPoint.x, endPoint.y);
+        sceneContext.stroke();
+      }
+      for (let index = 0; index < item.points.length; index += 1) {
+        const point = item.points[index];
+        sceneContext.fillStyle = rgba(index % 3 ? item.color : item.secondaryColor, 0.66 * opacity);
+        sceneContext.beginPath();
+        sceneContext.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
+        sceneContext.fill();
+      }
+      sceneContext.restore();
+    }
+
+    function rebuildMaskGeometry() {
+      const nextGeometry = [];
+      const seen = new Set();
+      for (const element of document.querySelectorAll(TEXT_SELECTOR)) {
+        const computedStyle = getComputedStyle(element);
+        if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden') continue;
+        buildTextRects(element, nextGeometry, seen);
+      }
+      for (const element of document.querySelectorAll(SURFACE_SELECTOR)) {
+        if (hasOpaqueSurface(element)) continue;
+        const rect = element.getBoundingClientRect();
+        if (rect.width < 4 || rect.height < 4) continue;
+        nextGeometry.push({
+          documentX: rect.left + window.scrollX,
+          documentY: rect.top + window.scrollY,
+          width: rect.width,
+          height: rect.height,
+          feather: clamp(Math.round(Math.min(rect.width, rect.height) * 0.055), 16, 30),
+          opacity: 0.82
+        });
+      }
+      maskGeometry = nextGeometry;
+    }
+
+    function scheduleGeometryRebuild() {
+      if (geometryFrame) return;
+      geometryFrame = requestAnimationFrame(() => {
+        geometryFrame = 0;
+        const latestDocumentHeight = Math.max(
+          viewportHeight,
+          document.documentElement.scrollHeight,
+          document.body.scrollHeight
+        );
+        if (Math.abs(latestDocumentHeight - documentHeight) > 1) buildWorld();
+        rebuildMaskGeometry();
+        if (shouldReduceMotion()) draw(performance.now());
+      });
+    }
+
+    function drawMask() {
+      maskContext.clearRect(0, 0, viewportWidth, viewportHeight);
+      for (const geometry of maskGeometry) {
+        const x = geometry.documentX - window.scrollX;
+        const y = geometry.documentY - scrollPosition;
+        const margin = geometry.feather + 4;
+        if (
+          x + geometry.width < -margin || x > viewportWidth + margin ||
+          y + geometry.height < -margin || y > viewportHeight + margin
+        ) continue;
+        maskContext.save();
+        maskContext.globalAlpha = geometry.opacity;
+        maskContext.shadowBlur = geometry.feather;
+        maskContext.shadowColor = 'rgba(255,255,255,0.9)';
+        maskContext.fillStyle = 'rgba(255,255,255,0.96)';
+        maskContext.fillRect(x, y, geometry.width, geometry.height);
+        maskContext.restore();
+      }
+    }
+
+    function compose() {
+      context.clearRect(0, 0, viewportWidth, viewportHeight);
+      if (renderMode === 'raw') {
+        context.drawImage(sceneCanvas, 0, 0, viewportWidth, viewportHeight);
+        return;
+      }
+      if (renderMode === 'mask') {
+        context.fillStyle = 'rgb(7, 11, 19)';
+        context.fillRect(0, 0, viewportWidth, viewportHeight);
+        context.drawImage(maskCanvas, 0, 0, viewportWidth, viewportHeight);
+        return;
+      }
+      context.drawImage(sceneCanvas, 0, 0, viewportWidth, viewportHeight);
+      context.globalCompositeOperation = 'destination-out';
+      context.drawImage(maskCanvas, 0, 0, viewportWidth, viewportHeight);
+      context.globalCompositeOperation = 'source-over';
+    }
+
+    function draw(now) {
+      sceneContext.clearRect(0, 0, viewportWidth, viewportHeight);
+      const motionScale = shouldReduceMotion() ? 0 : 1;
+      for (const item of items) {
+        const lifeOpacity = stateOpacity(item, now);
+        if (lifeOpacity < 0.015) continue;
+        const x = item.documentX + Math.sin(now * item.speedX + item.phase) * item.driftX * motionScale;
+        const y = item.documentY - scrollPosition * item.parallax
+          + Math.cos(now * item.speedY + item.phase * 1.17) * item.driftY * motionScale;
+        const margin = item.size * 0.65;
+        if (x < -margin || x > viewportWidth + margin || y < -margin || y > viewportHeight + margin) continue;
+        const opacity = item.baseOpacity * lifeOpacity;
+        if (item.type === 'road') drawRoad(item, x, y, opacity);
+        else if (item.type === 'numbers') drawNumbers(item, x, y, opacity);
+        else if (item.type === 'microchart') drawMicrochart(item, x, y, opacity);
+        else drawConstellation(item, x, y, opacity);
+      }
+      drawMask();
+      compose();
+    }
+
+    function resize() {
+      viewportWidth = window.innerWidth;
+      viewportHeight = window.innerHeight;
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      for (const target of [canvas, sceneCanvas, maskCanvas]) {
+        target.width = Math.max(1, Math.round(viewportWidth * dpr));
+        target.height = Math.max(1, Math.round(viewportHeight * dpr));
+      }
+      canvas.style.width = `${viewportWidth}px`;
+      canvas.style.height = `${viewportHeight}px`;
+      for (const targetContext of [context, sceneContext, maskContext]) {
+        targetContext.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+      scrollPosition = window.scrollY;
+      buildWorld();
+      rebuildMaskGeometry();
+      if (shouldReduceMotion()) draw(performance.now());
+    }
+
+    function animate(now) {
+      if (!pageVisible || shouldReduceMotion()) {
+        animationFrame = 0;
+        return;
+      }
+      draw(now);
+      animationFrame = requestAnimationFrame(animate);
+    }
+
+    function startAnimation() {
+      if (!animationFrame && pageVisible && !shouldReduceMotion()) {
+        animationFrame = requestAnimationFrame(animate);
+      }
+    }
+
+    const resizeObserver = new ResizeObserver(scheduleGeometryRebuild);
+    const mutationObserver = new MutationObserver(scheduleGeometryRebuild);
+
+    await loadRoadCuts();
+    resize();
+    resizeObserver.observe(document.documentElement);
+    resizeObserver.observe(document.body);
+    mutationObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+
+    window.addEventListener('resize', () => {
+      if (resizeFrame) return;
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = 0;
+        resize();
+      });
+    }, { passive: true });
+
+    window.addEventListener('scroll', () => {
+      if (scrollFrame) return;
+      scrollFrame = requestAnimationFrame(() => {
+        scrollFrame = 0;
+        scrollPosition = window.scrollY;
+        if (shouldReduceMotion()) draw(performance.now());
+      });
+    }, { passive: true });
+
+    document.addEventListener('visibilitychange', () => {
+      pageVisible = !document.hidden;
+      if (pageVisible) {
+        if (shouldReduceMotion()) draw(performance.now());
+        else startAnimation();
+      } else if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = 0;
+      }
+    });
+
+    const handlePreferenceChange = () => {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = 0;
+      }
+      resize();
+      startAnimation();
+    };
+    reducedMotion.addEventListener('change', handlePreferenceChange);
+    mobileViewport.addEventListener('change', handlePreferenceChange);
+
+    if (shouldReduceMotion()) draw(performance.now());
+    else startAnimation();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
 })();
