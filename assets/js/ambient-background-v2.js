@@ -4,7 +4,7 @@
   const currentScript = document.currentScript;
   if (!currentScript) return;
 
-  const VERSION = '20260819-flourish-density';
+  const VERSION = '20260819-ranks-violin-boxplot';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobileViewport = window.matchMedia('(max-width: 760px)');
   const query = new URLSearchParams(window.location.search);
@@ -183,14 +183,14 @@
 
     function primeLifecycle(item,now,q){
       if(shouldReduceMotion()){item.state='hold';item.stateStartedAt=now;return;}
-      const phase=q(); item.state=phase<.045?'hidden':phase<.15?'fadeIn':phase<.89?'hold':'fadeOut';
+      const phase=q(); item.state=phase<.035?'hidden':phase<.13?'fadeIn':phase<.91?'hold':'fadeOut';
       item.stateStartedAt=now-q()*item[`${item.state}Duration`];
     }
 
     function buildWorld(){
-      const normalDensity=shouldReduceMotion()?(mobileViewport.matches?4:9):(mobileViewport.matches?7:16);
+      const normalDensity=shouldReduceMotion()?(mobileViewport.matches?5:12):(mobileViewport.matches?9:22);
       const roadCount=roadLayers.length?(mobileViewport.matches?1:2):0;
-      const featuredCount=mobileViewport.matches?2:4;
+      const featuredCount=mobileViewport.matches?4:8;
       const q=createRng(907331+Math.round(viewportWidth)*37+Math.round(viewportHeight)*17+Math.floor(Date.now()/10000));
       const now=performance.now(); items=[];
       const featured=(primitives.FEATURED_TYPES||[]).slice();
@@ -207,7 +207,7 @@
     }
 
     function stateOpacity(item,now){
-      if(shouldReduceMotion()) return .82;
+      if(shouldReduceMotion()) return .78;
       for(let guard=0;guard<8;guard++){
         const duration=item[`${item.state}Duration`],elapsed=now-item.stateStartedAt;
         if(elapsed<duration){const p=clamp(elapsed/duration,0,1);if(item.state==='hidden')return 0;if(item.state==='fadeIn')return smooth(p);if(item.state==='hold')return 1;return 1-smooth(p);}
