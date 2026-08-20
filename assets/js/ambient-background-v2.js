@@ -4,7 +4,7 @@
   const currentScript = document.currentScript;
   if (!currentScript) return;
 
-  const VERSION = '20260819-ranks-violin-boxplot';
+  const VERSION = '20260819-timeseries-dense';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobileViewport = window.matchMedia('(max-width: 760px)');
   const query = new URLSearchParams(window.location.search);
@@ -14,6 +14,7 @@
   const shouldReduceMotion = () => reducedMotion.matches || debugReducedMotion;
   const dataUrl = new URL(`../data/ambient-map-shapes.json?v=${VERSION}`, currentScript.src);
   const primitivesUrl = new URL(`ambient-background-primitives.js?v=${VERSION}`, currentScript.src);
+  const extraPrimitivesUrl = new URL(`ambient-background-extra-primitives.js?v=${VERSION}`, currentScript.src);
 
   const CARTOGRAPHY_SLOTS = [
     { x: .58, y: .11, w: .25, h: .18 },
@@ -50,7 +51,10 @@
     const parts=match[1].split(',').map(part=>part.trim());
     return parts.length>3 ? Number(parts[3])||0 : 1;
   }
-  function hasOpaqueSurface(element){const style=getComputedStyle(element);return style.backgroundImage!=='none'||alphaFromCss(style.backgroundColor)>=.92;}
+  function hasOpaqueSurface(element){
+    const style=getComputedStyle(element);
+    return style.backgroundImage!=='none'||alphaFromCss(style.backgroundColor)>=.92;
+  }
 
   function buildTextRects(element,target,seen){
     const walker=document.createTreeWalker(element,NodeFilter.SHOW_TEXT,{acceptNode(node){return node.nodeValue&&node.nodeValue.trim()?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT;}});
@@ -66,13 +70,21 @@
     }
   }
 
-  function loadScriptOnce(src){
-    if(window.NostxlgAmbientPrimitives) return Promise.resolve();
+  function loadScriptOnce(src,marker,ready){
+    if(ready&&ready()) return Promise.resolve();
     return new Promise((resolve,reject)=>{
-      const existing=document.querySelector('script[data-ambient-primitives]');
-      if(existing){existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',reject,{once:true});return;}
-      const script=document.createElement('script'); script.src=src; script.async=false; script.dataset.ambientPrimitives='true';
-      script.addEventListener('load',resolve,{once:true}); script.addEventListener('error',reject,{once:true}); document.head.appendChild(script);
+      const existing=document.querySelector(`script[data-${marker}]`);
+      if(existing){
+        if(existing.dataset.loaded==='true'){resolve();return;}
+        existing.addEventListener('load',resolve,{once:true});
+        existing.addEventListener('error',reject,{once:true});
+        return;
+      }
+      const script=document.createElement('script');
+      script.src=src; script.async=false; script.dataset[marker.replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]='true';
+      script.addEventListener('load',()=>{script.dataset.loaded='true';resolve();},{once:true});
+      script.addEventListener('error',reject,{once:true});
+      document.head.appendChild(script);
     });
   }
 
@@ -86,7 +98,12 @@
         const imageResponse=await fetch(url,{cache:'force-cache'}); if(!imageResponse.ok) throw new Error(`${layer.file} returned ${imageResponse.status}`);
         const blob=await imageResponse.blob(); let image;
         if('createImageBitmap' in window) image=await createImageBitmap(blob);
-        else image=await new Promise((resolve,reject)=>{const element=new Image(),objectUrl=URL.createObjectURL(blob);element.onload=()=>{URL.revokeObjectURL(objectUrl);resolve(element);};element.onerror=()=>{URL.revokeObjectURL(objectUrl);reject(new Error(`Cannot decode ${layer.file}`));};element.src=objectUrl;});
+        else image=await new Promise((resolve,reject)=>{
+          const element=new Image(),objectUrl=URL.createObjectURL(blob);
+          element.onload=()=>{URL.revokeObjectURL(objectUrl);resolve(element);};
+          element.onerror=()=>{URL.revokeObjectURL(objectUrl);reject(new Error(`Cannot decode ${layer.file}`));};
+          element.src=objectUrl;
+        });
         layers.push({id:layer.id,image});
       }catch{}
     }
@@ -95,7 +112,10 @@
 
   async function start(){
     if(!document.body) return;
-    try{await loadScriptOnce(primitivesUrl.href);}catch{return;}
+    try{
+      await loadScriptOnce(primitivesUrl.href,'ambient-primitives',()=>Boolean(window.NostxlgAmbientPrimitives));
+      await loadScriptOnce(extraPrimitivesUrl.href,'ambient-extra-primitives',()=>Boolean(window.NostxlgAmbientPrimitives?.__extraAnalyticalPrimitives));
+    }catch{return;}
     const primitives=window.NostxlgAmbientPrimitives; if(!primitives) return;
 
     let roadLayers=[]; try{roadLayers=await loadRoadLayers();}catch{roadLayers=[];}
@@ -111,7 +131,8 @@
     document.querySelectorAll('.ambient-background-canvas').forEach(node=>node.remove());
     document.querySelectorAll('style[data-ambient-background]').forEach(node=>node.remove());
     const style=document.createElement('style'); style.dataset.ambientBackground='true';
-    style.textContent='.ambient-background-canvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:0}.site-header,main,.site-footer{position:relative;z-index:1}.site-header{z-index:50}'; document.head.appendChild(style);
+    style.textContent='.ambient-background-canvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:0}.site-header,main,.site-footer{position:relative;z-index:1}.site-header{z-index:50}';
+    document.head.appendChild(style);
 
     const canvas=document.createElement('canvas'); canvas.className='ambient-background-canvas'; canvas.setAttribute('aria-hidden','true'); document.body.prepend(canvas);
     const sceneCanvas=document.createElement('canvas'),maskCanvas=document.createElement('canvas');
@@ -124,9 +145,9 @@
 
     function setDurations(item,q){
       if(item.type==='road'){
-        item.fadeInDuration=2600+q()*1200; item.holdDuration=15000+q()*9000; item.fadeOutDuration=3200+q()*1500; item.hiddenDuration=500+q()*900;
+        item.fadeInDuration=2600+q()*1200; item.holdDuration=16000+q()*10000; item.fadeOutDuration=3200+q()*1500; item.hiddenDuration=420+q()*720;
       }else{
-        item.fadeInDuration=1300+q()*1200; item.holdDuration=7000+q()*9000; item.fadeOutDuration=2000+q()*1700; item.hiddenDuration=220+q()*700;
+        item.fadeInDuration=1100+q()*1000; item.holdDuration=9000+q()*10000; item.fadeOutDuration=1700+q()*1400; item.hiddenDuration=120+q()*420;
       }
     }
 
@@ -146,7 +167,7 @@
 
     function chooseDistributedPosition(item,q){
       let best=null,bestScore=-1;
-      const candidates=mobileViewport.matches?10:16;
+      const candidates=mobileViewport.matches?12:18;
       for(let attempt=0;attempt<candidates;attempt++){
         const x=q()*viewportWidth,y=q()*viewportHeight;
         if(pointInsideCartographySlot(x,y,.012)) continue;
@@ -157,11 +178,11 @@
           minDist=Math.min(minDist,dx*dx+dy*dy);
         }
         const edge=Math.min(x,viewportWidth-x,y,viewportHeight-y);
-        const edgeBonus=Math.min(edge,120)*120;
+        const edgeBonus=Math.min(edge,105)*95;
         const score=(Number.isFinite(minDist)?minDist:viewportWidth*viewportHeight)+edgeBonus;
         if(score>bestScore){best={x,y};bestScore=score;}
       }
-      if(!best){best={x:q()*viewportWidth,y:q()*viewportHeight};}
+      if(!best) best={x:q()*viewportWidth,y:q()*viewportHeight};
       item.x=best.x; item.y=best.y;
     }
 
@@ -183,14 +204,15 @@
 
     function primeLifecycle(item,now,q){
       if(shouldReduceMotion()){item.state='hold';item.stateStartedAt=now;return;}
-      const phase=q(); item.state=phase<.035?'hidden':phase<.13?'fadeIn':phase<.91?'hold':'fadeOut';
+      const phase=q();
+      item.state=phase<.02?'hidden':phase<.095?'fadeIn':phase<.94?'hold':'fadeOut';
       item.stateStartedAt=now-q()*item[`${item.state}Duration`];
     }
 
     function buildWorld(){
-      const normalDensity=shouldReduceMotion()?(mobileViewport.matches?5:12):(mobileViewport.matches?9:22);
+      const normalDensity=shouldReduceMotion()?(mobileViewport.matches?5:14):(mobileViewport.matches?11:28);
       const roadCount=roadLayers.length?(mobileViewport.matches?1:2):0;
-      const featuredCount=mobileViewport.matches?4:8;
+      const featuredCount=mobileViewport.matches?5:12;
       const q=createRng(907331+Math.round(viewportWidth)*37+Math.round(viewportHeight)*17+Math.floor(Date.now()/10000));
       const now=performance.now(); items=[];
       const featured=(primitives.FEATURED_TYPES||[]).slice();
@@ -207,13 +229,21 @@
     }
 
     function stateOpacity(item,now){
-      if(shouldReduceMotion()) return .78;
+      if(shouldReduceMotion()) return .74;
       for(let guard=0;guard<8;guard++){
         const duration=item[`${item.state}Duration`],elapsed=now-item.stateStartedAt;
-        if(elapsed<duration){const p=clamp(elapsed/duration,0,1);if(item.state==='hidden')return 0;if(item.state==='fadeIn')return smooth(p);if(item.state==='hold')return 1;return 1-smooth(p);}
+        if(elapsed<duration){
+          const p=clamp(elapsed/duration,0,1);
+          if(item.state==='hidden')return 0;
+          if(item.state==='fadeIn')return smooth(p);
+          if(item.state==='hold')return 1;
+          return 1-smooth(p);
+        }
         item.stateStartedAt+=duration;
         if(item.state==='hidden'){respawnItem(item);item.state='fadeIn';}
-        else if(item.state==='fadeIn')item.state='hold'; else if(item.state==='hold')item.state='fadeOut'; else item.state='hidden';
+        else if(item.state==='fadeIn')item.state='hold';
+        else if(item.state==='hold')item.state='fadeOut';
+        else item.state='hidden';
       }
       return 0;
     }
@@ -229,11 +259,21 @@
 
     function rebuildMaskGeometry(){
       const next=[],seen=new Set();
-      for(const element of document.querySelectorAll(TEXT_SELECTOR)){const style=getComputedStyle(element);if(style.display==='none'||style.visibility==='hidden')continue;buildTextRects(element,next,seen);}
-      for(const element of document.querySelectorAll(SURFACE_SELECTOR)){if(hasOpaqueSurface(element))continue;const rect=element.getBoundingClientRect();if(rect.width<4||rect.height<4)continue;next.push({documentX:rect.left+window.scrollX,documentY:rect.top+window.scrollY,width:rect.width,height:rect.height,feather:clamp(Math.round(Math.min(rect.width,rect.height)*.055),16,30),opacity:.82});}
+      for(const element of document.querySelectorAll(TEXT_SELECTOR)){
+        const style=getComputedStyle(element);if(style.display==='none'||style.visibility==='hidden')continue;
+        buildTextRects(element,next,seen);
+      }
+      for(const element of document.querySelectorAll(SURFACE_SELECTOR)){
+        if(hasOpaqueSurface(element))continue;
+        const rect=element.getBoundingClientRect();if(rect.width<4||rect.height<4)continue;
+        next.push({documentX:rect.left+window.scrollX,documentY:rect.top+window.scrollY,width:rect.width,height:rect.height,feather:clamp(Math.round(Math.min(rect.width,rect.height)*.055),16,30),opacity:.82});
+      }
       maskGeometry=next;
     }
-    function scheduleGeometryRebuild(){if(geometryFrame)return;geometryFrame=requestAnimationFrame(()=>{geometryFrame=0;rebuildMaskGeometry();if(shouldReduceMotion())draw(performance.now(),0);});}
+    function scheduleGeometryRebuild(){
+      if(geometryFrame)return;
+      geometryFrame=requestAnimationFrame(()=>{geometryFrame=0;rebuildMaskGeometry();if(shouldReduceMotion())draw(performance.now(),0);});
+    }
 
     function drawMask(){
       maskContext.clearRect(0,0,viewportWidth,viewportHeight);
@@ -243,35 +283,56 @@
         maskContext.save();maskContext.globalAlpha=g.opacity;maskContext.shadowBlur=g.feather;maskContext.shadowColor='rgba(255,255,255,.9)';maskContext.fillStyle='rgba(255,255,255,.96)';maskContext.fillRect(x,y,g.width,g.height);maskContext.restore();
       }
     }
+
     function compose(){
       context.clearRect(0,0,viewportWidth,viewportHeight);
       if(renderMode==='raw'){context.drawImage(sceneCanvas,0,0,viewportWidth,viewportHeight);return;}
       if(renderMode==='mask'){context.fillStyle='rgb(7,11,19)';context.fillRect(0,0,viewportWidth,viewportHeight);context.drawImage(maskCanvas,0,0,viewportWidth,viewportHeight);return;}
-      context.drawImage(sceneCanvas,0,0,viewportWidth,viewportHeight);context.globalCompositeOperation='destination-out';context.drawImage(maskCanvas,0,0,viewportWidth,viewportHeight);context.globalCompositeOperation='source-over';
+      context.drawImage(sceneCanvas,0,0,viewportWidth,viewportHeight);
+      context.globalCompositeOperation='destination-out';context.drawImage(maskCanvas,0,0,viewportWidth,viewportHeight);context.globalCompositeOperation='source-over';
     }
 
     function draw(now,dt){
       sceneContext.clearRect(0,0,viewportWidth,viewportHeight);
-      const motion=shouldReduceMotion()?0:1,sweepX=Math.sin(now*.000025)*(mobileViewport.matches?7:16)*motion,sweepY=Math.cos(now*.000021)*(mobileViewport.matches?5:12)*motion;
-      for(const item of items){advanceItem(item,dt);const life=stateOpacity(item,now);if(life<.015)continue;const x=item.x+sweepX+Math.sin(now*item.orbitSpeed+item.phase)*item.orbitX*motion,y=item.y+sweepY+Math.cos(now*item.orbitSpeed*.87+item.phase*1.13)*item.orbitY*motion;drawPrimitive(sceneContext,item,x,y,item.baseOpacity*life);}
+      const motion=shouldReduceMotion()?0:1;
+      const sweepX=Math.sin(now*.000025)*(mobileViewport.matches?7:16)*motion;
+      const sweepY=Math.cos(now*.000021)*(mobileViewport.matches?5:12)*motion;
+      for(const item of items){
+        advanceItem(item,dt);const life=stateOpacity(item,now);if(life<.012)continue;
+        const x=item.x+sweepX+Math.sin(now*item.orbitSpeed+item.phase)*item.orbitX*motion;
+        const y=item.y+sweepY+Math.cos(now*item.orbitSpeed*.87+item.phase*1.13)*item.orbitY*motion;
+        drawPrimitive(sceneContext,item,x,y,item.baseOpacity*life);
+      }
       drawMask();compose();
     }
 
     function resize(){
       viewportWidth=window.innerWidth;viewportHeight=window.innerHeight;dpr=Math.min(window.devicePixelRatio||1,1.5);
-      for(const target of [canvas,sceneCanvas,maskCanvas]){target.width=Math.max(1,Math.round(viewportWidth*dpr));target.height=Math.max(1,Math.round(viewportHeight*dpr));}
+      for(const target of [canvas,sceneCanvas,maskCanvas]){
+        target.width=Math.max(1,Math.round(viewportWidth*dpr));target.height=Math.max(1,Math.round(viewportHeight*dpr));
+      }
       canvas.style.width=`${viewportWidth}px`;canvas.style.height=`${viewportHeight}px`;
       for(const ctx of [context,sceneContext,maskContext])ctx.setTransform(dpr,0,0,dpr,0,0);
       scrollPosition=window.scrollY;buildWorld();rebuildMaskGeometry();lastFrameTime=performance.now();if(shouldReduceMotion())draw(lastFrameTime,0);
     }
-    function animate(now){if(!pageVisible||shouldReduceMotion()){animationFrame=0;return;}const dt=clamp((now-lastFrameTime)/1000,0,.05);lastFrameTime=now;draw(now,dt);animationFrame=requestAnimationFrame(animate);}
-    function startAnimation(){if(!animationFrame&&pageVisible&&!shouldReduceMotion()){lastFrameTime=performance.now();animationFrame=requestAnimationFrame(animate);}}
+
+    function animate(now){
+      if(!pageVisible||shouldReduceMotion()){animationFrame=0;return;}
+      const dt=clamp((now-lastFrameTime)/1000,0,.05);lastFrameTime=now;draw(now,dt);animationFrame=requestAnimationFrame(animate);
+    }
+    function startAnimation(){
+      if(!animationFrame&&pageVisible&&!shouldReduceMotion()){lastFrameTime=performance.now();animationFrame=requestAnimationFrame(animate);}
+    }
 
     const resizeObserver=new ResizeObserver(scheduleGeometryRebuild),mutationObserver=new MutationObserver(scheduleGeometryRebuild);
     resize();resizeObserver.observe(document.documentElement);resizeObserver.observe(document.body);mutationObserver.observe(document.body,{childList:true,subtree:true,characterData:true});
     window.addEventListener('resize',()=>{if(resizeFrame)return;resizeFrame=requestAnimationFrame(()=>{resizeFrame=0;resize();});},{passive:true});
     window.addEventListener('scroll',()=>{if(scrollFrame)return;scrollFrame=requestAnimationFrame(()=>{scrollFrame=0;scrollPosition=window.scrollY;if(shouldReduceMotion())draw(performance.now(),0);});},{passive:true});
-    document.addEventListener('visibilitychange',()=>{pageVisible=!document.hidden;if(pageVisible){if(shouldReduceMotion())draw(performance.now(),0);else startAnimation();}else if(animationFrame){cancelAnimationFrame(animationFrame);animationFrame=0;}});
+    document.addEventListener('visibilitychange',()=>{
+      pageVisible=!document.hidden;
+      if(pageVisible){if(shouldReduceMotion())draw(performance.now(),0);else startAnimation();}
+      else if(animationFrame){cancelAnimationFrame(animationFrame);animationFrame=0;}
+    });
     const preferenceChange=()=>{if(animationFrame)cancelAnimationFrame(animationFrame);animationFrame=0;resize();startAnimation();};
     reducedMotion.addEventListener('change',preferenceChange);mobileViewport.addEventListener('change',preferenceChange);
     if(shouldReduceMotion())draw(performance.now(),0);else startAnimation();
