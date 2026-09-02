@@ -1,12 +1,29 @@
 (() => {
-  const PHASES = 9;
+  const PHASES = 12;
   const PREFIX = 'nostxlgia-rainbow-';
   const MAX_GLYPHS = 4000;
+  const CYCLE_MS = 7500;
+  const PALETTE = [
+    '#f27c78','#f49b6a','#e7b75c','#d5c96d',
+    '#8fcb83','#62c5a5','#59c5d2','#73a7e8',
+    '#8d91eb','#af83e6','#d477c3','#e77d9e'
+  ];
 
   if (!window.CSS?.highlights || typeof window.Highlight !== 'function') return;
 
   const names = Array.from({ length: PHASES }, (_, index) => `${PREFIX}${index}`);
-  document.documentElement.classList.add('nostxlgia-character-rainbow');
+  const root = document.documentElement;
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+  root.classList.add('nostxlgia-character-rainbow');
+
+  const rgb = PALETTE.map((hex) => {
+    const value = hex.slice(1);
+    return [
+      parseInt(value.slice(0, 2), 16),
+      parseInt(value.slice(2, 4), 16),
+      parseInt(value.slice(4, 6), 16)
+    ];
+  });
 
   const clearOwnHighlights = () => {
     names.forEach((name) => CSS.highlights.delete(name));
@@ -27,14 +44,50 @@
     return !parent.closest('script, style, noscript, textarea, input, select, option');
   };
 
+  const mix = (a, b, t) => {
+    const channel = (index) => Math.round(a[index] + (b[index] - a[index]) * t);
+    return `rgb(${channel(0)} ${channel(1)} ${channel(2)})`;
+  };
+
   let scheduled = 0;
+  let animationFrame = 0;
+  let hasSelection = false;
+
+  const paintPalette = (time = 0) => {
+    if (reducedMotion) return;
+    const progress = ((time % CYCLE_MS) / CYCLE_MS) * PHASES;
+    const whole = Math.floor(progress);
+    const fraction = progress - whole;
+
+    for (let phase = 0; phase < PHASES; phase += 1) {
+      const from = (phase + whole) % PHASES;
+      const to = (from + 1) % PHASES;
+      root.style.setProperty(`--nostxlgia-rainbow-${phase}`, mix(rgb[from], rgb[to], fraction));
+    }
+
+    if (hasSelection) animationFrame = requestAnimationFrame(paintPalette);
+  };
+
+  const stopPalette = () => {
+    if (animationFrame) cancelAnimationFrame(animationFrame);
+    animationFrame = 0;
+  };
+
+  const startPalette = () => {
+    if (reducedMotion || animationFrame) return;
+    animationFrame = requestAnimationFrame(paintPalette);
+  };
 
   const rebuild = () => {
     scheduled = 0;
     clearOwnHighlights();
 
     const selection = window.getSelection();
-    if (!selection || selection.isCollapsed || selection.rangeCount === 0) return;
+    hasSelection = Boolean(selection && !selection.isCollapsed && selection.rangeCount > 0);
+    if (!hasSelection) {
+      stopPalette();
+      return;
+    }
 
     const buckets = Array.from({ length: PHASES }, () => []);
     let glyphIndex = 0;
@@ -98,6 +151,8 @@
       highlight.priority = 1;
       CSS.highlights.set(names[index], highlight);
     });
+
+    startPalette();
   };
 
   const scheduleRebuild = () => {
@@ -106,6 +161,9 @@
   };
 
   document.addEventListener('selectionchange', scheduleRebuild, { passive: true });
-  window.addEventListener('pagehide', clearOwnHighlights, { once: true });
+  window.addEventListener('pagehide', () => {
+    stopPalette();
+    clearOwnHighlights();
+  }, { once: true });
   scheduleRebuild();
 })();
