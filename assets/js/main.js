@@ -9,6 +9,15 @@
     document.head.appendChild(polish);
   }
 
+  /* Selección rainbow por carácter, cargada como módulo independiente. */
+  if (currentScript && !document.querySelector('script[data-selection-rainbow]')) {
+    const selectionRainbow = document.createElement('script');
+    selectionRainbow.src = new URL('selection-rainbow.js?v=20260902-character-wave', currentScript.src).href;
+    selectionRainbow.dataset.selectionRainbow = 'true';
+    selectionRainbow.async = false;
+    document.head.appendChild(selectionRainbow);
+  }
+
   /* Cursor y fondo ambiental cargados por separado. */
   if (currentScript && !document.querySelector('script[data-cursor-ambient]')) {
     const cursorAmbient = document.createElement('script');
