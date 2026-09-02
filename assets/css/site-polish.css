@@ -1,2 +1,31 @@
 @import url("./site-polish-base.css");
 @import url("./brand-identity.css");
+
+/* Selección de texto: conserva el fondo nativo actual y anima únicamente
+   el color de las letras a través del espectro completo. */
+@property --nostxlgia-selection-hue {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+html {
+  --nostxlgia-selection-hue: 0;
+  animation: nostxlgia-selection-rainbow 4.2s linear infinite;
+}
+
+::selection {
+  color: hsl(var(--nostxlgia-selection-hue) 100% 72%);
+}
+
+@keyframes nostxlgia-selection-rainbow {
+  from { --nostxlgia-selection-hue: 0; }
+  to { --nostxlgia-selection-hue: 360; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    animation: none;
+    --nostxlgia-selection-hue: 285;
+  }
+}
