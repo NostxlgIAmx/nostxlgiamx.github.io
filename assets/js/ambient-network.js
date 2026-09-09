@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260909-nic-baseline-v3-grab-no-drag';
+  const VERSION = '20260909-nic-baseline-v4-dense';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobileViewport = window.matchMedia('(max-width: 760px)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -53,8 +53,8 @@
       const mobile=mobileViewport.matches;
       const area=Math.max(width*height,1);
       const count=mobile
-        ? clamp(Math.round(area/21000),24,40)
-        : clamp(Math.round(area/32000),36,62);
+        ? clamp(Math.round(area/10000),55,90)
+        : clamp(Math.round(area/12000),105,180);
       const q=createRng(0x91c5f27 ^ Math.round(width*31+height*17));
       const aspect=width/Math.max(height,1);
       const cols=Math.max(1,Math.ceil(Math.sqrt(count*aspect)));
