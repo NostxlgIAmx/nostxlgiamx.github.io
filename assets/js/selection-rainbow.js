@@ -2,11 +2,11 @@
   const PHASES = 12;
   const PREFIX = 'nostxlgia-rainbow-';
   const MAX_GLYPHS = 4000;
-  const CYCLE_MS = 7500;
+  const CYCLE_MS = 11500;
   const PALETTE = [
-    '#f27c78','#f49b6a','#e7b75c','#d5c96d',
-    '#8fcb83','#62c5a5','#59c5d2','#73a7e8',
-    '#8d91eb','#af83e6','#d477c3','#e77d9e'
+    '#d0ae67','#c0b17a','#82ada0','#64b0ac',
+    '#63b2bf','#729db4','#8190ac','#9186aa',
+    '#a48aaa','#b69a88','#c5a875','#d0ae67'
   ];
 
   if (!window.CSS?.highlights || typeof window.Highlight !== 'function') return;
