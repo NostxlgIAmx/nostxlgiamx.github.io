@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260909-nic-baseline-v4-dense';
+  const VERSION = '20260909-nic-baseline-v5-mobile-stable';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobileViewport = window.matchMedia('(max-width: 760px)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -47,6 +47,9 @@
 
     let width=0,height=0,dpr=1,frame=0,last=performance.now(),visible=!document.hidden;
     let nodes=[];
+    let resizeFrame=0;
+    let lastRebuildWidth=0;
+    let lastOrientation=window.screen?.orientation?.type || '';
     const pointer={x:-9999,y:-9999,active:false,strength:0,target:0};
 
     function build(){
@@ -80,18 +83,43 @@
           drift:.16+q()*.24
         });
       }
+      lastRebuildWidth=width;
     }
 
-    function resize(){
-      width=window.innerWidth;
-      height=window.innerHeight;
-      dpr=Math.min(window.devicePixelRatio||1,1.5);
+    function sizeCanvas(){
+      dpr=Math.min(window.devicePixelRatio||1,mobileViewport.matches?1.25:1.5);
       canvas.width=Math.max(1,Math.round(width*dpr));
       canvas.height=Math.max(1,Math.round(height*dpr));
       canvas.style.width=`${width}px`;
       canvas.style.height=`${height}px`;
       ctx.setTransform(dpr,0,0,dpr,0,0);
-      build();
+    }
+
+    function clampNodesToViewport(){
+      for(const node of nodes){
+        node.x=clamp(node.x,4,Math.max(4,width-4));
+        node.y=clamp(node.y,4,Math.max(4,height-4));
+      }
+    }
+
+    function resize({forceRebuild=false}={}){
+      const nextWidth=window.innerWidth;
+      const nextHeight=window.innerHeight;
+      const orientation=window.screen?.orientation?.type || '';
+      const widthChanged=Math.abs(nextWidth-width)>24;
+      const orientationChanged=Boolean(lastOrientation && orientation && orientation!==lastOrientation);
+
+      width=nextWidth;
+      height=nextHeight;
+      lastOrientation=orientation;
+      sizeCanvas();
+
+      if(forceRebuild || !nodes.length || widthChanged || orientationChanged || Math.abs(width-lastRebuildWidth)>24){
+        build();
+      }else{
+        clampNodesToViewport();
+      }
+
       last=performance.now();
       draw(last,0);
     }
@@ -193,7 +221,7 @@
 
     function animate(now){
       if(!visible||reducedMotion.matches){frame=0;return;}
-      const dt=clamp((now-last)/1000,0,.05);
+      const dt=clamp((now-last)/1000,0,mobileViewport.matches?.022:.035);
       last=now;
       draw(now,dt);
       frame=requestAnimationFrame(animate);
@@ -225,11 +253,18 @@
       pointer.target=0;
     },{passive:true});
 
-    window.addEventListener('resize',resize,{passive:true});
+    window.addEventListener('resize',()=>{
+      if(resizeFrame) cancelAnimationFrame(resizeFrame);
+      resizeFrame=requestAnimationFrame(()=>{
+        resizeFrame=0;
+        resize();
+      });
+    },{passive:true});
 
     document.addEventListener('visibilitychange',()=>{
       visible=!document.hidden;
-      if(visible){draw(performance.now(),0);startAnimation();}
+      last=performance.now();
+      if(visible){draw(last,0);startAnimation();}
       else if(frame){cancelAnimationFrame(frame);frame=0;}
     });
 
@@ -238,14 +273,14 @@
       frame=0;
       pointer.target=0;
       pointer.strength=0;
-      resize();
+      resize({forceRebuild:true});
       startAnimation();
     };
     reducedMotion.addEventListener('change',preferenceChange);
     mobileViewport.addEventListener('change',preferenceChange);
     finePointer.addEventListener('change',preferenceChange);
 
-    resize();
+    resize({forceRebuild:true});
     startAnimation();
   }
 
