@@ -18,24 +18,24 @@
     document.head.appendChild(selectionRainbow);
   }
 
-  /* Cursor y fondos ambientales cargados por separado. */
+  /* Baseline NIC: se cargan los módulos ambientales por separado. */
   if (currentScript && !document.querySelector('script[data-cursor-ambient]')) {
     const cursorAmbient = document.createElement('script');
-    cursorAmbient.src = new URL('cursor-ambient.js?v=20260818-halo-return', currentScript.src).href;
+    cursorAmbient.src = new URL('cursor-ambient.js?v=20260909-nic-baseline-v1', currentScript.src).href;
     cursorAmbient.dataset.cursorAmbient = 'true';
     cursorAmbient.async = false;
     document.head.appendChild(cursorAmbient);
   }
   if (currentScript && !document.querySelector('script[data-ambient-background]')) {
     const ambientScript = document.createElement('script');
-    ambientScript.src = new URL('ambient-background-v2.js?v=20260818-checklist', currentScript.src).href;
+    ambientScript.src = new URL('ambient-background-v2.js?v=20260909-nic-baseline-v1', currentScript.src).href;
     ambientScript.dataset.ambientBackground = 'true';
     ambientScript.async = false;
     document.head.appendChild(ambientScript);
   }
   if (currentScript && !document.querySelector('script[data-ambient-network]')) {
     const ambientNetwork = document.createElement('script');
-    ambientNetwork.src = new URL('ambient-network.js?v=20260909-nic-swarm-v2', currentScript.src).href;
+    ambientNetwork.src = new URL('ambient-network.js?v=20260909-nic-baseline-v1', currentScript.src).href;
     ambientNetwork.dataset.ambientNetwork = 'true';
     ambientNetwork.async = false;
     document.head.appendChild(ambientNetwork);
