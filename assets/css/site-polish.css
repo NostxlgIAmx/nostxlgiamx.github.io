@@ -1,24 +1,22 @@
 @import url("./site-polish-base.css");
 @import url("./brand-identity.css");
 
-/* Selección de texto: conserva intacto el fondo morado nativo.
-   El módulo selection-rainbow.js actualiza estas 12 fases cromáticas. */
+/* Selección de texto: fondo morado intacto + paleta editorial NostxlgIA. */
 html {
-  --nostxlgia-rainbow-0:#f27c78;
-  --nostxlgia-rainbow-1:#f49b6a;
-  --nostxlgia-rainbow-2:#e7b75c;
-  --nostxlgia-rainbow-3:#d5c96d;
-  --nostxlgia-rainbow-4:#8fcb83;
-  --nostxlgia-rainbow-5:#62c5a5;
-  --nostxlgia-rainbow-6:#59c5d2;
-  --nostxlgia-rainbow-7:#73a7e8;
-  --nostxlgia-rainbow-8:#8d91eb;
-  --nostxlgia-rainbow-9:#af83e6;
-  --nostxlgia-rainbow-10:#d477c3;
-  --nostxlgia-rainbow-11:#e77d9e;
+  --nostxlgia-rainbow-0:#d0ae67;
+  --nostxlgia-rainbow-1:#c0b17a;
+  --nostxlgia-rainbow-2:#82ada0;
+  --nostxlgia-rainbow-3:#64b0ac;
+  --nostxlgia-rainbow-4:#63b2bf;
+  --nostxlgia-rainbow-5:#729db4;
+  --nostxlgia-rainbow-6:#8190ac;
+  --nostxlgia-rainbow-7:#9186aa;
+  --nostxlgia-rainbow-8:#a48aaa;
+  --nostxlgia-rainbow-9:#b69a88;
+  --nostxlgia-rainbow-10:#c5a875;
+  --nostxlgia-rainbow-11:#d0ae67;
 }
 
-/* ::selection no redefine background: permanece el morado existente. */
 ::selection { color:currentColor; }
 
 ::highlight(nostxlgia-rainbow-0)  { color:var(--nostxlgia-rainbow-0); }
@@ -33,3 +31,66 @@ html {
 ::highlight(nostxlgia-rainbow-9)  { color:var(--nostxlgia-rainbow-9); }
 ::highlight(nostxlgia-rainbow-10) { color:var(--nostxlgia-rainbow-10); }
 ::highlight(nostxlgia-rainbow-11) { color:var(--nostxlgia-rainbow-11); }
+
+/* Inicio · Servicios: mismo lenguaje de tarjeta que Proyectos. */
+.services-preview{
+  gap:22px!important;
+  border:0!important;
+}
+.services-preview .service-mini{
+  min-height:220px!important;
+  padding:30px 27px!important;
+  border:1px solid var(--line)!important;
+  border-radius:var(--radius)!important;
+  background:var(--surface)!important;
+  transition:transform .2s ease,border-color .2s ease,background .2s ease!important;
+}
+.services-preview .service-mini:hover{
+  transform:translateY(-3px);
+  border-color:#35455d!important;
+  background:#111c2a!important;
+}
+.services-preview .service-mini h3{
+  font-size:20px!important;
+  line-height:1.25!important;
+  margin:34px 0 10px!important;
+}
+.services-preview .service-mini p{
+  font-size:13px!important;
+  line-height:1.65!important;
+}
+.services-preview .service-no,
+.services-preview .service-no:after{
+  font-size:11px!important;
+}
+
+/* Hero · Registros: elimina la píldora y refuerza jerarquía del encabezado. */
+.hero-vnext .data-sample{display:none!important}
+.hero-vnext .data-phase-heading{justify-content:flex-start!important}
+.hero-vnext .data-phase-heading>div{gap:5px!important}
+.hero-vnext .data-phase-kicker{
+  font-size:8px!important;
+  letter-spacing:.17em!important;
+}
+.hero-vnext .data-phase-heading strong{
+  font-size:20px!important;
+  line-height:1.02!important;
+}
+
+/* Formulario: estados de envío. */
+.contact-form .btn[disabled]{opacity:.62;cursor:wait;transform:none!important}
+.form-status{min-height:20px;margin-top:10px;font-size:12px;color:#b8c4d1}
+.form-status.is-success{color:#8cc7b5}
+.form-status.is-error{color:#d89a90}
+
+@media (max-width:860px){
+  .services-preview{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media (max-width:600px){
+  .services-preview{grid-template-columns:1fr!important;gap:14px!important}
+  .services-preview .service-mini{min-height:0!important;padding:24px 21px!important}
+  .services-preview .service-mini h3{font-size:19px!important;margin:24px 0 8px!important}
+  .services-preview .service-mini p{font-size:12.5px!important}
+  .hero-vnext .data-phase-kicker{font-size:6px!important}
+  .hero-vnext .data-phase-heading strong{font-size:14px!important}
+}
