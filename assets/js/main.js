@@ -18,7 +18,7 @@
     document.head.appendChild(selectionRainbow);
   }
 
-  /* Cursor y fondo ambiental cargados por separado. */
+  /* Cursor y fondos ambientales cargados por separado. */
   if (currentScript && !document.querySelector('script[data-cursor-ambient]')) {
     const cursorAmbient = document.createElement('script');
     cursorAmbient.src = new URL('cursor-ambient.js?v=20260818-halo-return', currentScript.src).href;
@@ -32,6 +32,13 @@
     ambientScript.dataset.ambientBackground = 'true';
     ambientScript.async = false;
     document.head.appendChild(ambientScript);
+  }
+  if (currentScript && !document.querySelector('script[data-ambient-network]')) {
+    const ambientNetwork = document.createElement('script');
+    ambientNetwork.src = new URL('ambient-network.js?v=20260908-dense-neural', currentScript.src).href;
+    ambientNetwork.dataset.ambientNetwork = 'true';
+    ambientNetwork.async = false;
+    document.head.appendChild(ambientNetwork);
   }
 
   /* Ajuste final, limitado a las visualizaciones de Datos y Proyectos. */
