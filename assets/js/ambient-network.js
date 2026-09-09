@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260909-nic-baseline-v2-fast';
+  const VERSION = '20260909-nic-baseline-v3-grab-no-drag';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobileViewport = window.matchMedia('(max-width: 760px)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -53,8 +53,8 @@
       const mobile=mobileViewport.matches;
       const area=Math.max(width*height,1);
       const count=mobile
-        ? clamp(Math.round(area/16500),28,46)
-        : clamp(Math.round(area/25000),42,72);
+        ? clamp(Math.round(area/21000),24,40)
+        : clamp(Math.round(area/32000),36,62);
       const q=createRng(0x91c5f27 ^ Math.round(width*31+height*17));
       const aspect=width/Math.max(height,1);
       const cols=Math.max(1,Math.ceil(Math.sqrt(count*aspect)));
@@ -71,13 +71,13 @@
       for(let i=0;i<count;i++){
         const [c,r]=cells[i];
         nodes.push({
-          x:(c+.08+q()*.84)*cw,
-          y:(r+.08+q()*.84)*ch,
-          vx:(q()-.5)*(mobile?2.0:2.6)*MOTION_SPEED,
-          vy:(q()-.5)*(mobile?1.7:2.2)*MOTION_SPEED,
-          r:(mobile?1.05:1.25)+q()*(mobile?.55:.75),
+          x:(c+.05+q()*.90)*cw,
+          y:(r+.05+q()*.90)*ch,
+          vx:(q()-.5)*(mobile?1.9:2.45)*MOTION_SPEED,
+          vy:(q()-.5)*(mobile?1.65:2.05)*MOTION_SPEED,
+          r:(mobile?1.0:1.2)+q()*(mobile?.50:.70),
           phase:q()*Math.PI*2,
-          drift:.20+q()*.28
+          drift:.16+q()*.24
         });
       }
     }
@@ -102,108 +102,69 @@
         node.x+=node.vx*dt;
         node.y+=node.vy*dt;
 
-        node.x+=Math.sin(now*.00018+node.phase)*node.drift*dt*18;
-        node.y+=Math.cos(now*.00015+node.phase*.87)*node.drift*dt*15;
+        node.x+=Math.sin(now*.00020+node.phase)*node.drift*dt*15;
+        node.y+=Math.cos(now*.00017+node.phase*.87)*node.drift*dt*13;
 
         if(node.x<4){node.x=4;node.vx=Math.abs(node.vx);}
         else if(node.x>width-4){node.x=width-4;node.vx=-Math.abs(node.vx);}
         if(node.y<4){node.y=4;node.vy=Math.abs(node.vy);}
         else if(node.y>height-4){node.y=height-4;node.vy=-Math.abs(node.vy);}
-
-        if(finePointer.matches&&pointer.active&&pointer.strength>.01){
-          const dx=pointer.x-node.x,dy=pointer.y-node.y;
-          const d=Math.hypot(dx,dy);
-          const radius=mobileViewport.matches?150:210;
-          if(d>0&&d<radius){
-            const influence=(1-d/radius)*pointer.strength;
-            node.x+=(dx/d)*influence*.62;
-            node.y+=(dy/d)*influence*.62;
-          }
-        }
       }
-    }
-
-    function drawConnection(a,b,d,maxDistance,alphaScale){
-      const proximity=clamp(1-d/maxDistance,0,1);
-      const alpha=(.055+proximity*.18)*alphaScale;
-      ctx.strokeStyle=`rgba(235,249,253,${alpha})`;
-      ctx.lineWidth=.72;
-      ctx.beginPath();
-      ctx.moveTo(a.x,a.y);
-      ctx.lineTo(b.x,b.y);
-      ctx.stroke();
     }
 
     function drawBaseConnections(){
-      const mobile=mobileViewport.matches;
-      const maxDistance=mobile?150:190;
+      const maxDistance=mobileViewport.matches?128:158;
       const maxSq=maxDistance*maxDistance;
-      const maxDegree=mobile?2:3;
-      const degree=new Array(nodes.length).fill(0);
-      const candidates=[];
-
-      for(let i=0;i<nodes.length;i++){
-        for(let j=i+1;j<nodes.length;j++){
-          const dx=nodes[j].x-nodes[i].x,dy=nodes[j].y-nodes[i].y;
-          const d2=dx*dx+dy*dy;
-          if(d2<=maxSq)candidates.push({i,j,d2});
-        }
-      }
-      candidates.sort((a,b)=>a.d2-b.d2);
 
       ctx.save();
-      for(const edge of candidates){
-        if(degree[edge.i]>=maxDegree||degree[edge.j]>=maxDegree)continue;
-        const d=Math.sqrt(edge.d2);
-        drawConnection(nodes[edge.i],nodes[edge.j],d,maxDistance,.72);
-        degree[edge.i]++;
-        degree[edge.j]++;
+      ctx.lineWidth=mobileViewport.matches?.60:.72;
+      for(let i=0;i<nodes.length;i++){
+        for(let j=i+1;j<nodes.length;j++){
+          const dx=nodes[j].x-nodes[i].x;
+          const dy=nodes[j].y-nodes[i].y;
+          const d2=dx*dx+dy*dy;
+          if(d2>maxSq) continue;
+          const d=Math.sqrt(d2);
+          const proximity=clamp(1-d/maxDistance,0,1);
+          const alpha=.035+proximity*.15;
+          ctx.strokeStyle=`rgba(235,249,253,${alpha})`;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x,nodes[i].y);
+          ctx.lineTo(nodes[j].x,nodes[j].y);
+          ctx.stroke();
+        }
       }
       ctx.restore();
     }
 
-    function drawPointerNetwork(){
+    function drawPointerGrab(){
       if(!finePointer.matches||!pointer.active||pointer.strength<.01)return new Set();
 
-      const radius=mobileViewport.matches?190:260;
+      const radius=mobileViewport.matches?165:220;
       const radiusSq=radius*radius;
       const nearby=[];
       for(let i=0;i<nodes.length;i++){
-        const dx=nodes[i].x-pointer.x,dy=nodes[i].y-pointer.y,d2=dx*dx+dy*dy;
-        if(d2<=radiusSq)nearby.push({i,d2});
+        const dx=nodes[i].x-pointer.x;
+        const dy=nodes[i].y-pointer.y;
+        const d2=dx*dx+dy*dy;
+        if(d2<=radiusSq) nearby.push({i,d2});
       }
       nearby.sort((a,b)=>a.d2-b.d2);
-      const active=nearby.slice(0,mobileViewport.matches?7:11).map(v=>v.i);
-      const activeSet=new Set(active);
-      if(active.length<2)return activeSet;
-
-      const maxDistance=mobileViewport.matches?175:225;
-      const maxSq=maxDistance*maxDistance;
-      const degree=new Map(active.map(i=>[i,0]));
-      const candidates=[];
-      for(let a=0;a<active.length;a++){
-        for(let b=a+1;b<active.length;b++){
-          const i=active[a],j=active[b];
-          const dx=nodes[j].x-nodes[i].x,dy=nodes[j].y-nodes[i].y,d2=dx*dx+dy*dy;
-          if(d2<=maxSq)candidates.push({i,j,d2});
-        }
-      }
-      candidates.sort((a,b)=>a.d2-b.d2);
+      const grabbed=nearby.slice(0,mobileViewport.matches?5:7);
+      const activeSet=new Set(grabbed.map(item=>item.i));
 
       ctx.save();
-      for(const edge of candidates){
-        if((degree.get(edge.i)||0)>=3||(degree.get(edge.j)||0)>=3)continue;
-        const d=Math.sqrt(edge.d2);
-        const proximity=clamp(1-d/maxDistance,0,1);
-        const alpha=(.12+proximity*.30)*pointer.strength;
+      ctx.lineWidth=mobileViewport.matches?.75:.95;
+      for(const item of grabbed){
+        const node=nodes[item.i];
+        const d=Math.sqrt(item.d2);
+        const proximity=clamp(1-d/radius,0,1);
+        const alpha=(.07+proximity*.30)*pointer.strength;
         ctx.strokeStyle=`rgba(250,253,255,${alpha})`;
-        ctx.lineWidth=1.05;
         ctx.beginPath();
-        ctx.moveTo(nodes[edge.i].x,nodes[edge.i].y);
-        ctx.lineTo(nodes[edge.j].x,nodes[edge.j].y);
+        ctx.moveTo(pointer.x,pointer.y);
+        ctx.lineTo(node.x,node.y);
         ctx.stroke();
-        degree.set(edge.i,(degree.get(edge.i)||0)+1);
-        degree.set(edge.j,(degree.get(edge.j)||0)+1);
       }
       ctx.restore();
       return activeSet;
@@ -213,20 +174,20 @@
       for(let i=0;i<nodes.length;i++){
         const node=nodes[i];
         const active=activeSet.has(i);
-        const alpha=.66+(active?.24*pointer.strength:0);
-        ctx.fillStyle=`rgba(250,253,255,${clamp(alpha,0,.96)})`;
+        const alpha=.64+(active?.20*pointer.strength:0);
+        ctx.fillStyle=`rgba(250,253,255,${clamp(alpha,0,.92)})`;
         ctx.beginPath();
-        ctx.arc(node.x,node.y,node.r*(active?1.28:1),0,Math.PI*2);
+        ctx.arc(node.x,node.y,node.r*(active?1.14:1),0,Math.PI*2);
         ctx.fill();
       }
     }
 
     function draw(now,dt){
       ctx.clearRect(0,0,width,height);
-      pointer.strength+=(pointer.target-pointer.strength)*(reducedMotion.matches?1:.16);
+      pointer.strength+=(pointer.target-pointer.strength)*(reducedMotion.matches?1:.18);
       update(dt,now);
       drawBaseConnections();
-      const activeSet=drawPointerNetwork();
+      const activeSet=drawPointerGrab();
       drawNodes(activeSet);
     }
 
