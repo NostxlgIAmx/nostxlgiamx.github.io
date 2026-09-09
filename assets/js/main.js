@@ -35,7 +35,7 @@
   }
   if (currentScript && !document.querySelector('script[data-ambient-network]')) {
     const ambientNetwork = document.createElement('script');
-    ambientNetwork.src = new URL('ambient-network.js?v=20260908-dense-neural', currentScript.src).href;
+    ambientNetwork.src = new URL('ambient-network.js?v=20260909-nic-worm-v1', currentScript.src).href;
     ambientNetwork.dataset.ambientNetwork = 'true';
     ambientNetwork.async = false;
     document.head.appendChild(ambientNetwork);
