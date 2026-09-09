@@ -1,11 +1,12 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260909-nic-baseline-v1';
+  const VERSION = '20260909-nic-baseline-v2-fast';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobileViewport = window.matchMedia('(max-width: 760px)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
   const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+  const MOTION_SPEED = 8;
 
   function createRng(seed){
     return () => {
@@ -72,8 +73,8 @@
         nodes.push({
           x:(c+.08+q()*.84)*cw,
           y:(r+.08+q()*.84)*ch,
-          vx:(q()-.5)*(mobile?2.0:2.6),
-          vy:(q()-.5)*(mobile?1.7:2.2),
+          vx:(q()-.5)*(mobile?2.0:2.6)*MOTION_SPEED,
+          vy:(q()-.5)*(mobile?1.7:2.2)*MOTION_SPEED,
           r:(mobile?1.05:1.25)+q()*(mobile?.55:.75),
           phase:q()*Math.PI*2,
           drift:.20+q()*.28
@@ -101,8 +102,8 @@
         node.x+=node.vx*dt;
         node.y+=node.vy*dt;
 
-        node.x+=Math.sin(now*.00018+node.phase)*node.drift*dt*7;
-        node.y+=Math.cos(now*.00015+node.phase*.87)*node.drift*dt*6;
+        node.x+=Math.sin(now*.00018+node.phase)*node.drift*dt*18;
+        node.y+=Math.cos(now*.00015+node.phase*.87)*node.drift*dt*15;
 
         if(node.x<4){node.x=4;node.vx=Math.abs(node.vx);}
         else if(node.x>width-4){node.x=width-4;node.vx=-Math.abs(node.vx);}
