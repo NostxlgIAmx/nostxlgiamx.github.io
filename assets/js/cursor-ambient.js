@@ -6,8 +6,6 @@
   if (!finePointer.matches || reducedMotion.matches || document.querySelector('.cursor-ambient-glow')) return;
 
   const init = () => {
-    /* La red ambiental sustituye el halo circular del cursor. */
-    if (document.querySelector('script[data-ambient-network]') || document.querySelector('.ambient-network-canvas')) return;
     if (!document.body || document.querySelector('.cursor-ambient-glow')) return;
 
     const style = document.createElement('style');
