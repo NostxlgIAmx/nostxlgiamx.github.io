@@ -23,7 +23,7 @@
 
     const payload = {
       nombre: String(data.get('nombre') || '').trim(),
-      correo: String(data.get('correo') || '').trim(),
+      email: String(data.get('correo') || '').trim(),
       tema: String(data.get('asunto') || 'Proyecto').trim(),
       mensaje: String(data.get('mensaje') || '').trim(),
       _subject: `Consulta NostxlgIA — ${String(data.get('asunto') || 'Proyecto').trim()}`,
