@@ -15,6 +15,8 @@
 .service-family#planeacion .service-family-no:after{content:"05"!important;display:inline!important;font-size:48px!important}
 .service-family#evaluacion .service-family-no:after{content:"06"!important;display:inline!important;font-size:48px!important}
 
+.depth-card{overflow:hidden!important}
+.depth-card:focus-visible{outline:1px solid rgba(216,180,102,.78);outline-offset:4px}
 @media (hover:hover) and (pointer:fine){
   .depth-card{transform:perspective(1200px) rotateX(var(--depth-x)) rotateY(var(--depth-y)) translate3d(0,var(--depth-lift),0)!important}
 }
