@@ -1,5 +1,6 @@
 @import url("./site-polish-base.css");
 @import url("./brand-identity.css");
+@import url("./ux-audit-v2.css?v=20260909-ux2");
 
 /* Selección de texto: fondo morado intacto + paleta editorial NostxlgIA. */
 html {
@@ -32,7 +33,7 @@ html {
 ::highlight(nostxlgia-rainbow-10) { color:var(--nostxlgia-rainbow-10); }
 ::highlight(nostxlgia-rainbow-11) { color:var(--nostxlgia-rainbow-11); }
 
-/* Inicio · Servicios: mismo lenguaje de tarjeta que Proyectos. */
+/* Base de tarjetas de Servicios. La capa ux-audit-v2 termina la jerarquía. */
 .services-preview{
   gap:22px!important;
   border:0!important;
@@ -46,7 +47,6 @@ html {
   transition:transform .2s ease,border-color .2s ease,background .2s ease!important;
 }
 .services-preview .service-mini:hover{
-  transform:translateY(-3px);
   border-color:#35455d!important;
   background:#111c2a!important;
 }
@@ -59,12 +59,8 @@ html {
   font-size:13px!important;
   line-height:1.65!important;
 }
-.services-preview .service-no,
-.services-preview .service-no:after{
-  font-size:11px!important;
-}
 
-/* Hero · Registros: elimina la píldora y refuerza jerarquía del encabezado. */
+/* Hero · Registros. */
 .hero-vnext .data-sample{display:none!important}
 .hero-vnext .data-phase-heading{justify-content:flex-start!important}
 .hero-vnext .data-phase-heading>div{gap:5px!important}
