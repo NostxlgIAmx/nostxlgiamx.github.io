@@ -1,0 +1,80 @@
+/* Proyectos · responsive canónico móvil */
+@media (max-width:760px){
+  .container{width:min(var(--content),calc(100% - 32px))}
+
+  .site-header{backdrop-filter:blur(14px)}
+  .header-inner{min-height:92px;gap:18px}
+  .brand-name{font-size:22px;letter-spacing:.145em}
+  .brand-subtitle{font-size:9.5px;letter-spacing:.19em;margin-top:5px}
+  .nav-toggle{display:block;width:48px;height:48px;padding:0;border-radius:11px}
+  .nav-toggle span{width:21px;margin:5px auto}
+
+  .page-hero{padding:46px 0 42px}
+  .page-hero-grid{display:block}
+  .page-hero .eyebrow{font-size:10.5px;letter-spacing:.16em}
+  .page-hero h1.display{
+    max-width:7.6ch;
+    margin:17px 0 22px;
+    font-size:clamp(46px,13vw,58px);
+    line-height:.95;
+    letter-spacing:-.025em;
+    text-wrap:balance;
+  }
+  .page-hero p{
+    max-width:none;
+    margin:0;
+    font-size:16px;
+    line-height:1.68;
+    color:#c8d1df;
+  }
+  .page-aside{
+    margin-top:34px;
+    padding:22px 0 0;
+    border-left:0;
+    border-top:1px solid var(--line);
+    font-size:13.5px;
+    line-height:1.6;
+  }
+  .page-aside strong{font-size:10.5px;margin-bottom:9px}
+
+  .section-pad{padding:58px 0}
+  .projects-list{gap:22px}
+  .projects-list .project-feature{
+    grid-template-columns:1fr;
+    min-height:0;
+    border-radius:13px;
+  }
+  .projects-list .project-feature .project-visual{
+    height:340px;
+    min-height:340px;
+  }
+  .projects-list .project-feature .card-body{padding:26px 23px 27px}
+  .projects-list .project-feature .category{font-size:10px;letter-spacing:.12em}
+  .projects-list .project-feature .card-title{font-size:27px;line-height:1.12;margin:11px 0 14px}
+  .projects-list .project-feature .card-copy{font-size:15px;line-height:1.66}
+  .project-context{grid-template-columns:1fr;gap:14px;margin:20px 0}
+  .project-context>div{padding-top:11px}
+  .project-context small{font-size:9.5px}
+  .project-context strong{font-size:13.5px;line-height:1.52}
+  .projects-list .project-feature .tag-row{gap:7px}
+  .projects-list .project-feature .tag{font-size:9.5px;padding:6px 8px}
+
+  .cta{display:block;padding:28px 24px}
+  .cta h2{font-size:35px;line-height:1.02}
+  .cta p{font-size:14.5px;line-height:1.65}
+  .cta .btn{width:100%;margin-top:23px}
+
+  .footer-grid{grid-template-columns:1fr;gap:30px}
+  .footer-bottom{display:block;line-height:1.8}
+
+  /* Evita que una demo compleja fuerce ancho o scroll lateral. */
+  .project-visual,.project-feature,.projects-list{min-width:0;max-width:100%}
+  .project-visual>*{max-width:100%}
+}
+
+@media (max-width:390px){
+  .page-hero h1.display{font-size:45px;max-width:7.3ch}
+  .page-hero p{font-size:15.5px}
+  .projects-list .project-feature .project-visual{height:320px;min-height:320px}
+  .projects-list .project-feature .card-title{font-size:25px}
+}
