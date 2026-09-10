@@ -33,7 +33,6 @@ html {
 ::highlight(nostxlgia-rainbow-10) { color:var(--nostxlgia-rainbow-10); }
 ::highlight(nostxlgia-rainbow-11) { color:var(--nostxlgia-rainbow-11); }
 
-/* Base de tarjetas de Servicios. La capa ux-audit-v2 termina la jerarquía. */
 .services-preview{
   gap:22px!important;
   border:0!important;
@@ -60,7 +59,6 @@ html {
   line-height:1.65!important;
 }
 
-/* Hero · Registros. */
 .hero-vnext .data-sample{display:none!important}
 .hero-vnext .data-phase-heading{justify-content:flex-start!important}
 .hero-vnext .data-phase-heading>div{gap:5px!important}
@@ -73,14 +71,33 @@ html {
   line-height:1.02!important;
 }
 
-/* Formulario: estados de envío. */
 .contact-form .btn[disabled]{opacity:.62;cursor:wait;transform:none!important}
 .form-status{min-height:20px;margin-top:10px;font-size:12px;color:#b8c4d1}
 .form-status.is-success{color:#8cc7b5}
 .form-status.is-error{color:#d89a90}
 
+/* Numeración final: una sola fuente visual, incluso con el orden reestructurado. */
+.services-preview .service-no{font-size:0!important}
+.services-preview .service-mini[href*="#datos"] .service-no:after{content:"01"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+.services-preview .service-mini[href*="#tecnologia"] .service-no:after{content:"02"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+.services-preview .service-mini[href*="#electoral"] .service-no:after{content:"03"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+.services-preview .service-mini[href*="#cartografia"] .service-no:after{content:"04"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+.services-preview .service-mini[href*="#planeacion"] .service-no:after{content:"05"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+.services-preview .service-mini[href*="#evaluacion"] .service-no:after{content:"06"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+.service-family .service-family-no{font-size:0!important}
+.service-family#datos .service-family-no:after{content:"01"!important;display:inline!important;font-size:48px!important}
+.service-family#tecnologia .service-family-no:after{content:"02"!important;display:inline!important;font-size:48px!important}
+.service-family#electoral .service-family-no:after{content:"03"!important;display:inline!important;font-size:48px!important}
+.service-family#cartografia .service-family-no:after{content:"04"!important;display:inline!important;font-size:48px!important}
+.service-family#planeacion .service-family-no:after{content:"05"!important;display:inline!important;font-size:48px!important}
+.service-family#evaluacion .service-family-no:after{content:"06"!important;display:inline!important;font-size:48px!important}
+
+/* El tilt debe prevalecer sobre el translateY genérico de .card:hover. */
+.depth-card{transform:perspective(1200px) rotateX(var(--depth-x)) rotateY(var(--depth-y)) translate3d(0,var(--depth-lift),0)!important}
+
 @media (max-width:860px){
   .services-preview{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .service-family .service-family-no:after{font-size:40px!important}
 }
 @media (max-width:600px){
   .services-preview{grid-template-columns:1fr!important;gap:14px!important}
@@ -90,3 +107,4 @@ html {
   .hero-vnext .data-phase-kicker{font-size:6px!important}
   .hero-vnext .data-phase-heading strong{font-size:14px!important}
 }
+@media (hover:none){.depth-card{transform:none!important}}
