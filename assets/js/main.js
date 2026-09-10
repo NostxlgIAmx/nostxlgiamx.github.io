@@ -3,7 +3,7 @@
 
   const currentScript = document.currentScript;
   const assetBase = currentScript ? new URL('.', currentScript.src) : new URL('./assets/js/', location.href);
-  const VERSION = '20260910-refactor5';
+  const VERSION = '20260910-refactor6';
 
   const ensureScript = (src, marker) => {
     if (document.querySelector(`script[data-${marker}]`)) return;
