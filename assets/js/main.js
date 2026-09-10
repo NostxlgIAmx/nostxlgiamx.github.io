@@ -3,7 +3,7 @@
 
   const currentScript = document.currentScript;
   const assetBase = currentScript ? new URL('.', currentScript.src) : new URL('./assets/js/', location.href);
-  const VERSION = '20260910-refactor6';
+  const VERSION = '20260910-integration1';
 
   const ensureScript = (src, marker) => {
     if (document.querySelector(`script[data-${marker}]`)) return;
@@ -59,11 +59,7 @@
       });
       const aside = document.querySelector('.page-hero .page-aside');
       if (aside) aside.innerHTML = '<strong>Áreas</strong>Análisis de datos · Analítica y tecnología · Inteligencia electoral · Soluciones cartográficas · Planeación y gestión pública · Evaluación';
-      if (location.hash) {
-        requestAnimationFrame(() => {
-          try { document.querySelector(location.hash)?.scrollIntoView({block:'start'}); } catch {}
-        });
-      }
+      if (location.hash) requestAnimationFrame(() => { try { document.querySelector(location.hash)?.scrollIntoView({block:'start'}); } catch {} });
     }
 
     const hero = document.querySelector('[data-territory-visual]');
@@ -78,7 +74,6 @@
       hardHide(hero.querySelector('.territory-step'));
       hardHide(hero.querySelector('[data-data-sample]'));
       hardHide(hero.querySelector('.data-matrix-heading small'));
-
       const kicker = hero.querySelector('.visual-kicker');
       if (kicker) kicker.textContent = 'Demostración · datos simulados';
       const captionTitle = hero.querySelector('.visual-caption h3');
@@ -92,9 +87,13 @@
     const toggle = document.querySelector('.nav-toggle');
     const nav = document.querySelector('.nav');
     if (!toggle || !nav) return;
+    if (!nav.id) nav.id = 'site-navigation';
+    toggle.type = 'button';
+    toggle.setAttribute('aria-controls', nav.id);
     const setOpen = (open) => {
       nav.classList.toggle('open', open);
       toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Cerrar navegación' : 'Abrir navegación');
     };
     toggle.addEventListener('click', () => setOpen(!nav.classList.contains('open')));
     nav.addEventListener('click', (event) => { if (event.target.closest('a')) setOpen(false); });
@@ -112,6 +111,8 @@
     const buttons = [...row.querySelectorAll('.filter-chip')];
     const cards = [...document.querySelectorAll('.analysis-card')];
     if (!buttons.length || !cards.length) return;
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', 'Filtrar análisis por tema');
     buttons.forEach((button) => {
       button.type = 'button';
       button.setAttribute('aria-pressed', button.classList.contains('active') ? 'true' : 'false');
@@ -130,12 +131,12 @@
     });
   };
 
-  const unionBBox = (elements) => {
+  const bboxUnion = (elements) => {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const element of elements) {
       try {
         const box = element.getBBox();
-        if (!box.width && !box.height) continue;
+        if (!Number.isFinite(box.x) || (!box.width && !box.height)) continue;
         minX = Math.min(minX, box.x); minY = Math.min(minY, box.y);
         maxX = Math.max(maxX, box.x + box.width); maxY = Math.max(maxY, box.y + box.height);
       } catch {}
@@ -143,31 +144,89 @@
     return Number.isFinite(minX) ? {x:minX,y:minY,width:maxX-minX,height:maxY-minY} : null;
   };
 
+  const opticalCenter = (elements, fallback) => {
+    let sumX = 0, sumY = 0, sumW = 0;
+    for (const element of elements) {
+      try {
+        const b = element.getBBox();
+        if (b.width < 1 || b.height < 1) continue;
+        const weight = Math.max(1, Math.sqrt(b.width * b.height));
+        sumX += (b.x + b.width / 2) * weight;
+        sumY += (b.y + b.height / 2) * weight;
+        sumW += weight;
+      } catch {}
+    }
+    return sumW ? {x:sumX/sumW,y:sumY/sumW} : fallback;
+  };
+
   const fitHeroCity = () => {
-    const svg = document.querySelector('[data-city-canvas] .city-svg');
-    if (!svg) return false;
+    const host = document.querySelector('[data-city-canvas]');
+    const svg = host?.querySelector('.city-svg');
+    if (!host || !svg) return false;
     const layers = [...svg.querySelectorAll('.city-ground-layer,.city-roads,.city-decor,.city-buildings')];
-    const box = unionBBox(layers);
-    if (!box || box.width < 1 || box.height < 1) return false;
-    const padX = box.width * .055;
-    const padY = box.height * .075;
-    svg.setAttribute('viewBox', `${box.x-padX} ${box.y-padY} ${box.width+padX*2} ${box.height+padY*2}`);
+    const bounds = bboxUnion(layers);
+    if (!bounds || bounds.width < 1 || bounds.height < 1) return false;
+    const focal = [...svg.querySelectorAll('.city-building,.city-decor > *')];
+    const geometric = {x:bounds.x+bounds.width/2,y:bounds.y+bounds.height/2};
+    const optical = opticalCenter(focal, geometric);
+    const cx = geometric.x + bounds.width*.025 + Math.max(-bounds.width*.08, Math.min(bounds.width*.08, (optical.x-geometric.x)*.36));
+    const cy = geometric.y + Math.max(-bounds.height*.07, Math.min(bounds.height*.07, (optical.y-geometric.y)*.22));
+    const containerAspect = Math.max(.9, host.clientWidth / Math.max(host.clientHeight, 1));
+    let viewW = bounds.width * 1.075;
+    let viewH = bounds.height * 1.10;
+    const contentAspect = viewW / viewH;
+    if (contentAspect > containerAspect) viewH = viewW / containerAspect;
+    else viewW = viewH * containerAspect;
+    svg.setAttribute('viewBox', `${cx-viewW/2} ${cy-viewH/2} ${viewW} ${viewH}`);
     svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     return true;
   };
 
   const initHeroLayout = () => {
-    const hero = document.querySelector('[data-territory-visual]');
-    if (!hero) return;
-    const trend = hero.querySelector('.analysis-svg');
-    trend?.setAttribute('viewBox', '72 66 566 276');
-    trend?.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    const host = document.querySelector('[data-city-canvas]');
+    if (!host) return;
     let tries = 0;
-    const fit = () => {
-      tries += 1;
-      if (!fitHeroCity() && tries < 8) requestAnimationFrame(fit);
-    };
+    const fit = () => { tries += 1; if (!fitHeroCity() && tries < 12) requestAnimationFrame(fit); };
     requestAnimationFrame(fit);
+    const observer = new MutationObserver(() => requestAnimationFrame(fitHeroCity));
+    observer.observe(host, {childList:true,subtree:true});
+    if ('ResizeObserver' in window) new ResizeObserver(() => requestAnimationFrame(fitHeroCity)).observe(host);
+  };
+
+  const initRovingMaps = () => {
+    const setup = (host, selector, selectedClass) => {
+      if (!host || host.dataset.rovingReady === 'true') return;
+      const items = [...host.querySelectorAll(selector)];
+      if (!items.length) return;
+      host.dataset.rovingReady = 'true';
+      items.forEach((item) => item.setAttribute('tabindex', '-1'));
+      const initial = items.find((item) => item.classList.contains(selectedClass)) || items[0];
+      initial.setAttribute('tabindex', '0');
+      const activate = (item, focus = false) => {
+        items.forEach((node) => node.setAttribute('tabindex', node === item ? '0' : '-1'));
+        if (focus) item.focus({preventScroll:true});
+      };
+      items.forEach((item) => item.addEventListener('click', () => activate(item), {passive:true}));
+      host.addEventListener('keydown', (event) => {
+        if (!['ArrowRight','ArrowDown','ArrowLeft','ArrowUp','Home','End'].includes(event.key)) return;
+        const active = document.activeElement;
+        let index = Math.max(0, items.indexOf(active));
+        if (event.key === 'Home') index = 0;
+        else if (event.key === 'End') index = items.length - 1;
+        else index = (index + (event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+        event.preventDefault();
+        activate(items[index], true);
+        items[index].dispatchEvent(new MouseEvent('click', {bubbles:true}));
+      });
+    };
+    const run = () => {
+      setup(document.querySelector('[data-viz="denue-context"]'), '.denue-v5-mun', 'is-active');
+      setup(document.querySelector('.ntx-el-svg'), '.ntx-el-section', 'is-selected');
+    };
+    run();
+    const observer = new MutationObserver(run);
+    observer.observe(document.body, {childList:true,subtree:true});
+    setTimeout(() => observer.disconnect(), 12000);
   };
 
   const VIZ_INFO = {
@@ -219,4 +278,5 @@
   initAnalysisFilters();
   initHeroLayout();
   initVizHelp();
+  initRovingMaps();
 })();
