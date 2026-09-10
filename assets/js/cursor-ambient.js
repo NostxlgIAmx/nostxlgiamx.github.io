@@ -1,52 +1,93 @@
 (() => {
   'use strict';
 
+  const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)');
-  if (!finePointer.matches || reducedMotion.matches || !document.body) return;
-  if (document.querySelector('.nostx-cursor-halo')) return;
+  if (!finePointer.matches || reducedMotion.matches || document.querySelector('.cursor-ambient-glow')) return;
 
-  const halo = document.createElement('div');
-  halo.className = 'nostx-cursor-halo';
-  halo.setAttribute('aria-hidden','true');
-  document.body.prepend(halo);
+  const init = () => {
+    if (!document.body || document.querySelector('.cursor-ambient-glow')) return;
 
-  let raf = 0;
-  let targetX = -900;
-  let targetY = -900;
-  let currentX = -900;
-  let currentY = -900;
-  let visible = false;
+    // Baseline aprobado: este módulo es el único dueño del tamaño, color y tracking del halo.
+    const style = document.createElement('style');
+    style.dataset.cursorAmbient = 'approved-200px';
+    style.textContent = `
+      .cursor-ambient-glow{
+        position:fixed;
+        left:0;
+        top:0;
+        width:200px;
+        height:200px;
+        border-radius:50%;
+        pointer-events:none;
+        z-index:999;
+        opacity:0;
+        transform:translate3d(-320px,-320px,0);
+        background:radial-gradient(circle at center,
+          rgba(92,220,235,.22) 0%,
+          rgba(137,107,232,.14) 24%,
+          rgba(225,190,112,.075) 43%,
+          rgba(91,150,205,.025) 60%,
+          transparent 74%);
+        filter:blur(7px);
+        transition:opacity .25s ease;
+        will-change:transform,opacity;
+      }
+      .cursor-ambient-glow.is-visible{opacity:.92}
+      @media (hover:none),(pointer:coarse),(prefers-reduced-motion:reduce){
+        .cursor-ambient-glow{display:none!important}
+      }
+    `;
+    document.head.appendChild(style);
 
-  const render = () => {
-    raf = 0;
-    currentX += (targetX - currentX) * .24;
-    currentY += (targetY - currentY) * .24;
-    halo.style.setProperty('--halo-x', `${currentX}px`);
-    halo.style.setProperty('--halo-y', `${currentY}px`);
-    if (Math.abs(targetX-currentX) > .25 || Math.abs(targetY-currentY) > .25) raf = requestAnimationFrame(render);
+    const glow = document.createElement('div');
+    glow.className = 'cursor-ambient-glow';
+    glow.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(glow);
+
+    const radius = 100;
+    let targetX = window.innerWidth / 2;
+    let targetY = window.innerHeight / 2;
+    let currentX = targetX;
+    let currentY = targetY;
+    let frame = 0;
+    let hasPointer = false;
+
+    const render = () => {
+      currentX += (targetX - currentX) * 0.22;
+      currentY += (targetY - currentY) * 0.22;
+      glow.style.transform = `translate3d(${currentX - radius}px,${currentY - radius}px,0)`;
+
+      if (Math.abs(targetX-currentX) > 0.15 || Math.abs(targetY-currentY) > 0.15) {
+        frame = requestAnimationFrame(render);
+      } else {
+        currentX = targetX;
+        currentY = targetY;
+        glow.style.transform = `translate3d(${currentX-radius}px,${currentY-radius}px,0)`;
+        frame = 0;
+      }
+    };
+
+    const wake = () => { if (!frame) frame = requestAnimationFrame(render); };
+
+    document.addEventListener('pointermove', (event) => {
+      if (event.pointerType && event.pointerType !== 'mouse') return;
+      targetX = event.clientX;
+      targetY = event.clientY;
+      if (!hasPointer) {
+        currentX = targetX;
+        currentY = targetY;
+        hasPointer = true;
+      }
+      glow.classList.add('is-visible');
+      wake();
+    }, {passive:true});
+
+    document.addEventListener('pointerleave', () => glow.classList.remove('is-visible'));
+    document.addEventListener('pointerenter', () => { if (hasPointer) glow.classList.add('is-visible'); });
+    window.addEventListener('blur', () => glow.classList.remove('is-visible'));
   };
 
-  const move = (event) => {
-    if (event.pointerType && event.pointerType !== 'mouse' && event.pointerType !== 'pen') return;
-    targetX = event.clientX;
-    targetY = event.clientY;
-    if (!visible) {
-      currentX = targetX;
-      currentY = targetY;
-      visible = true;
-      halo.classList.add('is-visible');
-    }
-    if (!raf) raf = requestAnimationFrame(render);
-  };
-
-  window.addEventListener('pointermove', move, {passive:true});
-  document.documentElement.addEventListener('mouseleave', () => {
-    visible = false;
-    halo.classList.remove('is-visible');
-  }, {passive:true});
-  window.addEventListener('blur', () => {
-    visible = false;
-    halo.classList.remove('is-visible');
-  }, {passive:true});
+  if (document.body) init();
+  else document.addEventListener('DOMContentLoaded', init, {once:true});
 })();
