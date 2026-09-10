@@ -9,10 +9,10 @@
   const PHASES = 12;
   const PREFIX = 'nostxlgia-rainbow-';
   const CYCLE_MS = 11500;
-  const UPDATE_MS = mobile ? 150 : 75;
-  const DEBOUNCE_MS = mobile ? 190 : 70;
-  const MAX_RANGES = mobile ? 240 : 1400;
-  const GROUP_SIZE = mobile ? 2 : 1;
+  const UPDATE_MS = mobile ? 180 : 75;
+  const DEBOUNCE_MS = mobile ? 220 : 70;
+  const MAX_RANGES = mobile ? 180 : 1400;
+  const GROUP_SIZE = mobile ? 3 : 1;
   const PALETTE = [
     '#d0ae67','#c0b17a','#82ada0','#64b0ac',
     '#63b2bf','#729db4','#8190ac','#9186aa',
@@ -188,11 +188,20 @@
     rebuildTimer = window.setTimeout(rebuild, DEBOUNCE_MS);
   };
 
-  document.addEventListener('selectionchange', schedule, {passive:true});
+  document.addEventListener('selectionchange', () => {
+    if (mobile) {
+      /* Evita que una selección anterior quede pintada mientras iOS mueve los manejadores. */
+      clearHighlights();
+      stopPaint();
+      lastSignature = '';
+    }
+    schedule();
+  }, {passive:true});
 
   if (mobile) {
     document.addEventListener('pointerdown', () => {
       manipulating = true;
+      clearHighlights();
       stopPaint();
       emitState();
     }, {passive:true});
