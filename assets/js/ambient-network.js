@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260909-nic-baseline-v5-mobile-stable';
+  const currentScript = document.currentScript;
+  const VERSION = '20260909-nic-baseline-v6-touch';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobileViewport = window.matchMedia('(max-width: 760px)');
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -18,7 +19,17 @@
     };
   }
 
+  function loadCardDepth(){
+    if(!currentScript || document.querySelector('script[data-card-depth]')) return;
+    const script=document.createElement('script');
+    script.src=new URL('card-depth.js?v=20260909-depth-v1',currentScript.src).href;
+    script.dataset.cardDepth='true';
+    script.async=false;
+    document.head.appendChild(script);
+  }
+
   function start(){
+    loadCardDepth();
     if(!document.body || document.querySelector('.ambient-network-canvas')) return;
 
     const style=document.createElement('style');
@@ -50,7 +61,8 @@
     let resizeFrame=0;
     let lastRebuildWidth=0;
     let lastOrientation=window.screen?.orientation?.type || '';
-    const pointer={x:-9999,y:-9999,active:false,strength:0,target:0};
+    let touchReleaseTimer=0;
+    const pointer={x:-9999,y:-9999,active:false,strength:0,target:0,kind:''};
 
     function build(){
       const mobile=mobileViewport.matches;
@@ -129,7 +141,6 @@
       for(const node of nodes){
         node.x+=node.vx*dt;
         node.y+=node.vy*dt;
-
         node.x+=Math.sin(now*.00020+node.phase)*node.drift*dt*15;
         node.y+=Math.cos(now*.00017+node.phase*.87)*node.drift*dt*13;
 
@@ -140,10 +151,23 @@
       }
     }
 
+    function drawTouchHalo(){
+      if(pointer.kind!=='touch'||!pointer.active||pointer.strength<.01) return;
+      const radius=92;
+      const gradient=ctx.createRadialGradient(pointer.x,pointer.y,0,pointer.x,pointer.y,radius);
+      gradient.addColorStop(0,`rgba(74,183,204,${.115*pointer.strength})`);
+      gradient.addColorStop(.34,`rgba(83,146,184,${.065*pointer.strength})`);
+      gradient.addColorStop(.72,`rgba(111,92,174,${.025*pointer.strength})`);
+      gradient.addColorStop(1,'rgba(74,183,204,0)');
+      ctx.save();
+      ctx.fillStyle=gradient;
+      ctx.fillRect(pointer.x-radius,pointer.y-radius,radius*2,radius*2);
+      ctx.restore();
+    }
+
     function drawBaseConnections(){
       const maxDistance=mobileViewport.matches?128:158;
       const maxSq=maxDistance*maxDistance;
-
       ctx.save();
       ctx.lineWidth=mobileViewport.matches?.60:.72;
       for(let i=0;i<nodes.length;i++){
@@ -166,9 +190,11 @@
     }
 
     function drawPointerGrab(){
-      if(!finePointer.matches||!pointer.active||pointer.strength<.01)return new Set();
+      const allowed=finePointer.matches||pointer.kind==='touch';
+      if(!allowed||!pointer.active||pointer.strength<.01)return new Set();
 
-      const radius=mobileViewport.matches?165:220;
+      const isTouch=pointer.kind==='touch';
+      const radius=isTouch?185:(mobileViewport.matches?165:220);
       const radiusSq=radius*radius;
       const nearby=[];
       for(let i=0;i<nodes.length;i++){
@@ -178,16 +204,16 @@
         if(d2<=radiusSq) nearby.push({i,d2});
       }
       nearby.sort((a,b)=>a.d2-b.d2);
-      const grabbed=nearby.slice(0,mobileViewport.matches?5:7);
+      const grabbed=nearby.slice(0,isTouch?8:(mobileViewport.matches?5:7));
       const activeSet=new Set(grabbed.map(item=>item.i));
 
       ctx.save();
-      ctx.lineWidth=mobileViewport.matches?.75:.95;
+      ctx.lineWidth=isTouch?.82:(mobileViewport.matches?.75:.95);
       for(const item of grabbed){
         const node=nodes[item.i];
         const d=Math.sqrt(item.d2);
         const proximity=clamp(1-d/radius,0,1);
-        const alpha=(.07+proximity*.30)*pointer.strength;
+        const alpha=(isTouch?.055:.07)+proximity*(isTouch?.24:.30)*pointer.strength;
         ctx.strokeStyle=`rgba(250,253,255,${alpha})`;
         ctx.beginPath();
         ctx.moveTo(pointer.x,pointer.y);
@@ -214,6 +240,7 @@
       ctx.clearRect(0,0,width,height);
       pointer.strength+=(pointer.target-pointer.strength)*(reducedMotion.matches?1:.18);
       update(dt,now);
+      drawTouchHalo();
       drawBaseConnections();
       const activeSet=drawPointerGrab();
       drawNodes(activeSet);
@@ -234,23 +261,54 @@
       }
     }
 
-    window.addEventListener('pointermove',event=>{
-      if(!finePointer.matches)return;
+    function activatePointer(event){
+      if(event.pointerType==='touch'){
+        if(touchReleaseTimer){clearTimeout(touchReleaseTimer);touchReleaseTimer=0;}
+        pointer.kind='touch';
+        pointer.x=event.clientX;
+        pointer.y=event.clientY;
+        pointer.active=true;
+        pointer.target=1;
+        return;
+      }
+      if(!finePointer.matches) return;
+      pointer.kind='mouse';
       pointer.x=event.clientX;
       pointer.y=event.clientY;
       pointer.active=true;
       pointer.target=1;
-      if(reducedMotion.matches)draw(performance.now(),0);
-    },{passive:true});
+    }
+
+    function releaseTouch(event){
+      if(event?.pointerType && event.pointerType!=='touch') return;
+      if(pointer.kind!=='touch') return;
+      pointer.target=0;
+      if(touchReleaseTimer) clearTimeout(touchReleaseTimer);
+      touchReleaseTimer=setTimeout(()=>{
+        if(pointer.target===0&&pointer.kind==='touch'){
+          pointer.active=false;
+          pointer.kind='';
+        }
+      },360);
+    }
+
+    window.addEventListener('pointerdown',activatePointer,{passive:true});
+    window.addEventListener('pointermove',activatePointer,{passive:true});
+    window.addEventListener('pointerup',releaseTouch,{passive:true});
+    window.addEventListener('pointercancel',releaseTouch,{passive:true});
 
     document.documentElement.addEventListener('mouseleave',()=>{
-      pointer.active=false;
-      pointer.target=0;
+      if(pointer.kind==='mouse'){
+        pointer.active=false;
+        pointer.target=0;
+        pointer.kind='';
+      }
     },{passive:true});
 
     window.addEventListener('blur',()=>{
       pointer.active=false;
       pointer.target=0;
+      pointer.kind='';
     },{passive:true});
 
     window.addEventListener('resize',()=>{
@@ -273,6 +331,8 @@
       frame=0;
       pointer.target=0;
       pointer.strength=0;
+      pointer.active=false;
+      pointer.kind='';
       resize({forceRebuild:true});
       startAnimation();
     };
