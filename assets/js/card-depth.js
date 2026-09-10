@@ -5,15 +5,23 @@
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)');
 
-  /* Se añade al final de la cascada, después de los CSS específicos de visualización. */
-  if (currentScript && !document.querySelector('link[data-ux-audit-final]')) {
+  /* Se añaden al final de la cascada, después de los CSS específicos de visualización. */
+  if (currentScript) {
     setTimeout(() => {
-      if (document.querySelector('link[data-ux-audit-final]')) return;
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = new URL('../css/ux-audit-v2.css?v=20260909-ux2-final', currentScript.src).href;
-      link.dataset.uxAuditFinal = 'true';
-      document.head.appendChild(link);
+      if (!document.querySelector('link[data-ux-audit-final]')) {
+        const audit = document.createElement('link');
+        audit.rel = 'stylesheet';
+        audit.href = new URL('../css/ux-audit-v2.css?v=20260909-ux2-final', currentScript.src).href;
+        audit.dataset.uxAuditFinal = 'true';
+        document.head.appendChild(audit);
+      }
+      if (!document.querySelector('link[data-ux-audit-fixes]')) {
+        const fixes = document.createElement('link');
+        fixes.rel = 'stylesheet';
+        fixes.href = new URL('../css/ux-audit-final-fixes.css?v=20260909-final1', currentScript.src).href;
+        fixes.dataset.uxAuditFixes = 'true';
+        document.head.appendChild(fixes);
+      }
     }, 0);
   }
 
