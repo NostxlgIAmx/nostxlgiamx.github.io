@@ -1,0 +1,168 @@
+/* NostxlgIA — correcciones integrales posteriores a auditoría · 2026-09-09 */
+
+/* HERO: quitar el estado redundante, minimizar la leyenda y recuperar replay. */
+.hero-vnext .territory-step{display:none!important}
+.hero-vnext [data-hero-toggle]{display:none!important}
+.hero-vnext .territory-toolbar{gap:0!important}
+.hero-vnext [data-hero-replay]{
+  display:inline-grid!important;
+  place-items:center!important;
+  width:28px!important;
+  min-width:28px!important;
+  height:28px!important;
+  padding:0!important;
+  border-color:rgba(148,163,184,.20)!important;
+  background:rgba(7,12,19,.48)!important;
+  color:#9fb0c1!important;
+  border-radius:999px!important;
+  font-size:13px!important;
+  line-height:1!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+}
+.hero-vnext [data-hero-replay]:hover,.hero-vnext [data-hero-replay]:focus-visible{
+  color:#fff!important;
+  border-color:rgba(67,199,218,.42)!important;
+  background:rgba(13,23,35,.88)!important;
+  transform:none!important;
+}
+.hero-vnext .visual-kicker:after{
+  content:"Demostración · datos simulados"!important;
+  font-size:9px!important;
+  line-height:1!important;
+  letter-spacing:.08em!important;
+  opacity:.76!important;
+}
+.hero-vnext .territory-header{left:21px!important;right:21px!important;top:17px!important}
+
+/* El territorio ya es isométrico: se evita una segunda inclinación y se centra por viewBox desde JS. */
+.hero-vnext .city-svg{transform:none!important;transform-origin:center!important}
+.data-territory-visual[data-phase="territory"] .territory-scene{--rx:0deg!important;--ry:0deg!important}
+
+/* Halo de mouse independiente del fondo y de la red. */
+.nostx-cursor-halo{
+  position:fixed;
+  left:0;top:0;
+  width:400px;height:400px;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:0;
+  opacity:0;
+  transform:translate3d(calc(var(--halo-x,-900px) - 200px),calc(var(--halo-y,-900px) - 200px),0);
+  background:radial-gradient(circle at center,
+    rgba(71,190,207,.105) 0%,
+    rgba(74,159,193,.070) 24%,
+    rgba(109,75,209,.038) 46%,
+    rgba(9,15,24,0) 72%);
+  filter:blur(3px);
+  transition:opacity .16s ease;
+  will-change:transform,opacity;
+}
+.nostx-cursor-halo.is-visible{opacity:1}
+
+/* Tarjetas: movimiento físico sutil hacia el cursor además del reflejo. */
+.depth-card{
+  --depth-tx:0px;
+  --depth-ty:0px;
+  transform-origin:50% 50%!important;
+}
+@media (hover:hover) and (pointer:fine){
+  .depth-card{
+    transform:perspective(1050px)
+      translate3d(var(--depth-tx),calc(var(--depth-ty) + var(--depth-lift)),0)
+      rotateX(var(--depth-x)) rotateY(var(--depth-y))!important;
+    transition:transform .13s cubic-bezier(.2,.7,.2,1),border-color .2s ease,box-shadow .2s ease!important;
+  }
+  .depth-card.is-depth-active{
+    box-shadow:0 24px 54px rgba(0,0,0,.25),0 0 0 1px rgba(112,183,199,.055)!important;
+  }
+}
+
+/* PROYECTO EVALUACIÓN: progreso acotado a 100 y sin selección persistente. */
+.projects-list .ntx-eval .ntx-pbr-track:before{right:0!important}
+.projects-list .ntx-eval .ntx-pbr-track>i{
+  width:min(var(--exec,83%),100%)!important;
+  max-width:100%!important;
+}
+.projects-list .ntx-eval .ntx-pbr-track>em{display:none!important}
+.projects-list .ntx-eval .ntx-pbr-track>small{
+  top:-3px!important;
+  right:0!important;
+  padding-left:7px!important;
+  background:#0d1825!important;
+  font-size:9px!important;
+  white-space:nowrap!important;
+}
+.projects-list .ntx-eval .ntx-mir-row.is-active:not(:hover){
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+/* DATOS / DENUE: el mapa deja de ocupar una fila panorámica completa. */
+@media (min-width:1051px){
+  [data-source="denue"] .source-viz-card:has([data-viz="denue-context"]){
+    grid-column:auto!important;
+    min-height:620px!important;
+  }
+  [data-source="denue"] .source-viz-card:has([data-viz="denue-matrix"]){
+    grid-column:1/-1!important;
+    min-height:470px!important;
+  }
+}
+[data-viz="denue-context"] .denue-v5-map{
+  height:390px!important;
+  width:100%!important;
+  max-width:760px!important;
+  margin:0 auto!important;
+}
+[data-viz="denue-context"] .denue-v5-map svg{cursor:default}
+[data-viz="denue-context"] .denue-v5-mun{cursor:pointer}
+[data-viz="denue-context"] .denue-v5-mun:hover{
+  fill:rgba(67,199,218,.12)!important;
+  stroke:rgba(146,190,205,.9)!important;
+}
+[data-viz="denue-context"] .denue-v5-note{
+  margin-top:10px!important;
+  font-size:10.5px!important;
+  line-height:1.5!important;
+}
+[data-viz="denue-context"] .denue-v5-key{font-size:9px!important;padding:5px 7px!important}
+
+/* Menos vacío entre una fuente y la siguiente. */
+main[data-data-library] .source-section.section-pad{padding:62px 0 34px!important}
+main[data-data-library] .source-section + .source-section{padding-top:44px!important}
+main[data-data-library] .source-method{margin-top:24px!important}
+
+/* CTA final de Datos: botón proporcional y en una sola línea. */
+main[data-data-library] > .section:last-of-type .cta{
+  padding:36px 42px!important;
+  gap:42px!important;
+}
+main[data-data-library] > .section:last-of-type .cta .btn{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:176px!important;
+  min-height:50px!important;
+  padding:0 24px!important;
+  white-space:nowrap!important;
+  font-size:13.5px!important;
+}
+
+@media (max-width:1050px){
+  [data-viz="denue-context"] .denue-v5-map{height:360px!important;max-width:700px!important}
+}
+@media (max-width:600px){
+  .hero-vnext .visual-kicker:after{font-size:8px!important}
+  .hero-vnext [data-hero-replay]{width:26px!important;min-width:26px!important;height:26px!important;font-size:12px!important}
+  [data-viz="denue-context"] .denue-v5-map{height:310px!important}
+  main[data-data-library] .source-section.section-pad{padding:46px 0 28px!important}
+  main[data-data-library] .source-section + .source-section{padding-top:34px!important}
+  main[data-data-library] > .section:last-of-type .cta{padding:29px!important;gap:24px!important}
+  main[data-data-library] > .section:last-of-type .cta .btn{min-width:0!important;width:100%!important}
+}
+
+@media (hover:none){.nostx-cursor-halo{display:none!important}}
+@media (prefers-reduced-motion:reduce){
+  .nostx-cursor-halo{display:none!important}
+  .depth-card{transform:none!important}
+}
