@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20260910-network-refactor1';
+  const VERSION = '20260910-network-refactor2';
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const coarsePointer = window.matchMedia('(hover:none), (pointer:coarse)');
   const finePointer = window.matchMedia('(hover:hover) and (pointer:fine)');
@@ -24,7 +24,7 @@
 
     const style=document.createElement('style');
     style.dataset.ambientNetwork=VERSION;
-    style.textContent=`.ambient-network-canvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:0}.site-header,main,.site-footer{position:relative;z-index:1}.site-header{z-index:50}`;
+    style.textContent=`.ambient-network-canvas{position:fixed;inset:0;width:100vw;height:100dvh;pointer-events:none;z-index:0}.site-header,main,.site-footer{position:relative;z-index:1}.site-header{z-index:50}`;
     document.head.appendChild(style);
 
     const canvas=document.createElement('canvas');
@@ -44,6 +44,7 @@
     let lastPaint=0;
     let pageVisible=!document.hidden;
     let resizeFrame=0;
+    let heightSettleTimer=0;
     let selectionSuspended=false;
     let orientation=window.screen?.orientation?.type||'';
     const pointer={x:-9999,y:-9999,active:false,strength:0,target:0,kind:''};
@@ -85,6 +86,17 @@
       ctx.setTransform(dpr,0,0,dpr,0,0);
     }
 
+    function settleMobileHeight(){
+      if(heightSettleTimer)clearTimeout(heightSettleTimer);
+      heightSettleTimer=setTimeout(()=>{
+        heightSettleTimer=0;
+        if(!mobileViewport.matches)return;
+        sizeCanvas();
+        last=performance.now();
+        draw(last,0);
+      },260);
+    }
+
     function resize({force=false}={}){
       const nextW=window.innerWidth;
       const nextH=window.innerHeight;
@@ -97,14 +109,22 @@
       viewportHeight=nextH;
       orientation=nextOrientation;
       if(force||!worldHeight||widthChanged||orientationChanged||desktopHeightChanged){
+        if(heightSettleTimer){clearTimeout(heightSettleTimer);heightSettleTimer=0}
         worldHeight=nextH;
         sizeCanvas();
         build();
+      }else if(mobileViewport.matches){
+        // La UI del navegador móvil cambia la altura varias veces mientras se hace scroll.
+        // No se recrea ni el mundo ni el bitmap en cada paso: sólo se adapta visualmente
+        // y se consolida el backing canvas una vez que el viewport deja de cambiar.
+        canvas.style.width=`${viewportWidth}px`;
+        canvas.style.height=`${viewportHeight}px`;
+        settleMobileHeight();
       }else{
         sizeCanvas();
       }
       last=performance.now();
-      draw(last,0);
+      if(!selectionSuspended)draw(last,0);
     }
 
     function update(dt,now){
@@ -140,7 +160,6 @@
       const seen=new Set();
       ctx.save();
       ctx.lineWidth=mobileViewport.matches?.55:.68;
-
       for(const [key,indices] of grid){
         const [cx,cy]=key.split(':').map(Number);
         for(const i of indices){
@@ -214,22 +233,22 @@
     }
 
     function draw(now,dt){
+      if(selectionSuspended)return;
       ctx.clearRect(0,0,viewportWidth,viewportHeight);
       pointer.strength+=(pointer.target-pointer.strength)*(reducedMotion.matches?1:.18);
       update(dt,now);
-      if(selectionSuspended)return;
       drawTouchHalo();
       drawBaseConnections();
       drawNodes(drawPointerGrab());
     }
 
     function animate(now){
-      if(!pageVisible||reducedMotion.matches){frame=0;return}
+      if(!pageVisible||reducedMotion.matches||selectionSuspended){frame=0;return}
       if(mobileViewport.matches&&now-lastPaint<MOBILE_FRAME_MS){frame=requestAnimationFrame(animate);return}
       const dt=clamp((now-last)/1000,0,mobileViewport.matches?.026:.035);
       last=now;lastPaint=now;draw(now,dt);frame=requestAnimationFrame(animate);
     }
-    function startAnimation(){if(!frame&&pageVisible&&!reducedMotion.matches){last=performance.now();lastPaint=0;frame=requestAnimationFrame(animate)}}
+    function startAnimation(){if(!frame&&pageVisible&&!reducedMotion.matches&&!selectionSuspended){last=performance.now();lastPaint=0;frame=requestAnimationFrame(animate)}}
 
     function activatePointer(event){
       if(selectionSuspended)return;
@@ -257,9 +276,17 @@
 
     window.addEventListener('nostxlgia:selection-state',(event)=>{
       if(!coarsePointer.matches)return;
-      selectionSuspended=Boolean(event.detail?.active);
-      if(selectionSuspended){pointer.active=false;pointer.target=0;pointer.kind='';ctx.clearRect(0,0,viewportWidth,viewportHeight)}
-      else draw(performance.now(),0);
+      const next=Boolean(event.detail?.active);
+      if(next===selectionSuspended)return;
+      selectionSuspended=next;
+      if(selectionSuspended){
+        pointer.active=false;pointer.target=0;pointer.kind='';
+        if(frame){cancelAnimationFrame(frame);frame=0}
+      }else{
+        last=performance.now();
+        draw(last,0);
+        startAnimation();
+      }
     });
 
     window.addEventListener('resize',()=>{
@@ -269,7 +296,7 @@
 
     document.addEventListener('visibilitychange',()=>{
       pageVisible=!document.hidden;last=performance.now();
-      if(pageVisible){draw(last,0);startAnimation()}else if(frame){cancelAnimationFrame(frame);frame=0}
+      if(pageVisible){if(!selectionSuspended)draw(last,0);startAnimation()}else if(frame){cancelAnimationFrame(frame);frame=0}
     });
 
     const preferenceChange=()=>{
