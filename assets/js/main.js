@@ -3,7 +3,7 @@
 
   const currentScript = document.currentScript;
   const assetBase = currentScript ? new URL('.', currentScript.src) : new URL('./assets/js/', location.href);
-  const VERSION = '20260910-refactor1';
+  const VERSION = '20260910-refactor2';
 
   const ensureScript = (src, marker) => {
     if (document.querySelector(`script[data-${marker}]`)) return;
@@ -63,10 +63,6 @@
 
     const hero = document.querySelector('[data-territory-visual]');
     if (hero) {
-      hero.querySelector('[data-hero-toggle]')?.remove();
-      hero.querySelector('.territory-step')?.remove();
-      hero.querySelector('[data-data-sample]')?.remove();
-      hero.querySelector('.data-matrix-heading small')?.remove();
       const kicker = hero.querySelector('.visual-kicker');
       if (kicker) kicker.textContent = 'Demostración · datos simulados';
       const captionTitle = hero.querySelector('.visual-caption h3');
