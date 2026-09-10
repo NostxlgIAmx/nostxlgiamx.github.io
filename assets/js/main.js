@@ -3,7 +3,7 @@
 
   const currentScript = document.currentScript;
   const assetBase = currentScript ? new URL('.', currentScript.src) : new URL('./assets/js/', location.href);
-  const VERSION = '20260910-refactor3';
+  const VERSION = '20260910-refactor4';
 
   const ensureScript = (src, marker) => {
     if (document.querySelector(`script[data-${marker}]`)) return;
@@ -59,6 +59,11 @@
       });
       const aside = document.querySelector('.page-hero .page-aside');
       if (aside) aside.innerHTML = '<strong>Áreas</strong>Análisis de datos · Analítica y tecnología · Inteligencia electoral · Soluciones cartográficas · Planeación y gestión pública · Evaluación';
+      if (location.hash) {
+        requestAnimationFrame(() => {
+          try { document.querySelector(location.hash)?.scrollIntoView({block:'start'}); } catch {}
+        });
+      }
     }
 
     const hero = document.querySelector('[data-territory-visual]');
