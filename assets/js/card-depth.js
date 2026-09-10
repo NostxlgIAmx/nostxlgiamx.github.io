@@ -40,5 +40,21 @@
 
     card.addEventListener('pointerleave', reset, { passive: true });
     card.addEventListener('blur', reset, true);
+
+    if (card.matches('.home-project-grid .project-card')) {
+      card.tabIndex = 0;
+      card.setAttribute('role', 'link');
+      card.setAttribute('aria-label', `${card.querySelector('h3')?.textContent?.trim() || 'Proyecto'} — ver proyectos`);
+      const openProjects = () => { window.location.href = 'proyectos/'; };
+      card.addEventListener('click', (event) => {
+        if (event.target.closest('a,button,input,select,textarea')) return;
+        openProjects();
+      });
+      card.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        openProjects();
+      });
+    }
   });
 })();
