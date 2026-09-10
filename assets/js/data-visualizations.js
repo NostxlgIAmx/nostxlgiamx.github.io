@@ -1,26 +1,225 @@
 (() => {
-'use strict';
-const ROOT=document.querySelector('[data-data-library]'); if(!ROOT)return;
-const fmt=new Intl.NumberFormat('es-MX');
-const pct=(v,d=1)=>`${Number(v).toFixed(d)}%`;
-const short=v=>{const n=Number(v);return n>=1e6?`${(n/1e6).toFixed(1)} M`:n>=1e3?`${(n/1e3).toFixed(0)} mil`:fmt.format(n)};
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const NS='http://www.w3.org/2000/svg';
-const E=(t,a={},x='')=>{const n=document.createElement(t);Object.entries(a).forEach(([k,v])=>k==='class'?n.className=v:n.setAttribute(k,v));if(x)n.textContent=x;return n};
-const S=(t,a={},x='')=>{const n=document.createElementNS(NS,t);Object.entries(a).forEach(([k,v])=>n.setAttribute(k,v));if(x)n.textContent=x;return n};
-function parseCSV(text){const rows=[];let row=[],cell='',q=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'){if(q&&n==='"'){cell+='"';i++;}else q=!q;}else if(c===','&&!q){row.push(cell);cell='';}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell);cell='';if(row.some(v=>v!==''))rows.push(row);row=[];}else cell+=c;}if(cell||row.length){row.push(cell);rows.push(row)}const h=rows.shift().map(v=>v.replace(/^\uFEFF/,''));return rows.map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]??''])))}
-const num=(rows,keys)=>rows.map(r=>{const o={...r};keys.forEach(k=>o[k]=Number(o[k]));return o});
-async function csv(path,keys=[]){const r=await fetch(path,{cache:'no-store'});if(!r.ok)throw new Error(`${path}: ${r.status}`);return num(parseCSV(await r.text()),keys)}
-function laborFlow(t,d){const g=n=>d.find(x=>x.category===n),p=g('Población 15+'),pea=g('PEA'),o=g('Ocupada'),u=g('Desocupada'),pn=g('PNEA'),di=g('Disponible'),nd=g('No disponible');const men=pea.hombres/p.hombres*100,wom=pea.mujeres/p.mujeres*100;t.innerHTML=`<div class="dv-flow-kpis"><div><span>Participación hombres</span><strong>${pct(men)}</strong></div><div><span>Participación mujeres</span><strong>${pct(wom)}</strong></div><div><span>Brecha</span><strong>${(men-wom).toFixed(1)} pp</strong></div></div><div class="dv-flow-root"><span>Población de 15 años y más</span><strong>${fmt.format(p.total)}</strong></div><div class="dv-flow-split"><section class="dv-flow-branch"><header><span>PEA</span><strong>${pct(pea.total/p.total*100)}</strong><small>${fmt.format(pea.total)}</small></header><div class="dv-flow-band"><i style="width:${o.total/pea.total*100}%"></i><b style="width:${u.total/pea.total*100}%"></b></div><div class="dv-flow-children"><span><i></i>Ocupada <b>${pct(o.total/pea.total*100)}</b></span><span><i></i>Desocupada <b>${pct(u.total/pea.total*100)}</b></span></div></section><section class="dv-flow-branch is-purple"><header><span>PNEA</span><strong>${pct(pn.total/p.total*100)}</strong><small>${fmt.format(pn.total)}</small></header><div class="dv-flow-band"><i style="width:${di.total/pn.total*100}%"></i><b style="width:${nd.total/pn.total*100}%"></b></div><div class="dv-flow-children"><span><i></i>Disponible <b>${pct(di.total/pn.total*100)}</b></span><span><i></i>No disponible <b>${pct(nd.total/pn.total*100)}</b></span></div></section></div>`}
-function sectorDots(t,d){const rows=d.filter(x=>x.sector!=='No especificado'),W=560,H=250,L=112,R=26,T=30,B=32,max=Math.max(...rows.map(x=>x.total))*1.05,x=v=>L+v/max*(W-L-R),svg=S('svg',{viewBox:`0 0 ${W} ${H}`,class:'dv-svg',role:'img','aria-label':'Población ocupada por sector y sexo'});[0,250000,500000].forEach(v=>{if(v>max)return;const xx=x(v);svg.append(S('line',{x1:xx,y1:T,x2:xx,y2:H-B,class:'dv-gridline'}),S('text',{x:xx,y:H-10,class:'dv-axis-label','text-anchor':'middle'},v?`${v/1000} mil`:'0'))});rows.forEach((r,i)=>{const y=68+i*62;svg.appendChild(S('text',{x:L-12,y:y+4,class:'dv-row-label','text-anchor':'end'},r.sector));[[r.total,'dv-dot-total',7],[r.hombres,'dv-dot-men',6],[r.mujeres,'dv-dot-women',6]].forEach(([v,c,rad],j)=>{const yy=y+(j-1)*13;svg.append(S('circle',{cx:x(v),cy:yy,r:rad,class:c}),S('text',{x:x(v)+10,y:yy+3,class:'dv-value-label'},short(v)))})});t.replaceChildren(svg);const l=E('div',{class:'dv-inline-legend'});l.innerHTML='<span class="total">Total</span><span class="men">Hombres</span><span class="women">Mujeres</span>';t.appendChild(l)}
-function incomeRibbon(t,d){const controls=E('div',{class:'dv-toggle'}),ribbon=E('div',{class:'dv-ribbon'}),list=E('div',{class:'dv-ribbon-list'}),groups=[['total','Total'],['hombres','Hombres'],['mujeres','Mujeres']],labels={'Hasta un salario mínimo':'Hasta 1 SM','Más de 1 hasta 2 salarios mínimos':'1–2 SM','Más de 2 hasta 3 salarios mínimos':'2–3 SM','Más de 3 hasta 5 salarios mínimos':'3–5 SM','Más de 5 salarios mínimos':'Más de 5 SM','No recibe ingresos':'Sin ingresos','No especificado':'No especificado'},pal=['a','b','c','d','e','f','g'];function draw(g){const tot=d.reduce((s,x)=>s+x[g],0);ribbon.innerHTML=list.innerHTML='';d.forEach((x,i)=>{const sh=x[g]/tot*100,b=E('button',{class:`dv-ribbon-seg ${pal[i]}`,type:'button','aria-label':`${labels[x.rango]||x.rango}: ${pct(sh)}`});b.style.width=`${sh}%`;b.title=`${labels[x.rango]||x.rango}: ${pct(sh)} · ${fmt.format(x[g])} personas`;ribbon.appendChild(b);const q=E('div',{class:'dv-ribbon-item'});q.innerHTML=`<i class="${pal[i]}"></i><span>${esc(labels[x.rango]||x.rango)}</span><strong>${pct(sh)}</strong>`;list.appendChild(q)});controls.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.group===g))}groups.forEach(([g,l],i)=>{const b=E('button',{type:'button','data-group':g,class:i?'':'active'},l);b.onclick=()=>draw(g);controls.appendChild(b)});t.append(controls,ribbon,list);draw('total')}
-function mental(t,d){const grid=E('div',{class:'dv-mental-grid'});grid.innerHTML='<div></div><div class="dv-mental-head">Ansiedad<br><small>Durango</small></div><div class="dv-mental-head">Ansiedad<br><small>Nacional</small></div><div class="dv-mental-head">Depresión<br><small>Durango</small></div><div class="dv-mental-head">Depresión<br><small>Nacional</small></div>';d.forEach(r=>{grid.appendChild(E('div',{class:'dv-mental-age'},r.edad.replace(' años','')));[['ansiedad_durango','cyan'],['ansiedad_nacional','cyan-soft'],['depresion_durango','purple'],['depresion_nacional','purple-soft']].forEach(([k,c])=>{const v=r[k],n=E('div',{class:`dv-mental-cell ${c}`});n.style.setProperty('--alpha',Math.max(.16,Math.min(.92,v/30)).toFixed(2));n.innerHTML=`<strong>${pct(v)}</strong>`;grid.appendChild(n)})});t.append(grid,E('p',{class:'dv-mini-note'},'PHQ-4: los indicios no equivalen a un diagnóstico clínico.'))}
-function satisfaction(t,d){const W=520,H=250,L=88,R=88,T=34,B=34,x0=L,x1=W-R,min=7.7,max=9.05,y=v=>T+(max-v)/(max-min)*(H-T-B),cls={Total:'dv-line-total',Hombres:'dv-line-men',Mujeres:'dv-line-women'},svg=S('svg',{viewBox:`0 0 ${W} ${H}`,class:'dv-svg',role:'img','aria-label':'Satisfacción actual y hace un año'});[8,8.5,9].forEach(v=>{const yy=y(v);svg.append(S('line',{x1:x0,y1:yy,x2:x1,y2:yy,class:'dv-gridline'}),S('text',{x:x0-15,y:yy+4,class:'dv-axis-label','text-anchor':'end'},v.toFixed(1)))});svg.append(S('text',{x:x0,y:H-9,class:'dv-axis-label','text-anchor':'middle'},'Hace un año'),S('text',{x:x1,y:H-9,class:'dv-axis-label','text-anchor':'middle'},'Actual'));d.forEach(r=>{const c=cls[r.grupo];svg.appendChild(S('line',{x1:x0,y1:y(r.anterior_durango),x2:x1,y2:y(r.actual_durango),class:`dv-slope ${c}`}));[[x0,r.anterior_durango],[x1,r.actual_durango]].forEach(([xx,v])=>svg.append(S('circle',{cx:xx,cy:y(v),r:6,class:`dv-slope-dot ${c}`}),S('text',{x:xx+(xx===x0?-10:10),y:y(v)-10,class:'dv-value-label','text-anchor':xx===x0?'end':'start'},v.toFixed(2))));svg.appendChild(S('text',{x:x1+48,y:y(r.actual_durango)+4,class:`dv-slope-name ${c}`},r.grupo))});t.append(svg,E('p',{class:'dv-mini-note'},`Referencia nacional total: ${d[0].anterior_nacional.toFixed(2)} → ${d[0].actual_nacional.toFixed(2)}.`))}
-function borrowing(t,d){const nat=d.find(x=>x.entidad==='Estados Unidos Mexicanos'),s=d.filter(x=>x.entidad!==nat.entidad).sort((a,b)=>b.porcentaje-a.porcentaje).slice(0,10),plot=E('div',{class:'dv-dotrank'});s.forEach((r,i)=>{const n=E('div',{class:`dv-dotrank-row ${r.entidad==='Durango'?'is-highlight':''}`});n.innerHTML=`<span class="dv-dotrank-rank">${i+1}</span><span class="dv-dotrank-name">${esc(r.entidad)}</span><div class="dv-dotrank-track"><i class="dv-benchmark" style="left:${nat.porcentaje/40*100}%"></i><b style="left:${r.porcentaje/40*100}%"></b></div><strong>${pct(r.porcentaje)}</strong>`;plot.appendChild(n)});t.append(plot,E('p',{class:'dv-mini-note'},`Línea vertical: valor nacional ${pct(nat.porcentaje)}. Durango ocupa la posición 7.`))}
-const sectorDefs=[['Agro','Agropecuario'],['Industria','Industria y construcción'],['Comercio','Comercio'],['Transporte','Transporte y logística'],['Servicios_emp','Servicios empresariales'],['Educ_salud','Educación y salud'],['Aloj_recr','Alojamiento y alimentos'],['Otros','Otros servicios y gobierno']],sectorColors=['#d8b466','#8a6fea','#43c7da','#7aa0b7','#9d7ed6','#6f9f91','#c78b6c','#8794a6'];
-function denueMap(t,cells,mun){const controls=E('div',{class:'dv-sector-filter'}),wrap=E('div',{class:'dv-geo-wrap'}),svg=S('svg',{viewBox:'0 0 620 330',class:'dv-geo-svg',role:'img','aria-label':'Concentración georreferenciada de unidades económicas'});wrap.appendChild(svg);t.append(controls,wrap);const minlat=Math.min(...cells.map(x=>x.lat)),maxlat=Math.max(...cells.map(x=>x.lat)),minlon=Math.min(...cells.map(x=>x.lon)),maxlon=Math.max(...cells.map(x=>x.lon)),P=24,W=620,H=330,x=lon=>P+(lon-minlon)/(maxlon-minlon)*(W-2*P),y=lat=>H-P-(lat-minlat)/(maxlat-minlat)*(H-2*P),top=mun.slice(0,3);function draw(key=null){svg.innerHTML='';for(let i=0;i<7;i++){const xx=P+i/6*(W-2*P),yy=P+i/6*(H-2*P);svg.append(S('line',{x1:xx,y1:P,x2:xx,y2:H-P,class:'dv-geo-grid'}),S('line',{x1:P,y1:yy,x2:W-P,y2:yy,class:'dv-geo-grid'}))}const vals=cells.map(r=>key?r[key]:r.total),mx=Math.max(...vals,1);cells.forEach(r=>{const count=key?r[key]:r.total;if(!count)return;let ci=key?sectorDefs.findIndex(s=>s[0]===key):sectorDefs.map(s=>r[s[0]]).indexOf(Math.max(...sectorDefs.map(s=>r[s[0]])));const q=S('circle',{cx:x(r.lon),cy:y(r.lat),r:1.5+Math.sqrt(count/mx)*12,fill:sectorColors[ci],class:'dv-geo-cell',opacity:.22+.72*Math.sqrt(count/mx)});q.appendChild(S('title',{},`${key?sectorDefs[ci][1]:'Total'} · ${fmt.format(count)} unidades en celda`));svg.appendChild(q)});top.forEach(m=>{svg.append(S('circle',{cx:x(m.longitud_centro),cy:y(m.latitud_centro),r:3,class:'dv-city-dot'}),S('text',{x:x(m.longitud_centro)+7,y:y(m.latitud_centro)-6,class:'dv-city-label'},m.municipio))});controls.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.key===(key||'')))}[['','Todos'],...sectorDefs].forEach(([k,l],i)=>{const b=E('button',{type:'button','data-key':k,class:i?'':'active'},l);b.onclick=()=>draw(k||null);controls.appendChild(b)});draw();t.appendChild(E('p',{class:'dv-mini-note'},'Coordenadas del DENUE agregadas en celdas para legibilidad; el conteo proviene del directorio completo.'))}
-function municipal(t,d){const top=d.slice(0,10),mx=top[0].unidades,g=E('div',{class:'dv-bubble-grid'});top.forEach((r,i)=>{const n=E('div',{class:`dv-bubble-item ${i<3?'is-top':''}`}),sz=42+Math.sqrt(r.unidades/mx)*54;n.innerHTML=`<div class="dv-bubble" style="width:${sz}px;height:${sz}px"><strong>${i+1}</strong></div><span>${esc(r.municipio)}</span><b>${fmt.format(r.unidades)}</b><small>${pct(r.participacion)}</small>`;g.appendChild(n)});t.appendChild(g)}
-function matrix(t,d){const sectors=[...new Set(d.map(x=>x.sector))],sizes=[...new Set(d.map(x=>x.tamano))],mx=Math.log10(Math.max(...d.map(x=>x.unidades))+1),g=E('div',{class:'dv-size-matrix'});g.style.setProperty('--cols',sizes.length);g.appendChild(E('div',{class:'dv-matrix-corner'}));sizes.forEach(s=>g.appendChild(E('div',{class:'dv-matrix-head'},s.replace(' personas','').replace('251 y más','251+').replace(/ a /g,'–'))));sectors.forEach(sec=>{g.appendChild(E('div',{class:'dv-matrix-rowhead'},sec.replace('Servicios profesionales y empresariales','Servicios empresariales').replace('Alojamiento, alimentos y recreación','Alojamiento y alimentos').replace('Otros servicios y gobierno','Otros servicios')));sizes.forEach(sz=>{const r=d.find(x=>x.sector===sec&&x.tamano===sz),v=r?r.unidades:0,c=E('div',{class:'dv-matrix-cell'});c.style.setProperty('--heat',(Math.log10(v+1)/mx).toFixed(3));c.innerHTML=`<strong>${v?short(v):'—'}</strong>`;c.title=`${sec} · ${sz}: ${fmt.format(v)} unidades`;g.appendChild(c)})});t.append(g,E('p',{class:'dv-mini-note'},'Intensidad en escala logarítmica para conservar visibles las categorías con menor frecuencia.'))}
-async function init(){try{const base='../assets/data/recursos/';const [st,se,inc,mh,sat,bor,geo,mun,mat]=await Promise.all([csv(base+'enoe_estructura_laboral_durango_2026t1.csv',['total','hombres','mujeres','porcentaje_total','porcentaje_hombres','porcentaje_mujeres']),csv(base+'enoe_sector_actividad_sexo_durango_2026t1.csv',['total','hombres','mujeres','porcentaje_total','porcentaje_hombres','porcentaje_mujeres']),csv(base+'enoe_nivel_ingresos_sexo_durango_2026t1.csv',['total','hombres','mujeres','porcentaje_total','porcentaje_hombres','porcentaje_mujeres']),csv(base+'enbiare_salud_mental_edad_durango_2025.csv',['ansiedad_durango','ansiedad_nacional','depresion_durango','depresion_nacional']),csv(base+'enbiare_satisfaccion_actual_anterior_durango_2025.csv',['actual_durango','anterior_durango','actual_nacional','anterior_nacional']),csv(base+'enbiare_prestamo_entidades_2025.csv',['porcentaje']),csv(base+'denue_densidad_georreferenciada_durango_2026.csv',['lat','lon','total','Agro','Industria','Comercio','Transporte','Servicios_emp','Educ_salud','Aloj_recr','Otros']),csv(base+'denue_municipios_concentracion_durango_2026.csv',['unidades','participacion','latitud_centro','longitud_centro']),csv(base+'denue_sector_tamano_durango_2026.csv',['unidades'])]);laborFlow(document.querySelector('[data-viz="enoe-flow"]'),st);sectorDots(document.querySelector('[data-viz="enoe-sector"]'),se);incomeRibbon(document.querySelector('[data-viz="enoe-income"]'),inc);mental(document.querySelector('[data-viz="enbiare-mental"]'),mh);satisfaction(document.querySelector('[data-viz="enbiare-satisfaction"]'),sat);borrowing(document.querySelector('[data-viz="enbiare-borrowing"]'),bor);denueMap(document.querySelector('[data-viz="denue-map"]'),geo,mun);municipal(document.querySelector('[data-viz="denue-municipal"]'),mun);matrix(document.querySelector('[data-viz="denue-matrix"]'),mat);ROOT.dataset.ready='true';}catch(err){console.error('NostxlgIA data visualizations:',err);ROOT.querySelectorAll('.dv-stage').forEach(s=>s.innerHTML='<p class="dv-load-error">No fue posible cargar esta visualización.</p>')}}
-init();
+  'use strict';
+
+  const ROOT = document.querySelector('[data-data-library]');
+  if (!ROOT) return;
+
+  const fmt = new Intl.NumberFormat('es-MX');
+  const pct = (v, d = 1) => `${Number(v).toFixed(d)}%`;
+  const short = (v) => {
+    const n = Number(v);
+    return n >= 1e6 ? `${(n / 1e6).toFixed(1)} M` : n >= 1e3 ? `${(n / 1e3).toFixed(0)} mil` : fmt.format(n);
+  };
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const NS = 'http://www.w3.org/2000/svg';
+  const E = (tag, attrs = {}, text = '') => {
+    const node = document.createElement(tag);
+    Object.entries(attrs).forEach(([key, value]) => key === 'class' ? node.className = value : node.setAttribute(key, value));
+    if (text) node.textContent = text;
+    return node;
+  };
+  const S = (tag, attrs = {}, text = '') => {
+    const node = document.createElementNS(NS, tag);
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value));
+    if (text) node.textContent = text;
+    return node;
+  };
+
+  function parseCSV(text) {
+    const rows = [];
+    let row = [], cell = '', quoted = false;
+    for (let i = 0; i < text.length; i += 1) {
+      const c = text[i], next = text[i + 1];
+      if (c === '"') {
+        if (quoted && next === '"') { cell += '"'; i += 1; }
+        else quoted = !quoted;
+      } else if (c === ',' && !quoted) {
+        row.push(cell); cell = '';
+      } else if ((c === '\n' || c === '\r') && !quoted) {
+        if (c === '\r' && next === '\n') i += 1;
+        row.push(cell); cell = '';
+        if (row.some((v) => v !== '')) rows.push(row);
+        row = [];
+      } else cell += c;
+    }
+    if (cell || row.length) { row.push(cell); rows.push(row); }
+    const headers = (rows.shift() || []).map((v) => v.replace(/^\uFEFF/, ''));
+    return rows.map((values) => Object.fromEntries(headers.map((key, i) => [key, values[i] ?? ''])));
+  }
+
+  const numeric = (rows, keys) => rows.map((row) => {
+    const out = {...row};
+    keys.forEach((key) => { out[key] = Number(out[key]); });
+    return out;
+  });
+
+  async function csv(path, keys = []) {
+    const response = await fetch(path, {cache:'no-store'});
+    if (!response.ok) throw new Error(`${path}: ${response.status}`);
+    return numeric(parseCSV(await response.text()), keys);
+  }
+
+  function laborFlow(stage, data) {
+    const get = (name) => data.find((x) => x.category === name);
+    const population = get('Población 15+'), pea = get('PEA'), occupied = get('Ocupada'), unemployed = get('Desocupada');
+    const pnea = get('PNEA'), available = get('Disponible'), unavailable = get('No disponible');
+    if (![population, pea, occupied, unemployed, pnea, available, unavailable].every(Boolean)) throw new Error('Estructura ENOE incompleta');
+    const men = pea.hombres / population.hombres * 100;
+    const women = pea.mujeres / population.mujeres * 100;
+    stage.innerHTML = `<div class="dv-flow-kpis"><div><span>Participación hombres</span><strong>${pct(men)}</strong></div><div><span>Participación mujeres</span><strong>${pct(women)}</strong></div><div><span>Brecha</span><strong>${(men-women).toFixed(1)} pp</strong></div></div><div class="dv-flow-root"><span>Población de 15 años y más</span><strong>${fmt.format(population.total)}</strong></div><div class="dv-flow-split"><section class="dv-flow-branch"><header><span>PEA</span><strong>${pct(pea.total/population.total*100)}</strong><small>${fmt.format(pea.total)}</small></header><div class="dv-flow-band"><i style="width:${occupied.total/pea.total*100}%"></i><b style="width:${unemployed.total/pea.total*100}%"></b></div><div class="dv-flow-children"><span><i></i>Ocupada <b>${pct(occupied.total/pea.total*100)}</b></span><span><i></i>Desocupada <b>${pct(unemployed.total/pea.total*100)}</b></span></div></section><section class="dv-flow-branch is-purple"><header><span>PNEA</span><strong>${pct(pnea.total/population.total*100)}</strong><small>${fmt.format(pnea.total)}</small></header><div class="dv-flow-band"><i style="width:${available.total/pnea.total*100}%"></i><b style="width:${unavailable.total/pnea.total*100}%"></b></div><div class="dv-flow-children"><span><i></i>Disponible <b>${pct(available.total/pnea.total*100)}</b></span><span><i></i>No disponible <b>${pct(unavailable.total/pnea.total*100)}</b></span></div></section></div>`;
+  }
+
+  function sectorDots(stage, data) {
+    const rows = data.filter((x) => x.sector !== 'No especificado');
+    const W=620,H=290,L=132,R=46,T=28,B=38;
+    const max = Math.max(...rows.map((x) => x.total)) * 1.06;
+    const x = (v) => L + v/max*(W-L-R);
+    const svg = S('svg',{viewBox:`0 0 ${W} ${H}`,class:'dv-svg',role:'img','aria-label':'Población ocupada por sector y sexo'});
+    [0,250000,500000].forEach((v) => {
+      if (v > max) return;
+      const xx=x(v);
+      svg.append(S('line',{x1:xx,y1:T,x2:xx,y2:H-B,class:'dv-gridline'}),S('text',{x:xx,y:H-10,class:'dv-axis-label','text-anchor':'middle'},v?`${v/1000} mil`:'0'));
+    });
+    rows.forEach((r,i) => {
+      const y=70+i*70;
+      svg.appendChild(S('text',{x:L-14,y:y+4,class:'dv-row-label','text-anchor':'end'},r.sector));
+      [[r.total,'dv-dot-total',7],[r.hombres,'dv-dot-men',6],[r.mujeres,'dv-dot-women',6]].forEach(([v,c,rad],j) => {
+        const yy=y+(j-1)*14;
+        svg.append(S('circle',{cx:x(v),cy:yy,r:rad,class:c}),S('text',{x:x(v)+11,y:yy+4,class:'dv-value-label'},short(v)));
+      });
+    });
+    stage.replaceChildren(svg);
+    const legend=E('div',{class:'dv-inline-legend'});
+    legend.innerHTML='<span class="total">Total</span><span class="men">Hombres</span><span class="women">Mujeres</span>';
+    stage.appendChild(legend);
+  }
+
+  function incomeRibbon(stage, data) {
+    const controls=E('div',{class:'dv-toggle',role:'group','aria-label':'Desagregación por sexo'}), ribbon=E('div',{class:'dv-ribbon'}), list=E('div',{class:'dv-ribbon-list'});
+    const groups=[['total','Total'],['hombres','Hombres'],['mujeres','Mujeres']];
+    const labels={'Hasta un salario mínimo':'Hasta 1 SM','Más de 1 hasta 2 salarios mínimos':'1–2 SM','Más de 2 hasta 3 salarios mínimos':'2–3 SM','Más de 3 hasta 5 salarios mínimos':'3–5 SM','Más de 5 salarios mínimos':'Más de 5 SM','No recibe ingresos':'Sin ingresos','No especificado':'No especificado'};
+    const palette=['a','b','c','d','e','f','g'];
+    function draw(group){
+      const total=data.reduce((sum,x)=>sum+x[group],0);
+      ribbon.innerHTML=''; list.innerHTML='';
+      data.forEach((row,i)=>{
+        const share=row[group]/total*100;
+        const segment=E('button',{class:`dv-ribbon-seg ${palette[i]}`,type:'button','aria-label':`${labels[row.rango]||row.rango}: ${pct(share)}`});
+        segment.style.width=`${share}%`; segment.title=`${labels[row.rango]||row.rango}: ${pct(share)} · ${fmt.format(row[group])} personas`;
+        ribbon.appendChild(segment);
+        const item=E('div',{class:'dv-ribbon-item'});
+        item.innerHTML=`<i class="${palette[i]}"></i><span>${esc(labels[row.rango]||row.rango)}</span><strong>${pct(share)}</strong>`;
+        list.appendChild(item);
+      });
+      controls.querySelectorAll('button').forEach((button)=>{
+        const active=button.dataset.group===group;
+        button.classList.toggle('active',active); button.setAttribute('aria-pressed',String(active));
+      });
+    }
+    groups.forEach(([group,label],i)=>{
+      const button=E('button',{type:'button','data-group':group,class:i?'':'active','aria-pressed':String(i===0)},label);
+      button.addEventListener('click',()=>draw(group)); controls.appendChild(button);
+    });
+    stage.append(controls,ribbon,list); draw('total');
+  }
+
+  function mental(stage,data){
+    const grid=E('div',{class:'dv-mental-grid'});
+    grid.innerHTML='<div></div><div class="dv-mental-head">Ansiedad<br><small>Durango</small></div><div class="dv-mental-head">Ansiedad<br><small>Nacional</small></div><div class="dv-mental-head">Depresión<br><small>Durango</small></div><div class="dv-mental-head">Depresión<br><small>Nacional</small></div>';
+    data.forEach((row)=>{
+      grid.appendChild(E('div',{class:'dv-mental-age'},row.edad.replace(' años','')));
+      [['ansiedad_durango','cyan'],['ansiedad_nacional','cyan-soft'],['depresion_durango','purple'],['depresion_nacional','purple-soft']].forEach(([key,cls])=>{
+        const value=row[key], cell=E('div',{class:`dv-mental-cell ${cls}`});
+        cell.style.setProperty('--alpha',Math.max(.16,Math.min(.92,value/30)).toFixed(2)); cell.innerHTML=`<strong>${pct(value)}</strong>`; grid.appendChild(cell);
+      });
+    });
+    stage.append(grid,E('p',{class:'dv-mini-note'},'PHQ-4: los indicios no equivalen a un diagnóstico clínico.'));
+  }
+
+  function satisfaction(stage,data){
+    const W=600,H=290,L=96,R=104,T=34,B=38,x0=L,x1=W-R,min=7.7,max=9.05,y=(v)=>T+(max-v)/(max-min)*(H-T-B);
+    const classes={Total:'dv-line-total',Hombres:'dv-line-men',Mujeres:'dv-line-women'};
+    const svg=S('svg',{viewBox:`0 0 ${W} ${H}`,class:'dv-svg',role:'img','aria-label':'Satisfacción actual y hace un año'});
+    [8,8.5,9].forEach((v)=>{const yy=y(v);svg.append(S('line',{x1:x0,y1:yy,x2:x1,y2:yy,class:'dv-gridline'}),S('text',{x:x0-16,y:yy+4,class:'dv-axis-label','text-anchor':'end'},v.toFixed(1)))});
+    svg.append(S('text',{x:x0,y:H-10,class:'dv-axis-label','text-anchor':'middle'},'Hace un año'),S('text',{x:x1,y:H-10,class:'dv-axis-label','text-anchor':'middle'},'Actual'));
+    data.forEach((row)=>{
+      const cls=classes[row.grupo];
+      svg.appendChild(S('line',{x1:x0,y1:y(row.anterior_durango),x2:x1,y2:y(row.actual_durango),class:`dv-slope ${cls}`}));
+      [[x0,row.anterior_durango],[x1,row.actual_durango]].forEach(([xx,v])=>svg.append(S('circle',{cx:xx,cy:y(v),r:6,class:`dv-slope-dot ${cls}`}),S('text',{x:xx+(xx===x0?-10:10),y:y(v)-10,class:'dv-value-label','text-anchor':xx===x0?'end':'start'},v.toFixed(2))));
+      svg.appendChild(S('text',{x:x1+48,y:y(row.actual_durango)+4,class:`dv-slope-name ${cls}`},row.grupo));
+    });
+    stage.append(svg,E('p',{class:'dv-mini-note'},`Referencia nacional total: ${data[0].anterior_nacional.toFixed(2)} → ${data[0].actual_nacional.toFixed(2)}.`));
+  }
+
+  function borrowing(stage,data){
+    const national=data.find((x)=>x.entidad==='Estados Unidos Mexicanos');
+    if(!national) throw new Error('Referencia nacional ausente');
+    const rows=data.filter((x)=>x.entidad!==national.entidad).sort((a,b)=>b.porcentaje-a.porcentaje).slice(0,10);
+    const plot=E('div',{class:'dv-dotrank'});
+    rows.forEach((row,i)=>{
+      const item=E('div',{class:`dv-dotrank-row ${row.entidad==='Durango'?'is-highlight':''}`});
+      item.innerHTML=`<span class="dv-dotrank-rank">${i+1}</span><span class="dv-dotrank-name">${esc(row.entidad)}</span><div class="dv-dotrank-track"><i class="dv-benchmark" style="left:${national.porcentaje/40*100}%"></i><b style="left:${row.porcentaje/40*100}%"></b></div><strong>${pct(row.porcentaje)}</strong>`;
+      plot.appendChild(item);
+    });
+    const durangoRank=data.filter((x)=>x.entidad!==national.entidad).sort((a,b)=>b.porcentaje-a.porcentaje).findIndex((x)=>x.entidad==='Durango')+1;
+    stage.append(plot,E('p',{class:'dv-mini-note'},`Línea vertical: valor nacional ${pct(national.porcentaje)}. Durango ocupa la posición ${durangoRank}.`));
+  }
+
+  function municipal(stage,data){
+    const top=data.slice(0,10),max=top[0]?.unidades||1,grid=E('div',{class:'dv-bubble-grid'});
+    top.forEach((row,i)=>{
+      const item=E('div',{class:`dv-bubble-item ${i<3?'is-top':''}`}), size=42+Math.sqrt(row.unidades/max)*54;
+      item.innerHTML=`<div class="dv-bubble" style="width:${size}px;height:${size}px"><strong>${i+1}</strong></div><span>${esc(row.municipio)}</span><b>${fmt.format(row.unidades)}</b><small>${pct(row.participacion)}</small>`;
+      grid.appendChild(item);
+    });
+    stage.appendChild(grid);
+  }
+
+  function matrix(stage,data){
+    const sectors=[...new Set(data.map((x)=>x.sector))], sizes=[...new Set(data.map((x)=>x.tamano))];
+    const max=Math.log10(Math.max(...data.map((x)=>x.unidades))+1), grid=E('div',{class:'dv-size-matrix'});
+    grid.style.setProperty('--cols',sizes.length); grid.appendChild(E('div',{class:'dv-matrix-corner'}));
+    sizes.forEach((size)=>grid.appendChild(E('div',{class:'dv-matrix-head'},size.replace(' personas','').replace('251 y más','251+').replace(/ a /g,'–'))));
+    sectors.forEach((sector)=>{
+      grid.appendChild(E('div',{class:'dv-matrix-rowhead'},sector.replace('Servicios profesionales y empresariales','Servicios empresariales').replace('Alojamiento, alimentos y recreación','Alojamiento y alimentos').replace('Otros servicios y gobierno','Otros servicios')));
+      sizes.forEach((size)=>{
+        const row=data.find((x)=>x.sector===sector&&x.tamano===size), value=row?row.unidades:0, cell=E('div',{class:'dv-matrix-cell'});
+        cell.style.setProperty('--heat',(Math.log10(value+1)/max).toFixed(3)); cell.innerHTML=`<strong>${value?short(value):'—'}</strong>`; cell.title=`${sector} · ${size}: ${fmt.format(value)} unidades`; grid.appendChild(cell);
+      });
+    });
+    const classified=data.reduce((sum,row)=>sum+row.unidades,0);
+    const note=classified===75110
+      ? `Intensidad logarítmica. El cruce clasifica ${fmt.format(classified)} de 75,111 unidades; una unidad no queda clasificada en sector × tamaño.`
+      : `Intensidad logarítmica. Registros clasificables en el cruce: ${fmt.format(classified)}.`;
+    stage.append(grid,E('p',{class:'dv-mini-note'},note));
+  }
+
+  const BASE='../assets/data/recursos/';
+  const jobs=[
+    ['enoe-flow',()=>csv(BASE+'enoe_estructura_laboral_durango_2026t1.csv',['total','hombres','mujeres','porcentaje_total','porcentaje_hombres','porcentaje_mujeres']),laborFlow],
+    ['enoe-sector',()=>csv(BASE+'enoe_sector_actividad_sexo_durango_2026t1.csv',['total','hombres','mujeres','porcentaje_total','porcentaje_hombres','porcentaje_mujeres']),sectorDots],
+    ['enoe-income',()=>csv(BASE+'enoe_nivel_ingresos_sexo_durango_2026t1.csv',['total','hombres','mujeres','porcentaje_total','porcentaje_hombres','porcentaje_mujeres']),incomeRibbon],
+    ['enbiare-mental',()=>csv(BASE+'enbiare_salud_mental_edad_durango_2025.csv',['ansiedad_durango','ansiedad_nacional','depresion_durango','depresion_nacional']),mental],
+    ['enbiare-satisfaction',()=>csv(BASE+'enbiare_satisfaccion_actual_anterior_durango_2025.csv',['actual_durango','anterior_durango','actual_nacional','anterior_nacional']),satisfaction],
+    ['enbiare-borrowing',()=>csv(BASE+'enbiare_prestamo_entidades_2025.csv',['porcentaje']),borrowing],
+    ['denue-municipal',()=>csv(BASE+'denue_municipios_concentracion_durango_2026.csv',['unidades','participacion','latitud_centro','longitud_centro']),municipal],
+    ['denue-matrix',()=>csv(BASE+'denue_sector_tamano_durango_2026.csv',['unidades']),matrix]
+  ];
+
+  async function mount([key,load,render]){
+    const stage=ROOT.querySelector(`[data-viz="${key}"]`);
+    if(!stage) return;
+    try{
+      const data=await load();
+      stage.replaceChildren();
+      render(stage,data);
+      stage.dataset.ready='true';
+    }catch(error){
+      console.error(`NostxlgIA visualization ${key}:`,error);
+      stage.innerHTML='<p class="dv-load-error">No fue posible cargar esta visualización.</p>';
+      stage.dataset.error='true';
+    }
+  }
+
+  Promise.allSettled(jobs.map(mount)).then(()=>{ ROOT.dataset.ready='true'; });
 })();
