@@ -1,169 +1,221 @@
 (() => {
+  'use strict';
+
+  if (!window.CSS?.highlights || typeof window.Highlight !== 'function') return;
+
+  const coarsePointer = window.matchMedia('(hover:none), (pointer:coarse)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const mobile = coarsePointer.matches;
   const PHASES = 12;
   const PREFIX = 'nostxlgia-rainbow-';
-  const MAX_GLYPHS = 4000;
   const CYCLE_MS = 11500;
+  const UPDATE_MS = mobile ? 150 : 75;
+  const DEBOUNCE_MS = mobile ? 190 : 70;
+  const MAX_RANGES = mobile ? 240 : 1400;
+  const GROUP_SIZE = mobile ? 2 : 1;
   const PALETTE = [
     '#d0ae67','#c0b17a','#82ada0','#64b0ac',
     '#63b2bf','#729db4','#8190ac','#9186aa',
     '#a48aaa','#b69a88','#c5a875','#d0ae67'
   ];
 
-  if (!window.CSS?.highlights || typeof window.Highlight !== 'function') return;
-
-  const names = Array.from({ length: PHASES }, (_, index) => `${PREFIX}${index}`);
   const root = document.documentElement;
-  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-  root.classList.add('nostxlgia-character-rainbow');
+  const names = Array.from({ length:PHASES }, (_, i) => `${PREFIX}${i}`);
+  const segmenter = window.Intl?.Segmenter ? new Intl.Segmenter(undefined, { granularity:'grapheme' }) : null;
+  const rgb = PALETTE.map((hex) => [1,3,5].map((i) => parseInt(hex.slice(i,i+2),16)));
 
-  const rgb = PALETTE.map((hex) => {
-    const value = hex.slice(1);
-    return [
-      parseInt(value.slice(0, 2), 16),
-      parseInt(value.slice(2, 4), 16),
-      parseInt(value.slice(4, 6), 16)
-    ];
-  });
+  let rebuildTimer = 0;
+  let colorTimer = 0;
+  let lastSignature = '';
+  let active = false;
+  let manipulating = false;
 
-  const clearOwnHighlights = () => {
-    names.forEach((name) => CSS.highlights.delete(name));
+  const emitState = () => {
+    window.dispatchEvent(new CustomEvent('nostxlgia:selection-state', { detail:{ active, manipulating } }));
   };
 
-  const graphemes = (text) => {
-    if (window.Intl?.Segmenter) {
-      const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
-      return Array.from(segmenter.segment(text), ({ segment }) => segment);
+  const clearHighlights = () => names.forEach((name) => CSS.highlights.delete(name));
+  const mix = (a,b,t) => `rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(' ')})`;
+
+  const selectionSignature = (selection) => {
+    if (!selection || selection.isCollapsed || !selection.rangeCount) return '';
+    const chunks = [];
+    for (let i=0;i<Math.min(selection.rangeCount,3);i++) {
+      const r = selection.getRangeAt(i);
+      chunks.push(`${r.startOffset}:${r.endOffset}:${r.toString().slice(0,96)}`);
     }
-    return Array.from(text);
+    return chunks.join('|');
   };
 
-  const isEligibleTextNode = (node) => {
-    if (!node?.data) return false;
-    const parent = node.parentElement;
-    if (!parent) return false;
-    return !parent.closest('script, style, noscript, textarea, input, select, option');
-  };
-
-  const mix = (a, b, t) => {
-    const channel = (index) => Math.round(a[index] + (b[index] - a[index]) * t);
-    return `rgb(${channel(0)} ${channel(1)} ${channel(2)})`;
-  };
-
-  let scheduled = 0;
-  let animationFrame = 0;
-  let hasSelection = false;
-
-  const paintPalette = (time = 0) => {
-    if (reducedMotion) return;
-    const progress = ((time % CYCLE_MS) / CYCLE_MS) * PHASES;
+  const paint = () => {
+    colorTimer = 0;
+    if (!active || manipulating || reducedMotion.matches) return;
+    const now = performance.now();
+    const progress = ((now % CYCLE_MS) / CYCLE_MS) * PHASES;
     const whole = Math.floor(progress);
     const fraction = progress - whole;
-
-    for (let phase = 0; phase < PHASES; phase += 1) {
-      const from = (phase + whole) % PHASES;
-      const to = (from + 1) % PHASES;
-      root.style.setProperty(`--nostxlgia-rainbow-${phase}`, mix(rgb[from], rgb[to], fraction));
+    for (let phase=0; phase<PHASES; phase++) {
+      const from=(phase+whole)%PHASES;
+      const to=(from+1)%PHASES;
+      root.style.setProperty(`--nostxlgia-rainbow-${phase}`, mix(rgb[from],rgb[to],fraction));
     }
-
-    if (hasSelection) animationFrame = requestAnimationFrame(paintPalette);
+    colorTimer = window.setTimeout(paint, UPDATE_MS);
   };
 
-  const stopPalette = () => {
-    if (animationFrame) cancelAnimationFrame(animationFrame);
-    animationFrame = 0;
+  const stopPaint = () => {
+    if (colorTimer) clearTimeout(colorTimer);
+    colorTimer = 0;
   };
 
-  const startPalette = () => {
-    if (reducedMotion || animationFrame) return;
-    animationFrame = requestAnimationFrame(paintPalette);
+  const startPaint = () => {
+    stopPaint();
+    if (!active || manipulating || reducedMotion.matches) return;
+    paint();
   };
+
+  const eligible = (node) => {
+    const parent=node?.parentElement;
+    return Boolean(node?.data && parent && !parent.closest('script,style,noscript,textarea,input,select,option'));
+  };
+
+  const graphemes = (text) => segmenter
+    ? Array.from(segmenter.segment(text), ({segment}) => segment)
+    : Array.from(text);
 
   const rebuild = () => {
-    scheduled = 0;
-    clearOwnHighlights();
-
+    rebuildTimer = 0;
     const selection = window.getSelection();
-    hasSelection = Boolean(selection && !selection.isCollapsed && selection.rangeCount > 0);
-    if (!hasSelection) {
-      stopPalette();
+    const signature = selectionSignature(selection);
+
+    if (!signature) {
+      active = false;
+      lastSignature = '';
+      clearHighlights();
+      stopPaint();
+      root.classList.remove('has-rainbow-selection');
+      emitState();
       return;
     }
 
-    const buckets = Array.from({ length: PHASES }, () => []);
-    let glyphIndex = 0;
-    let glyphCount = 0;
-    let stop = false;
+    if (signature === lastSignature && active) {
+      if (!manipulating) startPaint();
+      return;
+    }
 
-    for (let rangeIndex = 0; rangeIndex < selection.rangeCount && !stop; rangeIndex += 1) {
-      const range = selection.getRangeAt(rangeIndex);
+    lastSignature = signature;
+    active = true;
+    root.classList.add('has-rainbow-selection');
+    clearHighlights();
+
+    const buckets = Array.from({length:PHASES},()=>[]);
+    let rangeCount=0;
+    let glyphIndex=0;
+
+    outer:
+    for (let ri=0;ri<selection.rangeCount;ri++) {
+      const range=selection.getRangeAt(ri);
       if (range.collapsed) continue;
-
-      const ancestor = range.commonAncestorContainer;
-      const walkerRoot = ancestor.nodeType === Node.TEXT_NODE ? ancestor.parentNode : ancestor;
+      const ancestor=range.commonAncestorContainer;
+      const walkerRoot=ancestor.nodeType===Node.TEXT_NODE ? ancestor.parentNode : ancestor;
       if (!walkerRoot) continue;
-
-      const walker = document.createTreeWalker(walkerRoot, NodeFilter.SHOW_TEXT, {
-        acceptNode(node) {
-          if (!isEligibleTextNode(node)) return NodeFilter.FILTER_REJECT;
-          try {
-            return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
-          } catch {
-            return NodeFilter.FILTER_REJECT;
-          }
+      const walker=document.createTreeWalker(walkerRoot,NodeFilter.SHOW_TEXT,{
+        acceptNode(node){
+          if(!eligible(node)) return NodeFilter.FILTER_REJECT;
+          try{return range.intersectsNode(node)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT}catch{return NodeFilter.FILTER_REJECT}
         }
       });
 
       let node;
-      while (!stop && (node = walker.nextNode())) {
-        let start = node === range.startContainer ? range.startOffset : 0;
-        let end = node === range.endContainer ? range.endOffset : node.length;
+      while ((node=walker.nextNode())) {
+        let start=node===range.startContainer?range.startOffset:0;
+        let end=node===range.endContainer?range.endOffset:node.length;
+        start=Math.max(0,Math.min(start,node.length));
+        end=Math.max(start,Math.min(end,node.length));
+        if(start===end) continue;
 
-        start = Math.max(0, Math.min(start, node.length));
-        end = Math.max(start, Math.min(end, node.length));
-        if (start === end) continue;
-
-        const slice = node.data.slice(start, end);
-        let offset = start;
-
-        for (const glyph of graphemes(slice)) {
-          const length = glyph.length;
-          if (!/^\s+$/u.test(glyph)) {
-            const glyphRange = new Range();
-            glyphRange.setStart(node, offset);
-            glyphRange.setEnd(node, offset + length);
-            buckets[glyphIndex % PHASES].push(glyphRange);
-            glyphIndex += 1;
-            glyphCount += 1;
-
-            if (glyphCount >= MAX_GLYPHS) {
-              stop = true;
-              break;
-            }
+        const parts=graphemes(node.data.slice(start,end));
+        let offset=start;
+        let groupStart=null;
+        let groupGlyphs=0;
+        for (const glyph of parts) {
+          const length=glyph.length;
+          const whitespace=/^\s+$/u.test(glyph);
+          if (!whitespace) {
+            if (groupStart===null) groupStart=offset;
+            groupGlyphs++;
+            glyphIndex++;
           }
-          offset += length;
+          const groupBoundary = whitespace || groupGlyphs>=GROUP_SIZE;
+          if (groupStart!==null && groupBoundary) {
+            const endOffset=whitespace?offset:offset+length;
+            if(endOffset>groupStart){
+              const glyphRange=new Range();
+              glyphRange.setStart(node,groupStart);
+              glyphRange.setEnd(node,endOffset);
+              buckets[(glyphIndex-1)%PHASES].push(glyphRange);
+              rangeCount++;
+              if(rangeCount>=MAX_RANGES) break outer;
+            }
+            groupStart=null;
+            groupGlyphs=0;
+          }
+          offset+=length;
+        }
+        if(groupStart!==null&&offset>groupStart){
+          const glyphRange=new Range();
+          glyphRange.setStart(node,groupStart);
+          glyphRange.setEnd(node,offset);
+          buckets[(glyphIndex-1)%PHASES].push(glyphRange);
+          rangeCount++;
+          if(rangeCount>=MAX_RANGES) break outer;
         }
       }
     }
 
-    buckets.forEach((ranges, index) => {
-      if (!ranges.length) return;
-      const highlight = new Highlight(...ranges);
-      highlight.priority = 1;
-      CSS.highlights.set(names[index], highlight);
+    buckets.forEach((ranges,index)=>{
+      if(!ranges.length) return;
+      const highlight=new Highlight(...ranges);
+      highlight.priority=1;
+      CSS.highlights.set(names[index],highlight);
     });
 
-    startPalette();
+    emitState();
+    startPaint();
   };
 
-  const scheduleRebuild = () => {
-    if (scheduled) cancelAnimationFrame(scheduled);
-    scheduled = requestAnimationFrame(rebuild);
+  const schedule = () => {
+    if (rebuildTimer) clearTimeout(rebuildTimer);
+    rebuildTimer = window.setTimeout(rebuild, DEBOUNCE_MS);
   };
 
-  document.addEventListener('selectionchange', scheduleRebuild, { passive: true });
+  document.addEventListener('selectionchange', schedule, {passive:true});
+
+  if (mobile) {
+    document.addEventListener('pointerdown', () => {
+      manipulating = true;
+      stopPaint();
+      emitState();
+    }, {passive:true});
+    const release = () => {
+      if (!manipulating) return;
+      manipulating = false;
+      emitState();
+      schedule();
+    };
+    document.addEventListener('pointerup', release, {passive:true});
+    document.addEventListener('pointercancel', release, {passive:true});
+  }
+
+  reducedMotion.addEventListener('change', () => {
+    if (reducedMotion.matches) stopPaint();
+    else startPaint();
+  });
+
   window.addEventListener('pagehide', () => {
-    stopPalette();
-    clearOwnHighlights();
-  }, { once: true });
-  scheduleRebuild();
+    if(rebuildTimer)clearTimeout(rebuildTimer);
+    stopPaint();
+    clearHighlights();
+  }, {once:true});
+
+  schedule();
 })();
