@@ -1,0 +1,21 @@
+/* Cierre de cascada para numeración y tilt, cargado después de la auditoría. */
+.services-preview .service-no{font-size:0!important}
+.services-preview .service-mini[href*="#datos"] .service-no:after{content:"01"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+.services-preview .service-mini[href*="#tecnologia"] .service-no:after{content:"02"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+.services-preview .service-mini[href*="#electoral"] .service-no:after{content:"03"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+.services-preview .service-mini[href*="#cartografia"] .service-no:after{content:"04"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+.services-preview .service-mini[href*="#planeacion"] .service-no:after{content:"05"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+.services-preview .service-mini[href*="#evaluacion"] .service-no:after{content:"06"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
+
+.service-family .service-family-no{font-size:0!important}
+.service-family#datos .service-family-no:after{content:"01"!important;display:inline!important;font-size:48px!important}
+.service-family#tecnologia .service-family-no:after{content:"02"!important;display:inline!important;font-size:48px!important}
+.service-family#electoral .service-family-no:after{content:"03"!important;display:inline!important;font-size:48px!important}
+.service-family#cartografia .service-family-no:after{content:"04"!important;display:inline!important;font-size:48px!important}
+.service-family#planeacion .service-family-no:after{content:"05"!important;display:inline!important;font-size:48px!important}
+.service-family#evaluacion .service-family-no:after{content:"06"!important;display:inline!important;font-size:48px!important}
+
+@media (hover:hover) and (pointer:fine){
+  .depth-card{transform:perspective(1200px) rotateX(var(--depth-x)) rotateY(var(--depth-y)) translate3d(0,var(--depth-lift),0)!important}
+}
+@media (max-width:860px){.service-family .service-family-no:after{font-size:40px!important}}
