@@ -7,6 +7,24 @@
   const recordList=root.querySelector('[data-record-list]');
   const matrix=root.querySelector('[data-matrix]');
   const bars=[...root.querySelectorAll('.chart-bar')];
+  const trend=root.querySelector('[data-scene="line"]');
+  const rebuildTrendGeometry=()=>{
+    if(!trend)return;
+    trend.setAttribute('viewBox','0 0 680 400');
+    trend.setAttribute('preserveAspectRatio','xMidYMid meet');
+    const grid=[...trend.querySelectorAll('.trend-grid line')];
+    [[52,295,642,295],[52,230,642,230],[52,165,642,165],[52,100,642,100]].forEach((v,i)=>{const line=grid[i];if(!line)return;line.setAttribute('x1',v[0]);line.setAttribute('y1',v[1]);line.setAttribute('x2',v[2]);line.setAttribute('y2',v[3]);});
+    const axes=[...trend.querySelectorAll('.chart-axis')];
+    if(axes[0]){axes[0].setAttribute('x1','52');axes[0].setAttribute('y1','322');axes[0].setAttribute('x2','642');axes[0].setAttribute('y2','322');}
+    if(axes[1]){axes[1].setAttribute('x1','52');axes[1].setAttribute('y1','322');axes[1].setAttribute('x2','52');axes[1].setAttribute('y2','60');}
+    const path=trend.querySelector('.analysis-trend');
+    if(path)path.setAttribute('d','M66 286 C91 278 119 259 146 252 C174 245 198 242 226 235 C255 227 278 215 306 204 C335 193 358 187 386 174 C415 161 438 139 466 128 C496 116 520 117 548 110 C578 102 611 83 632 72');
+    const pts=[[66,286,5],[146,252,4],[226,235,5],[306,204,4],[386,174,5],[466,128,4],[548,110,5],[632,72,4]];
+    [...trend.querySelectorAll('.analysis-dot')].forEach((dot,i)=>{const v=pts[i];if(!v)return;dot.setAttribute('cx',v[0]);dot.setAttribute('cy',v[1]);dot.setAttribute('r',v[2]);});
+    const metric=trend.querySelector('.analysis-metric');if(metric){metric.setAttribute('x','566');metric.setAttribute('y','46');}
+    const labels=[...trend.querySelectorAll('.trend-label')];[[62,354],[246,354],[430,354],[614,354]].forEach((v,i)=>{if(!labels[i])return;labels[i].setAttribute('x',v[0]);labels[i].setAttribute('y',v[1]);});
+  };
+  rebuildTrendGeometry();
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
   const phases=[['data',5200],['bars',3200],['line',3000],['territory',4300]];
   const records=[
