@@ -1,0 +1,285 @@
+/* NostxlgIA — auditoría integral de legibilidad, jerarquía y tarjetas · 2026-09-09 */
+
+:root{
+  --ui-micro:11px;
+  --ui-meta:12px;
+  --ui-small:13.5px;
+  --ui-body:15px;
+  --ui-card:15.5px;
+  --ui-title:22px;
+}
+
+/* Escala tipográfica común: menos microtipografía y menos ruido de etiquetas. */
+.eyebrow{font-size:12px!important;letter-spacing:.14em!important}
+.btn{font-size:13.5px!important}
+.text-link{font-size:13px!important;letter-spacing:.09em!important}
+.meta-label{font-size:11.5px!important;letter-spacing:.12em!important}
+.meta-value{font-size:14px!important;line-height:1.55!important}
+.category{font-size:11.5px!important;letter-spacing:.12em!important}
+.tag{font-size:10.5px!important;letter-spacing:.09em!important;padding:7px 9px!important}
+.card-copy{font-size:15px!important;line-height:1.72!important}
+.card-title{font-size:22px!important;line-height:1.24!important}
+.media-label{font-size:11px!important;letter-spacing:.11em!important}
+.filter-chip{font-size:12.5px!important;padding:9px 13px!important}
+.list-clean li{font-size:14.5px!important}.list-clean span:last-child{font-size:12px!important}
+.scope-note,.merged-section-note{font-size:14px!important}
+.principle b{font-size:12px!important}.principle h3{font-size:18px!important}.principle p{font-size:14px!important;line-height:1.65!important}
+.page-aside{font-size:14px!important;line-height:1.65!important}.page-aside strong{font-size:12px!important}
+
+/* Análisis/publicaciones: una jerarquía principal por tarjeta. */
+.analysis-card .card-body{padding:27px!important}
+.analysis-card .category{display:none!important}
+.analysis-card .card-title{font-size:22px!important;margin-bottom:13px!important}
+.analysis-card .card-copy{font-size:15px!important}
+.analysis-card .tag-row{padding-top:18px!important}
+
+/* Servicios de inicio: corrige numeración duplicada y evita cajas sobredimensionadas. */
+.services-preview{gap:20px!important}
+.services-preview .service-mini{
+  min-height:198px!important;
+  padding:27px 27px 25px!important;
+}
+.services-preview .service-no{font-size:0!important}
+.services-preview .service-no:after{font-size:12px!important;letter-spacing:.13em!important}
+.services-preview .service-mini h3{
+  margin:28px 0 10px!important;
+  font-size:22px!important;
+  line-height:1.22!important;
+}
+.services-preview .service-mini p{font-size:15px!important;line-height:1.58!important}
+
+/* Proyectos de inicio: más lectura, menos sensación de plantilla vacía. */
+.home-project-grid{gap:20px!important}
+.home-project-grid .project-card{min-height:310px!important;padding:28px!important;cursor:pointer}
+.home-project-grid .project-index{font-size:46px!important}
+.home-project-grid .project-card h3{font-size:22px!important;line-height:1.25!important;margin:22px 0 10px!important}
+.home-project-grid .project-card p{font-size:15px!important;line-height:1.65!important;margin-bottom:22px!important}
+
+/* Servicios internos. */
+.service-family .service-family-no{font-size:0!important}
+.service-family .service-family-no:after{font-size:48px!important}
+.service-family-head{padding:34px 34px!important;gap:28px!important}
+.service-family-head h2{font-size:31px!important;margin-bottom:12px!important}
+.service-family-head p{font-size:15.5px!important;line-height:1.72!important}
+.subservice{padding:27px 30px!important;min-height:175px!important}
+.subservice h3{font-size:19px!important;line-height:1.3!important;margin-bottom:10px!important}
+.subservice p{font-size:15px!important;line-height:1.7!important}
+
+/* Proyectos completos: texto exterior legible y contextual. */
+.projects-list{gap:26px!important}
+.projects-list .project-feature{min-height:490px!important}
+.projects-list .project-feature .project-visual{min-height:490px!important}
+.projects-list .project-feature .card-body{padding:34px 36px!important}
+.projects-list .project-feature .card-title{font-size:30px!important;line-height:1.14!important}
+.projects-list .project-feature .card-copy{font-size:15.5px!important}
+.project-context small{font-size:10.5px!important;letter-spacing:.10em!important}
+.project-context strong{font-size:13.5px!important;line-height:1.55!important}
+.projects-list .project-feature .tag{font-size:10.5px!important}
+
+/* Hero: menos controles decorativos, más lectura del contenido. */
+.hero-vnext .territory-control{display:none!important}
+.hero-vnext .territory-toolbar{gap:0!important}
+.hero-vnext .territory-step{font-size:10px!important;letter-spacing:.09em!important;padding:7px 10px!important;max-width:190px!important}
+.hero-vnext .visual-kicker:after{content:"Demostración · datos simulados"!important;font-size:11px!important;letter-spacing:.10em!important}
+.hero-vnext .data-phase-kicker,.hero-vnext .data-matrix-heading span{font-size:9.5px!important;letter-spacing:.12em!important}
+.hero-vnext .data-phase-heading strong{font-size:22px!important}
+.hero-vnext .data-record{min-height:31px!important;grid-template-columns:64px minmax(0,1fr) auto!important;padding:5px 8px!important}
+.hero-vnext .data-record span{font-size:8.5px!important;letter-spacing:.09em!important}
+.hero-vnext .data-record strong{font-size:10.5px!important}
+.hero-vnext .data-record em{font-size:9px!important}
+.hero-vnext .data-matrix-heading strong{font-size:10.5px!important}
+.hero-vnext .data-matrix-heading small{font-size:8px!important}
+.hero-vnext .matrix-tooltip{font-size:9.5px!important}.hero-vnext .matrix-tooltip b{font-size:10.5px!important}
+.hero-vnext .chart-bar .bar-label{font-size:10px!important}
+.hero-vnext .bar-tooltip strong,.hero-vnext .bar-tooltip small{font-size:10px!important}
+.hero-vnext .bar-tooltip em{font-size:16px!important}
+.hero-vnext .trend-label{font-size:9.5px!important}
+.hero-vnext .visual-caption h3{font-size:25px!important}
+.hero-vnext .visual-caption p{font-size:14px!important;line-height:1.68!important}
+
+/* Datos y visualizaciones: estructura 1 + 2 para dar espacio real a cada gráfica. */
+[data-data-library] .source-module-head{gap:42px!important}
+[data-data-library] .source-module-head p{font-size:16px!important}
+[data-data-library] .source-module-facts span{font-size:10.5px!important;letter-spacing:.075em!important;line-height:1.4!important}
+[data-data-library] .source-module-facts b{font-size:25px!important}
+[data-data-library] .source-viz-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:22px!important}
+[data-data-library] .source-viz-card{min-height:520px!important}
+[data-data-library] .source-viz-card:has([data-viz="enoe-flow"]),
+[data-data-library] .source-viz-card:has([data-viz="enbiare-mental"]),
+[data-data-library] .source-viz-card:has([data-viz="denue-context"]){grid-column:1/-1!important;min-height:540px!important}
+[data-data-library] .source-viz-copy{min-height:152px!important;padding:22px 22px 18px!important;padding-right:122px!important}
+[data-data-library] .source-viz-no{font-size:11px!important;letter-spacing:.11em!important}
+[data-data-library] .source-viz-copy h3{font-size:20px!important;line-height:1.27!important;margin-bottom:9px!important}
+[data-data-library] .source-viz-copy p{font-size:13.5px!important;line-height:1.62!important}
+[data-data-library] .source-viz-card footer{padding:14px 20px!important}
+[data-data-library] .source-viz-card footer a{font-size:11px!important;letter-spacing:.09em!important}
+[data-data-library] .source-method{grid-template-columns:170px 1fr!important;gap:26px!important;padding-top:20px!important}
+[data-data-library] .source-method strong{font-size:10.5px!important;letter-spacing:.11em!important}
+[data-data-library] .source-method p{font-size:11.5px!important;line-height:1.68!important}
+
+/* Ayuda metodológica: legible sin convertirse en otra capa de microtexto. */
+.viz-info-trigger{min-height:31px!important;padding:0 10px!important;font-size:10px!important;letter-spacing:.07em!important}
+.viz-info-trigger:before{width:15px!important;height:15px!important;font-size:9px!important}
+.viz-info-panel{width:min(390px,calc(100% - 28px))!important;padding:16px 17px!important;font-size:12px!important;line-height:1.55!important}
+.viz-info-panel div{grid-template-columns:88px 1fr!important;gap:12px!important}
+.viz-info-panel dt{font-size:10px!important;letter-spacing:.08em!important}
+.dv-hover-tooltip{font-size:11px!important;line-height:1.45!important;padding:9px 11px!important}
+
+/* Auditoría individual de cada visualización. */
+[data-viz="enoe-flow"] .dv-flow-kpis span{font-size:10.5px!important}
+[data-viz="enoe-flow"] .dv-flow-kpis strong{font-size:18px!important}
+[data-viz="enoe-flow"] .dv-flow-branch header small{font-size:10px!important}
+[data-viz="enoe-flow"] .dv-flow-children span,[data-viz="enoe-flow"] .dv-flow-children b{font-size:10.5px!important}
+
+.qa-dotplot-sector{font-size:12.5px!important}.qa-point,.qa-point b{font-size:11px!important}.qa-dotplot-axis{font-size:10px!important}.qa-dotplot-legend{font-size:10.5px!important}
+[data-viz="enoe-income"] .dv-toggle button{font-size:11px!important}
+[data-viz="enoe-income"] .dv-ribbon-item,[data-viz="enoe-income"] .dv-ribbon-item strong{font-size:11px!important}
+
+[data-viz="enbiare-mental"] .dv-mental-head,[data-viz="enbiare-mental"] .dv-mental-head small{font-size:10.5px!important}
+[data-viz="enbiare-mental"] .dv-mental-age{font-size:11.5px!important}
+[data-viz="enbiare-mental"] .dv-mental-cell strong{font-size:12.5px!important}
+[data-viz="enbiare-mental"] .dv-mini-note{font-size:10.5px!important}
+.qa-sat-axis{font-size:11.5px!important}.qa-sat-series text{font-size:12.5px!important}.qa-sat-name{font-size:12px!important}
+[data-viz="enbiare-satisfaction"] .dv-mini-note{font-size:10.5px!important}
+[data-viz="enbiare-borrowing"] .dv-dotrank-rank,[data-viz="enbiare-borrowing"] .dv-dotrank-name,[data-viz="enbiare-borrowing"] .dv-dotrank-row>strong{font-size:10.5px!important}
+[data-viz="enbiare-borrowing"] .dv-mini-note{font-size:10.5px!important}
+
+[data-viz="denue-map"] .dv-sector-filter button{font-size:10px!important;padding:8px 10px!important}
+[data-viz="denue-map"] .dv-city-label{font-size:11px!important}
+[data-viz="denue-map"] .dv-mini-note{font-size:10px!important}
+[data-viz="denue-municipal"] .dv-bubble-item>span{font-size:10px!important}
+[data-viz="denue-municipal"] .dv-bubble-item>b{font-size:11px!important}
+[data-viz="denue-municipal"] .dv-bubble-item>small{font-size:9.5px!important}
+[data-viz="denue-matrix"] .dv-matrix-head,[data-viz="denue-matrix"] .dv-matrix-rowhead{font-size:10.5px!important}
+[data-viz="denue-matrix"] .dv-matrix-cell strong{font-size:10px!important}
+[data-viz="denue-matrix"] .dv-mini-note{font-size:10px!important}
+
+/* Proyectos interactivos: mínimo razonable sin deformar los módulos. */
+.projects-list .ntx-territorial .ntx-map-meta,.projects-list .ntx-territorial .ntx-map-meta strong{font-size:10px!important}
+.projects-list .ntx-territorial .ntx-panel-label,.projects-list .ntx-territorial .ntx-variable-control label,.projects-list .ntx-territorial .ntx-layer-controls legend{font-size:10px!important}
+.projects-list .ntx-territorial .ntx-variable-control select{height:38px!important;font-size:11.5px!important}
+.projects-list .ntx-territorial .ntx-layer-controls label{font-size:10.5px!important}
+.projects-list .ntx-territorial .ntx-legend li{font-size:9.5px!important}
+.projects-list .ntx-territorial .ntx-unit-card strong{font-size:13px!important}
+.projects-list .ntx-territorial .ntx-unit-code,.projects-list .ntx-territorial .ntx-unit-value span,.projects-list .ntx-territorial .ntx-unit-class>span{font-size:9.5px!important}
+.projects-list .ntx-territorial .ntx-unit-value b{font-size:16px!important}
+.projects-list .ntx-territorial .ntx-map-scale,.projects-list .ntx-territorial .ntx-map-status{font-size:9.5px!important}
+
+.projects-list .ntx-kpi-system .ntx-kpi-kicker{font-size:10.5px!important}.projects-list .ntx-kpi-system .ntx-kpi-title strong{font-size:18px!important}.projects-list .ntx-kpi-system .ntx-kpi-title small{font-size:10px!important}
+.projects-list .ntx-kpi-system .ntx-period{font-size:10px!important}
+.projects-list .ntx-kpi-system .ntx-kpi-card span,.projects-list .ntx-kpi-system .ntx-kpi-card small{font-size:9.5px!important}.projects-list .ntx-kpi-system .ntx-kpi-card b{font-size:20px!important}
+.projects-list .ntx-kpi-system .ntx-panel-head strong{font-size:11px!important}.projects-list .ntx-kpi-system .ntx-panel-head span{font-size:9.5px!important}
+.projects-list .ntx-kpi-system .ntx-bar-row span,.projects-list .ntx-kpi-system .ntx-bar-row b{font-size:9.5px!important}
+.projects-list .ntx-kpi-system .ntx-rank-row span,.projects-list .ntx-kpi-system .ntx-rank-row b{font-size:9.5px!important}
+.projects-list .ntx-kpi-system .ntx-pipe-label strong{font-size:10px!important}.projects-list .ntx-kpi-system .ntx-pipe-label span,.projects-list .ntx-kpi-system .ntx-stage-head{font-size:9px!important}
+
+.projects-list .ntx-eval .ntx-eval-kicker{font-size:10.5px!important}.projects-list .ntx-eval .ntx-eval-title{font-size:17px!important}.projects-list .ntx-eval .ntx-eval-sub{font-size:10px!important}.projects-list .ntx-eval .ntx-eval-cycle button{font-size:9.5px!important}
+.projects-list .ntx-eval .ntx-eval-kpi span,.projects-list .ntx-eval .ntx-eval-kpi small{font-size:9.5px!important}.projects-list .ntx-eval .ntx-eval-kpi strong{font-size:19px!important}
+.projects-list .ntx-eval .ntx-eval-section-head strong{font-size:10.5px!important}.projects-list .ntx-eval .ntx-eval-section-head span{font-size:9.5px!important}
+.projects-list .ntx-eval .ntx-mir-head div{font-size:9.5px!important}
+.projects-list .ntx-eval .ntx-mir-level strong{font-size:10px!important}.projects-list .ntx-eval .ntx-mir-level small{font-size:9.5px!important}
+.projects-list .ntx-eval .ntx-mir-objective span,.projects-list .ntx-eval .ntx-mir-indicator span{font-size:9.2px!important;line-height:1.28!important}
+.projects-list .ntx-eval .ntx-mir-target b{font-size:10px!important}.projects-list .ntx-eval .ntx-mir-progress b{font-size:11px!important}
+.projects-list .ntx-eval .ntx-eval-sidebox h4{font-size:10px!important}.projects-list .ntx-eval .ntx-eval-sidebox>small,.projects-list .ntx-eval .ntx-align-copy b,.projects-list .ntx-eval .ntx-align-item>span:last-child,.projects-list .ntx-eval .ntx-benef-line span,.projects-list .ntx-eval .ntx-benef-line b,.projects-list .ntx-eval .ntx-pbr-label span,.projects-list .ntx-eval .ntx-eval-status span,.projects-list .ntx-eval .ntx-pbr-track small{font-size:9px!important}
+
+.projects-list .ntx-el .ntx-el-kicker{font-size:10.5px!important}.projects-list .ntx-el .ntx-el-title{font-size:17px!important}.projects-list .ntx-el .ntx-el-sub{font-size:10px!important}.projects-list .ntx-el .ntx-el-modes button{font-size:9.5px!important}
+.projects-list .ntx-el .ntx-el-maphead strong{font-size:10.5px!important}.projects-list .ntx-el .ntx-el-maphead span,.projects-list .ntx-el .ntx-el-mapnote,.projects-list .ntx-el .ntx-el-legend-item{font-size:9.5px!important}
+.projects-list .ntx-el .ntx-el-panel h4{font-size:11px!important}.projects-list .ntx-el .ntx-el-panel>small{font-size:9.5px!important}
+.projects-list .ntx-el .ntx-el-kpi span,.projects-list .ntx-el .ntx-el-kpi small{font-size:9.5px!important}.projects-list .ntx-el .ntx-el-kpi strong{font-size:15px!important}
+.projects-list .ntx-el .ntx-el-section-title{font-size:10px!important}.projects-list .ntx-el .ntx-el-section-title span,.projects-list .ntx-el .ntx-el-party b,.projects-list .ntx-el .ntx-el-party span{font-size:9.5px!important}
+.projects-list .ntx-el .ntx-el-selected-head span{font-size:9.5px!important}.projects-list .ntx-el .ntx-el-selected-head strong{font-size:11px!important}.projects-list .ntx-el .ntx-el-winner b{font-size:10.5px!important}.projects-list .ntx-el .ntx-el-winner span{font-size:10px!important}
+
+/* Contacto y pie: secundarios, no diminutos. */
+.contact-card small{font-size:11px!important;letter-spacing:.11em!important}.contact-card a{font-size:15px!important}
+.field label{font-size:11.5px!important;letter-spacing:.10em!important}
+.field input,.field textarea,.field select{font-size:15px!important;padding:13px 14px!important}
+.form-note{font-size:12px!important;line-height:1.6!important}.form-status{font-size:12.5px!important}
+.footer-brand p{font-size:14px!important;line-height:1.65!important}.footer-title{font-size:11px!important}.footer-links{font-size:14px!important}.footer-bottom{font-size:12px!important}
+
+/* Reflejo y profundidad; el JS sólo modifica variables, nunca estructura ni clics internos. */
+.depth-card{--depth-x:0deg;--depth-y:0deg;--depth-lift:0px;--shine-x:50%;--shine-y:35%;position:relative!important;transform-style:preserve-3d;transform:perspective(1200px) rotateX(var(--depth-x)) rotateY(var(--depth-y)) translate3d(0,var(--depth-lift),0);transition:transform .22s cubic-bezier(.2,.72,.2,1),border-color .2s ease,box-shadow .22s ease!important;will-change:transform}
+.depth-card:before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at var(--shine-x) var(--shine-y),rgba(126,202,216,.105),transparent 32%);opacity:.55;transition:opacity .18s ease}
+.depth-card:after{content:"";position:absolute;inset:-30% -65%;z-index:0;pointer-events:none;border-radius:inherit;background:linear-gradient(112deg,transparent 38%,rgba(255,255,255,.045) 48%,rgba(112,191,207,.035) 51%,transparent 60%);transform:translateX(-36%);animation:nostxlgiaCardSheen 13s ease-in-out infinite}
+.depth-card>*{position:relative;z-index:1}
+.depth-card.is-depth-active{--depth-lift:-3px;box-shadow:0 22px 48px rgba(0,0,0,.24),0 0 0 1px rgba(123,170,190,.04)}
+@keyframes nostxlgiaCardSheen{0%,22%{transform:translateX(-38%)}52%,74%{transform:translateX(38%)}100%{transform:translateX(-38%)}}
+
+@media (max-width:1050px){
+  [data-data-library] .source-viz-grid{grid-template-columns:1fr!important}
+  [data-data-library] .source-viz-card:has([data-viz]){grid-column:auto!important}
+  .projects-list .project-feature{min-height:450px!important}
+  .projects-list .project-feature .project-visual{min-height:450px!important}
+}
+
+@media (max-width:860px){
+  .services-preview .service-mini{min-height:185px!important}
+  .home-project-grid .project-card{min-height:290px!important}
+  .projects-list .project-feature{min-height:0!important}
+  .projects-list .project-feature .project-visual{height:340px!important;min-height:340px!important}
+  .service-family .service-family-no:after{font-size:40px!important}
+  .subservice p{font-size:14.5px!important}
+  [data-data-library] .source-module-head{grid-template-columns:1fr!important;gap:24px!important}
+  [data-data-library] .source-viz-copy{padding-right:22px!important;padding-top:62px!important}
+  [data-data-library] .source-method{grid-template-columns:1fr!important;gap:8px!important}
+  .viz-info-trigger{top:18px!important;left:22px!important;right:auto!important}
+  .viz-info-panel{font-size:11.5px!important}
+}
+
+@media (max-width:600px){
+  .eyebrow{font-size:11px!important}
+  .hero-lead{font-size:17px!important;line-height:1.68!important}
+  .section-head p,.page-hero p{font-size:16px!important;line-height:1.7!important}
+  .services-preview .service-mini{padding:23px 21px!important}
+  .services-preview .service-mini h3{font-size:21px!important;margin:22px 0 9px!important}
+  .services-preview .service-mini p{font-size:14.5px!important}
+  .home-project-grid .project-card{padding:24px!important;min-height:270px!important}
+  .home-project-grid .project-card p{font-size:14.5px!important}
+  .analysis-card .card-copy{font-size:14.5px!important}
+  .service-family-head{padding:25px!important}.service-family-head p{font-size:15px!important}.subservice{padding:23px!important}.subservice p{font-size:14.5px!important}
+  .projects-list .project-feature .card-body{padding:27px!important}.projects-list .project-feature .card-title{font-size:27px!important}.projects-list .project-feature .card-copy{font-size:15px!important}
+  .project-context{grid-template-columns:1fr!important}.project-context strong{font-size:13px!important}
+
+  /* Hero móvil: prioriza lectura; la matriz se omite y quedan registros + gráficas. */
+  .hero-vnext .data-workbench{grid-template-columns:1fr!important;padding:10px!important}
+  .hero-vnext .data-matrix-panel{display:none!important}
+  .hero-vnext .data-record:nth-child(n+6){display:none!important}
+  .hero-vnext .data-phase-kicker{font-size:9px!important}.hero-vnext .data-phase-heading strong{font-size:19px!important}
+  .hero-vnext .data-record{min-height:32px!important;grid-template-columns:58px minmax(0,1fr) auto!important}
+  .hero-vnext .data-record span{font-size:8px!important}.hero-vnext .data-record strong{font-size:10.5px!important}.hero-vnext .data-record em{font-size:9px!important;display:block!important}
+  .hero-vnext .visual-kicker:after{font-size:10px!important}.hero-vnext .territory-step{font-size:9px!important}
+  .hero-vnext .visual-caption p{font-size:13.5px!important}
+
+  [data-data-library] .source-module-facts{grid-template-columns:1fr!important}
+  [data-data-library] .source-module-facts span{border-right:0!important;border-bottom:1px solid var(--line)!important;font-size:10.5px!important;padding:13px 14px!important}
+  [data-data-library] .source-module-facts span:last-child{border-bottom:0!important}
+  [data-data-library] .source-viz-card{min-height:470px!important}
+  [data-data-library] .dv-stage{min-height:300px!important}
+  [data-data-library] .source-viz-copy h3{font-size:19px!important}
+  [data-data-library] .source-viz-copy p{font-size:13px!important}
+
+  /* En móvil, menos capas secundarias en demos complejas antes que microtexto. */
+  .projects-list .ntx-kpi-system .ntx-kpi-side{display:none!important}
+  .projects-list .ntx-kpi-system .ntx-kpi-main{grid-template-columns:1fr!important}
+  .projects-list .ntx-el .ntx-el-panel{display:none!important}
+  .projects-list .ntx-el .ntx-el-body{grid-template-columns:1fr!important}
+  .projects-list .ntx-territorial .ntx-legend{display:none!important}
+  .projects-list .ntx-territorial .ntx-side-panel{min-width:116px!important}
+  .projects-list .ntx-territorial .ntx-panel-label,.projects-list .ntx-territorial .ntx-variable-control label,.projects-list .ntx-territorial .ntx-layer-controls legend{font-size:8.5px!important}
+  .projects-list .ntx-territorial .ntx-variable-control select{font-size:10px!important;height:32px!important}
+  .projects-list .ntx-territorial .ntx-layer-controls label{font-size:9px!important}
+  .projects-list .ntx-territorial .ntx-unit-card strong{font-size:11px!important}
+  .projects-list .ntx-territorial .ntx-unit-code,.projects-list .ntx-territorial .ntx-unit-value span,.projects-list .ntx-territorial .ntx-unit-class>span{font-size:8.5px!important}
+
+  .footer-brand p,.footer-links{font-size:13.5px!important}.footer-title{font-size:10.5px!important}.footer-bottom{font-size:11.5px!important}
+}
+
+@media (hover:none){
+  .depth-card{transform:none!important;will-change:auto}
+  .depth-card:before{opacity:.28}
+  .depth-card:after{animation-duration:16s;opacity:.7}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .depth-card{transform:none!important;transition:none!important}
+  .depth-card:after{animation:none!important;opacity:.18}
+}
