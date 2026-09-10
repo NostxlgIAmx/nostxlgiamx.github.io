@@ -1,63 +1,43 @@
 (() => {
-  /* Hoja de ajustes cargada desde la misma raíz que main.js. */
   const currentScript = document.currentScript;
-  if (currentScript && !document.querySelector('link[data-site-polish]')) {
-    const polish = document.createElement('link');
-    polish.rel = 'stylesheet';
-    polish.href = new URL('../css/site-polish.css', currentScript.src).href;
-    polish.dataset.sitePolish = 'true';
-    document.head.appendChild(polish);
-  }
 
-  /* Selección rainbow por carácter, cargada como módulo independiente. */
-  if (currentScript && !document.querySelector('script[data-selection-rainbow]')) {
-    const selectionRainbow = document.createElement('script');
-    selectionRainbow.src = new URL('selection-rainbow.js?v=20260902-editorial-75', currentScript.src).href;
-    selectionRainbow.dataset.selectionRainbow = 'true';
-    selectionRainbow.async = false;
-    document.head.appendChild(selectionRainbow);
-  }
+  const appendStylesheet = (src, dataName) => {
+    if (!currentScript || document.querySelector(`link[data-${dataName}]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = new URL(src, currentScript.src).href;
+    link.dataset[dataName.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = 'true';
+    document.head.appendChild(link);
+  };
 
-  /* Baseline NIC: se cargan los módulos ambientales por separado. */
-  if (currentScript && !document.querySelector('script[data-cursor-ambient]')) {
-    const cursorAmbient = document.createElement('script');
-    cursorAmbient.src = new URL('cursor-ambient.js?v=20260909-nic-baseline-v1', currentScript.src).href;
-    cursorAmbient.dataset.cursorAmbient = 'true';
-    cursorAmbient.async = false;
-    document.head.appendChild(cursorAmbient);
-  }
-  if (currentScript && !document.querySelector('script[data-ambient-background]')) {
-    const ambientScript = document.createElement('script');
-    ambientScript.src = new URL('ambient-background-v2.js?v=20260909-nic-baseline-v1', currentScript.src).href;
-    ambientScript.dataset.ambientBackground = 'true';
-    ambientScript.async = false;
-    document.head.appendChild(ambientScript);
-  }
-  if (currentScript && !document.querySelector('script[data-ambient-network]')) {
-    const ambientNetwork = document.createElement('script');
-    ambientNetwork.src = new URL('ambient-network.js?v=20260909-nic-baseline-v3-grab-no-drag', currentScript.src).href;
-    ambientNetwork.dataset.ambientNetwork = 'true';
-    ambientNetwork.async = false;
-    document.head.appendChild(ambientNetwork);
-  }
+  const appendScript = (src, dataName) => {
+    if (!currentScript || document.querySelector(`script[data-${dataName}]`)) return;
+    const script = document.createElement('script');
+    script.src = new URL(src, currentScript.src).href;
+    script.dataset[dataName.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = 'true';
+    script.async = false;
+    document.head.appendChild(script);
+  };
 
-  /* Ajuste final, limitado a las visualizaciones de Datos y Proyectos. */
-  if (currentScript && document.querySelector('[data-data-library], .projects-list')) {
+  appendStylesheet('../css/site-polish.css?v=20260909-ux-audit2', 'site-polish');
+  appendScript('selection-rainbow.js?v=20260909-editorial-v2', 'selection-rainbow');
+  appendScript('cursor-ambient.js?v=20260909-nic-baseline-v1', 'cursor-ambient');
+  appendScript('ambient-background-v2.js?v=20260909-nic-baseline-v1', 'ambient-background');
+  appendScript('ambient-network.js?v=20260909-nic-baseline-v6-touch', 'ambient-network');
+
+  if (document.querySelector('[data-data-library], .projects-list')) {
     if (!document.querySelector('link[data-viz-qa-final]')) {
-      const visualStyles = document.createElement('link');
-      visualStyles.rel = 'stylesheet';
-      visualStyles.href = new URL('../css/viz-qa-final.css', currentScript.src).href;
-      visualStyles.dataset.vizQaFinal = 'true';
-      document.head.appendChild(visualStyles);
+      appendStylesheet('../css/viz-qa-final.css?v=20260909-ux-audit2', 'viz-qa-final');
     }
     if (document.querySelector('[data-data-library]') && !document.querySelector('script[data-viz-qa-final]')) {
-      const visualScript = document.createElement('script');
-      visualScript.src = new URL('viz-qa-final.js', currentScript.src).href;
-      visualScript.dataset.vizQaFinal = 'true';
-      visualScript.async = false;
-      document.head.appendChild(visualScript);
+      appendScript('viz-qa-final.js?v=20260909-ux-audit2', 'viz-qa-final');
     }
   }
+
+  /* Cierre de cascada: después de estilos de cada visualización. */
+  appendStylesheet('../css/ux-audit-v2.css?v=20260909-ux2-final', 'ux-audit-final');
+  appendStylesheet('../css/ux-audit-final-fixes.css?v=20260909-final1', 'ux-audit-fixes');
+  appendScript('card-depth.js?v=20260909-depth-v2', 'card-depth');
 
   const navToggle = document.querySelector('.nav-toggle');
   const nav = document.querySelector('.nav');
@@ -89,7 +69,6 @@
     });
   }
 
-  /* Ajuste de lenguaje para acompañar el nuevo orden de servicios. */
   const servicesPreview = document.querySelector('.services-preview');
   if (servicesPreview) {
     const copy = servicesPreview.closest('.section')?.querySelector('.section-head-copy p');
@@ -104,7 +83,6 @@
     if (aside) aside.innerHTML = '<strong>Áreas</strong>Análisis de datos · Analítica y tecnología · Inteligencia electoral · Cartografía · Planeación · Evaluación';
   }
 
-  /* Mensaje del hero como nodos de texto reales y seleccionables. */
   const heroCaption = document.querySelector('.hero-vnext .visual-caption');
   if (heroCaption) {
     const title = heroCaption.querySelector('h3');
@@ -123,46 +101,14 @@
       button.addEventListener('click', () => {
         const filter = button.textContent.trim().toLowerCase();
         filterButtons.forEach((item) => item.classList.toggle('active', item === button));
-
         analysisCards.forEach((card) => {
           const haystack = card.textContent.toLowerCase();
-          const visible = filter === 'todos' || haystack.includes(filter);
-          card.hidden = !visible;
+          card.hidden = !(filter === 'todos' || haystack.includes(filter));
         });
       });
     });
   }
 
-  const mailForm = document.querySelector('[data-mail-form]');
-  if (mailForm) {
-    const status = mailForm.querySelector('.form-status');
-
-    mailForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      if (!mailForm.reportValidity()) return;
-
-      const data = new FormData(mailForm);
-      const nombre = String(data.get('nombre') || '').trim();
-      const correo = String(data.get('correo') || '').trim();
-      const asunto = String(data.get('asunto') || 'Proyecto').trim();
-      const mensaje = String(data.get('mensaje') || '').trim();
-
-      const subject = `Consulta NostxlgIA — ${asunto}`;
-      const body = [
-        `Nombre: ${nombre}`,
-        `Correo: ${correo}`,
-        `Tema: ${asunto}`,
-        '',
-        mensaje
-      ].join('\n');
-
-      const href = `mailto:NostxlgIA@proton.me?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      if (status) status.textContent = 'Abriendo tu aplicación de correo…';
-      window.location.href = href;
-    });
-  }
-
-  /* Explicaciones metodológicas de cada pieza de Datos y visualizaciones. */
   const vizHelp = {
     'enoe-flow': {
       what: 'Divide a la población de 15 años y más entre PEA y PNEA y, dentro de cada grupo, muestra sus principales componentes.',
@@ -199,6 +145,11 @@
       calc: 'Se utilizan las coordenadas de los establecimientos con georreferencia válida. Los puntos se agregan en celdas espaciales únicamente para evitar sobreposición y mejorar la lectura.',
       read: 'Mayor tamaño/intensidad implica más establecimientos dentro de la celda. No representa densidad por población ni por km²; representa concentración de registros DENUE.'
     },
+    'denue-context': {
+      what: 'Sitúa la concentración de unidades económicas en su contexto territorial y urbano, priorizando patrones espaciales sobre puntos individuales.',
+      calc: 'Parte de las coordenadas válidas del DENUE y las resume espacialmente para mantener legibilidad a escala estatal.',
+      read: 'Las zonas con mayor presencia visual concentran más registros; el objetivo es reconocer estructura territorial, no localizar cada establecimiento.'
+    },
     'denue-municipal': {
       what: 'Resume qué municipios concentran más unidades económicas registradas y qué participación tienen en el total estatal.',
       calc: 'Se cuentan los registros DENUE por municipio y se divide cada conteo entre el total estatal para obtener su participación.',
@@ -213,7 +164,8 @@
 
   const vizCards = [...document.querySelectorAll('.source-viz-card')];
   vizCards.forEach((card) => {
-    const stage = card.querySelector('.dv-stage[data-viz]');
+    const stages = [...card.querySelectorAll('.dv-stage[data-viz]')].filter((stage) => !stage.hidden);
+    const stage = stages[0] || card.querySelector('.dv-stage[data-viz]');
     const copy = card.querySelector('.source-viz-copy');
     const help = stage ? vizHelp[stage.dataset.viz] : null;
     if (!copy || !help || copy.querySelector('.viz-info-trigger')) return;
@@ -265,7 +217,6 @@
     copy.append(trigger, panel);
   });
 
-  /* Tooltip inmediato para elementos con un dato exacto en la visualización. */
   if (document.querySelector('[data-data-library]')) {
     const tooltip = document.createElement('div');
     tooltip.className = 'dv-hover-tooltip';
@@ -283,8 +234,7 @@
         if (!target.getAttribute('aria-label')) target.setAttribute('aria-label', attr);
         return attr;
       }
-      const svgTitle = target.querySelector?.('title')?.textContent;
-      return svgTitle || '';
+      return target.querySelector?.('title')?.textContent || '';
     };
 
     const positionTooltip = (event) => {
