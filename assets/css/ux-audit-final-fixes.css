@@ -1,3 +1,5 @@
+@import url("./ux-regression-v3.css?v=20260909-regression3");
+
 /* Cierre de cascada para numeración y tilt, cargado después de la auditoría. */
 .services-preview .service-no{font-size:0!important}
 .services-preview .service-mini[href*="#datos"] .service-no:after{content:"01"!important;display:inline!important;font-size:12px!important;letter-spacing:.13em!important}
@@ -18,6 +20,10 @@
 .depth-card{overflow:hidden!important}
 .depth-card:focus-visible{outline:1px solid rgba(216,180,102,.78);outline-offset:4px}
 @media (hover:hover) and (pointer:fine){
-  .depth-card{transform:perspective(1200px) rotateX(var(--depth-x)) rotateY(var(--depth-y)) translate3d(0,var(--depth-lift),0)!important}
+  .depth-card{
+    transform:perspective(1050px)
+      translate3d(var(--depth-tx,0px),calc(var(--depth-ty,0px) + var(--depth-lift,0px)),0)
+      rotateX(var(--depth-x,0deg)) rotateY(var(--depth-y,0deg))!important;
+  }
 }
 @media (max-width:860px){.service-family .service-family-no:after{font-size:40px!important}}
