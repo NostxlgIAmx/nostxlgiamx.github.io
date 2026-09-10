@@ -1,275 +1,210 @@
 (() => {
+  'use strict';
+
   const currentScript = document.currentScript;
+  const assetBase = currentScript ? new URL('.', currentScript.src) : new URL('./assets/js/', location.href);
+  const VERSION = '20260910-refactor1';
 
-  const appendStylesheet = (src, dataName) => {
-    if (!currentScript || document.querySelector(`link[data-${dataName}]`)) return;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = new URL(src, currentScript.src).href;
-    link.dataset[dataName.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = 'true';
-    document.head.appendChild(link);
-  };
-
-  const appendScript = (src, dataName) => {
-    if (!currentScript || document.querySelector(`script[data-${dataName}]`)) return;
+  const ensureScript = (src, marker) => {
+    if (document.querySelector(`script[data-${marker}]`)) return;
     const script = document.createElement('script');
-    script.src = new URL(src, currentScript.src).href;
-    script.dataset[dataName.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = 'true';
+    script.src = new URL(src, assetBase).href;
     script.async = false;
+    script.dataset[marker.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = 'true';
     document.head.appendChild(script);
   };
 
-  appendStylesheet('../css/site-polish.css?v=20260909-ux-audit2', 'site-polish');
-  appendScript('selection-rainbow.js?v=20260909-editorial-v2', 'selection-rainbow');
-  appendScript('cursor-ambient.js?v=20260909-nic-baseline-v1', 'cursor-ambient');
-  appendScript('ambient-background-v2.js?v=20260909-nic-baseline-v1', 'ambient-background');
-  appendScript('ambient-network.js?v=20260909-nic-baseline-v6-touch', 'ambient-network');
+  const polishLink = (() => {
+    const existing = document.querySelector('link[data-site-polish]');
+    if (existing) return existing;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = new URL(`../css/site-polish.css?v=${VERSION}`, assetBase).href;
+    link.dataset.sitePolish = 'true';
+    document.head.appendChild(link);
+    return link;
+  })();
+  setTimeout(() => { if (polishLink?.isConnected) document.head.appendChild(polishLink); }, 0);
 
-  if (document.querySelector('[data-data-library], .projects-list')) {
-    if (!document.querySelector('link[data-viz-qa-final]')) {
-      appendStylesheet('../css/viz-qa-final.css?v=20260909-ux-audit2', 'viz-qa-final');
-    }
-    if (document.querySelector('[data-data-library]') && !document.querySelector('script[data-viz-qa-final]')) {
-      appendScript('viz-qa-final.js?v=20260909-ux-audit2', 'viz-qa-final');
-    }
-  }
+  ensureScript(`selection-rainbow.js?v=${VERSION}`, 'selection-rainbow');
+  ensureScript(`cursor-ambient.js?v=${VERSION}`, 'cursor-ambient');
+  ensureScript(`ambient-network.js?v=${VERSION}`, 'ambient-network');
+  ensureScript(`card-depth.js?v=${VERSION}`, 'card-depth');
 
-  /* Cierre de cascada: después de estilos de cada visualización. */
-  appendStylesheet('../css/ux-audit-v2.css?v=20260909-ux2-final', 'ux-audit-final');
-  appendStylesheet('../css/ux-audit-final-fixes.css?v=20260909-final1', 'ux-audit-fixes');
-  appendScript('card-depth.js?v=20260909-depth-v2', 'card-depth');
-
-  const navToggle = document.querySelector('.nav-toggle');
-  const nav = document.querySelector('.nav');
-
-  if (navToggle && nav) {
-    const closeNav = () => {
-      nav.classList.remove('open');
-      navToggle.setAttribute('aria-expanded', 'false');
-    };
-
-    navToggle.addEventListener('click', () => {
-      const open = !nav.classList.contains('open');
-      nav.classList.toggle('open', open);
-      navToggle.setAttribute('aria-expanded', String(open));
-    });
-
-    nav.addEventListener('click', (event) => {
-      if (event.target.closest('a')) closeNav();
-    });
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closeNav();
-    });
-
-    document.addEventListener('click', (event) => {
-      if (!nav.classList.contains('open')) return;
-      if (nav.contains(event.target) || navToggle.contains(event.target)) return;
-      closeNav();
-    });
-  }
-
-  const servicesPreview = document.querySelector('.services-preview');
-  if (servicesPreview) {
-    const copy = servicesPreview.closest('.section')?.querySelector('.section-head-copy p');
-    if (copy) {
-      copy.textContent = 'Análisis de datos, analítica y tecnología e inteligencia electoral encabezan una oferta que también integra cartografía, planeación y evaluación. El alcance se adapta al problema, la información disponible y quién utilizará el resultado.';
-    }
-  }
-
-  const serviceFamilies = document.querySelectorAll('.service-family');
-  if (serviceFamilies.length) {
-    const aside = document.querySelector('.page-aside');
-    if (aside) aside.innerHTML = '<strong>Áreas</strong>Análisis de datos · Analítica y tecnología · Inteligencia electoral · Cartografía · Planeación · Evaluación';
-  }
-
-  const heroCaption = document.querySelector('.hero-vnext .visual-caption');
-  if (heroCaption) {
-    const title = heroCaption.querySelector('h3');
-    const paragraph = heroCaption.querySelector('p');
-    if (title) title.textContent = 'La información por sí sola no mejora las decisiones.';
-    if (paragraph) {
-      paragraph.textContent = 'Uno de los principales retos de las organizaciones actuales no es generar más información, sino saber utilizar la que ya producen: ordenarla, contextualizarla, distinguir qué señales son relevantes y convertirlas en criterios claros para actuar. Analizar datos permite pasar de registros dispersos a evidencia interpretable, relacionar resultados con su contexto y detectar patrones que ayuden a decidir dónde intervenir, qué priorizar y cómo mejorar el desempeño.';
-    }
-  }
-
-  const filterButtons = [...document.querySelectorAll('.filter-chip')];
-  const analysisCards = [...document.querySelectorAll('.analysis-card')];
-
-  if (filterButtons.length && analysisCards.length) {
-    filterButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const filter = button.textContent.trim().toLowerCase();
-        filterButtons.forEach((item) => item.classList.toggle('active', item === button));
-        analysisCards.forEach((card) => {
-          const haystack = card.textContent.toLowerCase();
-          card.hidden = !(filter === 'todos' || haystack.includes(filter));
-        });
+  const initContentConsistency = () => {
+    const order = ['datos','tecnologia','electoral','cartografia','planeacion','evaluacion'];
+    const homeServices = document.querySelector('.services-preview');
+    if (homeServices) {
+      const cards = [...homeServices.querySelectorAll('.service-mini')];
+      order.forEach((id, index) => {
+        const card = cards.find((item) => item.getAttribute('href')?.includes(`#${id}`));
+        if (!card) return;
+        const no = card.querySelector('.service-no');
+        if (no) no.textContent = String(index + 1).padStart(2, '0');
+        homeServices.appendChild(card);
       });
-    });
-  }
+      const intro = homeServices.closest('.section')?.querySelector('.section-head-copy p');
+      if (intro) intro.textContent = 'Análisis de datos, analítica y tecnología e inteligencia electoral encabezan una oferta que también integra cartografía, planeación y evaluación. El alcance se adapta al problema, la información disponible y quién utilizará el resultado.';
+    }
 
-  const vizHelp = {
-    'enoe-flow': {
-      what: 'Divide a la población de 15 años y más entre PEA y PNEA y, dentro de cada grupo, muestra sus principales componentes.',
-      calc: 'PEA ÷ población de 15+ para la participación general. La participación por sexo usa la PEA de cada sexo ÷ población de 15+ del mismo sexo. La brecha es la diferencia entre ambas tasas.',
-      read: 'PEA identifica a quienes participan en el mercado laboral; PNEA a quienes están fuera. Dentro de PEA se distingue ocupación y desocupación; dentro de PNEA, disponibilidad para trabajar.'
-    },
-    'enoe-sector': {
-      what: 'Compara cuántas personas ocupadas trabajan en los sectores primario, secundario y terciario, separando total, hombres y mujeres.',
-      calc: 'Son estimaciones ponderadas de la ENOE agrupadas por sector de actividad económica. Cada punto representa un número de personas, no un porcentaje.',
-      read: 'Cuanto más a la derecha está el punto, mayor es la población ocupada del grupo en ese sector. La distancia entre hombres y mujeres permite ver diferencias de composición.'
-    },
-    'enoe-income': {
-      what: 'Muestra cómo se reparte la población ocupada entre rangos de ingreso expresados en salarios mínimos.',
-      calc: 'Para cada vista —Total, Hombres o Mujeres— se divide el número de personas de cada rango entre el total ocupado de ese mismo grupo. “No especificado” se conserva como categoría propia.',
-      read: 'El ancho de cada segmento es su participación dentro del grupo seleccionado. Cambia entre Total, Hombres y Mujeres para comparar cómo se modifica la estructura de ingresos.'
-    },
-    'enbiare-mental': {
-      what: 'Contrasta los indicios de ansiedad y depresión de Durango con el dato nacional para cinco grupos de edad.',
-      calc: 'Se usan los porcentajes publicados por ENBIARE con el criterio PHQ-4. La intensidad visual representa la magnitud del porcentaje; no se recalculan diagnósticos clínicos.',
-      read: 'Una celda más intensa implica una proporción mayor. Compara horizontalmente Durango vs nacional y verticalmente los grupos de edad.'
-    },
-    'enbiare-satisfaction': {
-      what: 'Compara el promedio de satisfacción con la vida actual con la valoración retrospectiva de hace un año para total, hombres y mujeres.',
-      calc: 'La encuesta utiliza una escala de 0 a 10. La línea conecta el promedio “hace un año” con el promedio actual de cada grupo.',
-      read: 'Una pendiente ascendente indica mayor satisfacción actual; una descendente, menor. La referencia del año anterior es autorreportada retrospectivamente.'
-    },
-    'enbiare-borrowing': {
-      what: 'Ordena las entidades según el porcentaje de población que tuvo que pedir prestado para cubrir gastos corrientes.',
-      calc: 'Porcentaje publicado por ENBIARE para población alfabeta de 18 años y más que reportó haber pedido prestado para cubrir gasto corriente en el periodo de referencia.',
-      read: 'Cada punto es una entidad. La línea de referencia marca el valor nacional y Durango aparece resaltado para ubicar su posición relativa.'
-    },
-    'denue-map': {
-      what: 'Muestra dónde se concentra territorialmente la actividad económica registrada en DENUE y permite filtrar por grandes sectores.',
-      calc: 'Se utilizan las coordenadas de los establecimientos con georreferencia válida. Los puntos se agregan en celdas espaciales únicamente para evitar sobreposición y mejorar la lectura.',
-      read: 'Mayor tamaño/intensidad implica más establecimientos dentro de la celda. No representa densidad por población ni por km²; representa concentración de registros DENUE.'
-    },
-    'denue-context': {
-      what: 'Sitúa la concentración de unidades económicas en su contexto territorial y urbano, priorizando patrones espaciales sobre puntos individuales.',
-      calc: 'Parte de las coordenadas válidas del DENUE y las resume espacialmente para mantener legibilidad a escala estatal.',
-      read: 'Las zonas con mayor presencia visual concentran más registros; el objetivo es reconocer estructura territorial, no localizar cada establecimiento.'
-    },
-    'denue-municipal': {
-      what: 'Resume qué municipios concentran más unidades económicas registradas y qué participación tienen en el total estatal.',
-      calc: 'Se cuentan los registros DENUE por municipio y se divide cada conteo entre el total estatal para obtener su participación.',
-      read: 'Los círculos más grandes representan una mayor concentración relativa. El número y porcentaje permiten comparar sin depender únicamente del tamaño visual.'
-    },
-    'denue-matrix': {
-      what: 'Cruza grandes sectores de actividad con el rango de personal ocupado de los establecimientos.',
-      calc: 'Cada celda cuenta unidades económicas para una combinación sector × tamaño. La intensidad usa una escala logarítmica para que las categorías pequeñas sigan siendo visibles.',
-      read: 'Compara filas para ver la estructura por sector y columnas para identificar qué tamaños predominan. Pasa el cursor por una celda para ver el conteo exacto.'
+    const familyContainer = [...document.querySelectorAll('main .section-pad>.container')].find((container) => container.querySelector(':scope > .service-family'));
+    if (familyContainer) {
+      const cta = familyContainer.querySelector(':scope > .cta');
+      order.forEach((id, index) => {
+        const family = familyContainer.querySelector(`:scope > #${id}`);
+        if (!family) return;
+        const no = family.querySelector('.service-family-no');
+        if (no) no.textContent = String(index + 1).padStart(2, '0');
+        familyContainer.insertBefore(family, cta || null);
+      });
+      const aside = document.querySelector('.page-hero .page-aside');
+      if (aside) aside.innerHTML = '<strong>Áreas</strong>Análisis de datos · Analítica y tecnología · Inteligencia electoral · Soluciones cartográficas · Planeación y gestión pública · Evaluación';
+    }
+
+    const hero = document.querySelector('[data-territory-visual]');
+    if (hero) {
+      hero.querySelector('[data-hero-toggle]')?.remove();
+      hero.querySelector('.territory-step')?.remove();
+      hero.querySelector('[data-data-sample]')?.remove();
+      hero.querySelector('.data-matrix-heading small')?.remove();
+      const kicker = hero.querySelector('.visual-kicker');
+      if (kicker) kicker.textContent = 'Demostración · datos simulados';
+      const captionTitle = hero.querySelector('.visual-caption h3');
+      const captionCopy = hero.querySelector('.visual-caption p');
+      if (captionTitle) captionTitle.textContent = 'La información por sí sola no mejora las decisiones.';
+      if (captionCopy) captionCopy.textContent = 'Uno de los principales retos de las organizaciones actuales no es generar más información, sino saber utilizar la que ya producen: ordenarla, contextualizarla, distinguir qué señales son relevantes y convertirlas en criterios claros para actuar. Analizar datos permite pasar de registros dispersos a evidencia interpretable, relacionar resultados con su contexto y detectar patrones que ayuden a decidir dónde intervenir, qué priorizar y cómo mejorar el desempeño.';
     }
   };
 
-  const vizCards = [...document.querySelectorAll('.source-viz-card')];
-  vizCards.forEach((card) => {
-    const stages = [...card.querySelectorAll('.dv-stage[data-viz]')].filter((stage) => !stage.hidden);
-    const stage = stages[0] || card.querySelector('.dv-stage[data-viz]');
-    const copy = card.querySelector('.source-viz-copy');
-    const help = stage ? vizHelp[stage.dataset.viz] : null;
-    if (!copy || !help || copy.querySelector('.viz-info-trigger')) return;
-
-    const trigger = document.createElement('button');
-    trigger.type = 'button';
-    trigger.className = 'viz-info-trigger';
-    trigger.textContent = 'Cómo leer';
-    trigger.setAttribute('aria-expanded', 'false');
-
-    const panel = document.createElement('div');
-    panel.className = 'viz-info-panel';
-    panel.hidden = true;
-    panel.innerHTML = `<dl><div><dt>Qué muestra</dt><dd>${help.what}</dd></div><div><dt>Cómo se calcula</dt><dd>${help.calc}</dd></div><div><dt>Cómo leerlo</dt><dd>${help.read}</dd></div></dl>`;
-
-    let pinned = false;
-    const open = () => {
-      panel.hidden = false;
-      trigger.setAttribute('aria-expanded', 'true');
+  const initNavigation = () => {
+    const toggle = document.querySelector('.nav-toggle');
+    const nav = document.querySelector('.nav');
+    if (!toggle || !nav) return;
+    const setOpen = (open) => {
+      nav.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', String(open));
     };
-    const close = () => {
-      if (pinned) return;
-      panel.hidden = true;
-      trigger.setAttribute('aria-expanded', 'false');
-    };
-
-    trigger.addEventListener('pointerenter', open);
-    trigger.addEventListener('focus', open);
-    copy.addEventListener('pointerleave', close);
-    copy.addEventListener('focusout', () => setTimeout(() => {
-      if (!copy.contains(document.activeElement)) close();
-    }, 0));
-    trigger.addEventListener('click', (event) => {
-      event.stopPropagation();
-      pinned = !pinned;
-      if (pinned) open();
-      else {
-        panel.hidden = true;
-        trigger.setAttribute('aria-expanded', 'false');
-      }
-    });
+    toggle.addEventListener('click', () => setOpen(!nav.classList.contains('open')));
+    nav.addEventListener('click', (event) => { if (event.target.closest('a')) setOpen(false); });
     document.addEventListener('click', (event) => {
-      if (!pinned || copy.contains(event.target)) return;
-      pinned = false;
-      panel.hidden = true;
-      trigger.setAttribute('aria-expanded', 'false');
+      if (!nav.classList.contains('open')) return;
+      if (nav.contains(event.target) || toggle.contains(event.target)) return;
+      setOpen(false);
     });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') setOpen(false); });
+  };
 
-    copy.append(trigger, panel);
-  });
+  const initAnalysisFilters = () => {
+    const row = document.querySelector('.filter-row');
+    if (!row) return;
+    const buttons = [...row.querySelectorAll('.filter-chip')];
+    const cards = [...document.querySelectorAll('.analysis-card')];
+    if (!buttons.length || !cards.length) return;
+    buttons.forEach((button) => {
+      button.type = 'button';
+      button.setAttribute('aria-pressed', button.classList.contains('active') ? 'true' : 'false');
+      button.addEventListener('click', () => {
+        const filter = button.textContent.trim().toLowerCase();
+        buttons.forEach((item) => {
+          const active = item === button;
+          item.classList.toggle('active', active);
+          item.setAttribute('aria-pressed', String(active));
+        });
+        cards.forEach((card) => {
+          const label = card.querySelector('.media-label')?.textContent?.trim().toLowerCase() || '';
+          card.hidden = !(filter === 'todos' || label.includes(filter));
+        });
+      });
+    });
+  };
 
-  if (document.querySelector('[data-data-library]')) {
-    const tooltip = document.createElement('div');
-    tooltip.className = 'dv-hover-tooltip';
-    tooltip.setAttribute('role', 'tooltip');
-    document.body.appendChild(tooltip);
-    let activeTarget = null;
+  const unionBBox = (elements) => {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const element of elements) {
+      try {
+        const box = element.getBBox();
+        if (!box.width && !box.height) continue;
+        minX = Math.min(minX, box.x); minY = Math.min(minY, box.y);
+        maxX = Math.max(maxX, box.x + box.width); maxY = Math.max(maxY, box.y + box.height);
+      } catch {}
+    }
+    return Number.isFinite(minX) ? {x:minX,y:minY,width:maxX-minX,height:maxY-minY} : null;
+  };
 
-    const getTooltipText = (target) => {
-      if (!target) return '';
-      if (target.dataset?.dvTooltip) return target.dataset.dvTooltip;
-      const attr = target.getAttribute?.('title');
-      if (attr) {
-        target.dataset.dvTooltip = attr;
-        target.removeAttribute('title');
-        if (!target.getAttribute('aria-label')) target.setAttribute('aria-label', attr);
-        return attr;
-      }
-      return target.querySelector?.('title')?.textContent || '';
+  const fitHeroCity = () => {
+    const svg = document.querySelector('[data-city-canvas] .city-svg');
+    if (!svg) return false;
+    const layers = [...svg.querySelectorAll('.city-ground-layer,.city-roads,.city-decor,.city-buildings')];
+    const box = unionBBox(layers);
+    if (!box || box.width < 1 || box.height < 1) return false;
+    const padX = box.width * .055;
+    const padY = box.height * .075;
+    svg.setAttribute('viewBox', `${box.x-padX} ${box.y-padY} ${box.width+padX*2} ${box.height+padY*2}`);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    return true;
+  };
+
+  const initHeroLayout = () => {
+    const hero = document.querySelector('[data-territory-visual]');
+    if (!hero) return;
+    const trend = hero.querySelector('.analysis-svg');
+    trend?.setAttribute('viewBox', '72 66 566 276');
+    trend?.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    let tries = 0;
+    const fit = () => {
+      tries += 1;
+      if (!fitHeroCity() && tries < 8) requestAnimationFrame(fit);
     };
+    requestAnimationFrame(fit);
+  };
 
-    const positionTooltip = (event) => {
-      const pad = 14;
-      let x = event.clientX + pad;
-      let y = event.clientY + pad;
-      const rect = tooltip.getBoundingClientRect();
-      if (x + rect.width > window.innerWidth - 8) x = event.clientX - rect.width - pad;
-      if (y + rect.height > window.innerHeight - 8) y = event.clientY - rect.height - pad;
-      tooltip.style.left = `${Math.max(8, x)}px`;
-      tooltip.style.top = `${Math.max(8, y)}px`;
-    };
+  const VIZ_INFO = {
+    'enoe-flow':['Cómo leer','Parte de la población de 15 años y más y separa participación laboral y no participación.','Porcentaje respecto del nivel inmediatamente superior.','Comparar estructura y brecha de participación entre hombres y mujeres.'],
+    'enoe-sector':['Cómo leer','Cada fila representa un sector; los puntos separan total, hombres y mujeres.','Personas ocupadas.','Comparar tamaño sectorial y composición por sexo.'],
+    'enoe-income':['Cómo leer','La longitud de cada segmento representa su peso dentro del grupo seleccionado.','Porcentaje de población ocupada.','Identificar concentración por nivel de ingreso y diferencias por sexo.'],
+    'enbiare-mental':['Cómo leer','Cada fila es un grupo de edad y cada celda compara Durango con el dato nacional.','Porcentaje de personas con indicios según PHQ-4.','Detectar grupos con mayor presencia relativa de indicios.'],
+    'enbiare-satisfaction':['Cómo leer','Cada línea conecta el promedio de hace un año con el promedio actual.','Promedio en escala de 0 a 10.','Observar dirección y magnitud del cambio por grupo.'],
+    'enbiare-borrowing':['Cómo leer','Las entidades están ordenadas por el porcentaje que reportó pedir prestado para gasto corriente.','Porcentaje de población.','Ubicar a Durango y compararlo con la referencia nacional.'],
+    'denue-context':['Cómo leer','El mapa muestra la división municipal y resalta el municipio seleccionado.','Unidades económicas registradas en DENUE.','Comparar concentración municipal y explorar grandes sectores sin deformar el mapa.'],
+    'denue-municipal':['Cómo leer','El tamaño y el orden resumen los municipios con más unidades económicas.','Unidades económicas y participación estatal.','Reconocer la concentración territorial del directorio.'],
+    'denue-matrix':['Cómo leer','Las filas son sectores y las columnas rangos de personal ocupado.','Número de unidades económicas.','Cruzar estructura sectorial y tamaño de establecimiento.']
+  };
 
-    document.addEventListener('pointerover', (event) => {
-      const target = event.target.closest?.('.dv-stage [title], .dv-stage [data-dv-tooltip], .dv-stage .dv-geo-cell');
-      if (!target) return;
-      const text = getTooltipText(target);
-      if (!text) return;
-      activeTarget = target;
-      tooltip.textContent = text;
-      tooltip.classList.add('is-visible');
-      positionTooltip(event);
+  const initVizHelp = () => {
+    const root = document.querySelector('[data-data-library]');
+    if (!root) return;
+    root.querySelectorAll('.source-viz-card').forEach((card, index) => {
+      const stage = card.querySelector('.dv-stage:not([hidden])');
+      const info = stage ? VIZ_INFO[stage.dataset.viz] : null;
+      const copy = card.querySelector('.source-viz-copy');
+      if (!info || !copy || copy.querySelector('.viz-info-trigger')) return;
+      const id = `viz-help-${index+1}`;
+      const button = document.createElement('button');
+      button.type='button'; button.className='viz-info-trigger'; button.setAttribute('aria-expanded','false'); button.setAttribute('aria-controls',id); button.textContent=info[0];
+      const panel = document.createElement('div');
+      panel.id=id; panel.className='viz-info-panel'; panel.hidden=true;
+      panel.innerHTML=`<dl><div><dt>Lectura</dt><dd>${info[1]}</dd></div><div><dt>Unidad</dt><dd>${info[2]}</dd></div><div><dt>Utilidad</dt><dd>${info[3]}</dd></div></dl>`;
+      copy.append(button,panel);
+      const close=()=>{panel.hidden=true;button.setAttribute('aria-expanded','false')};
+      button.addEventListener('click',(event)=>{
+        event.stopPropagation();
+        const open=button.getAttribute('aria-expanded')==='true';
+        root.querySelectorAll('.viz-info-trigger[aria-expanded="true"]').forEach((other)=>{
+          if(other===button)return;
+          other.setAttribute('aria-expanded','false');
+          const otherPanel=document.getElementById(other.getAttribute('aria-controls'));
+          if(otherPanel)otherPanel.hidden=true;
+        });
+        panel.hidden=open; button.setAttribute('aria-expanded',String(!open));
+      });
+      document.addEventListener('click',(event)=>{if(!card.contains(event.target))close()},{passive:true});
+      card.addEventListener('keydown',(event)=>{if(event.key==='Escape')close()});
     });
+  };
 
-    document.addEventListener('pointermove', (event) => {
-      if (activeTarget) positionTooltip(event);
-    });
-
-    document.addEventListener('pointerout', (event) => {
-      if (!activeTarget) return;
-      if (event.relatedTarget && activeTarget.contains?.(event.relatedTarget)) return;
-      const leaving = event.target.closest?.('[data-dv-tooltip], .dv-geo-cell, [title]');
-      if (leaving !== activeTarget) return;
-      activeTarget = null;
-      tooltip.classList.remove('is-visible');
-    });
-  }
+  initContentConsistency();
+  initNavigation();
+  initAnalysisFilters();
+  initHeroLayout();
+  initVizHelp();
 })();
