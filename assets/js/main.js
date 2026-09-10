@@ -3,7 +3,7 @@
 
   const currentScript = document.currentScript;
   const assetBase = currentScript ? new URL('.', currentScript.src) : new URL('./assets/js/', location.href);
-  const VERSION = '20260910-refactor4';
+  const VERSION = '20260910-refactor5';
 
   const ensureScript = (src, marker) => {
     if (document.querySelector(`script[data-${marker}]`)) return;
@@ -68,14 +68,17 @@
 
     const hero = document.querySelector('[data-territory-visual]');
     if (hero) {
-      const toggle = hero.querySelector('[data-hero-toggle]');
-      const status = hero.querySelector('.territory-step');
-      const sample = hero.querySelector('[data-data-sample]');
-      const matrixScale = hero.querySelector('.data-matrix-heading small');
-      if (toggle) toggle.hidden = true;
-      if (status) status.hidden = true;
-      if (sample) sample.hidden = true;
-      if (matrixScale) matrixScale.hidden = true;
+      const hardHide = (node) => {
+        if (!node) return;
+        node.hidden = true;
+        node.setAttribute('aria-hidden', 'true');
+        node.style.setProperty('display', 'none', 'important');
+      };
+      hardHide(hero.querySelector('[data-hero-toggle]'));
+      hardHide(hero.querySelector('.territory-step'));
+      hardHide(hero.querySelector('[data-data-sample]'));
+      hardHide(hero.querySelector('.data-matrix-heading small'));
+
       const kicker = hero.querySelector('.visual-kicker');
       if (kicker) kicker.textContent = 'Demostración · datos simulados';
       const captionTitle = hero.querySelector('.visual-caption h3');
