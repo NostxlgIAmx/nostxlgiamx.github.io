@@ -64,7 +64,7 @@
 
   if(recordList&&!recordList.children.length){
     records.slice(0,INITIAL_RECORDS).forEach(([field,value,meta,metric],row)=>{
-      const button=document.createElement('button');button.type='button';button.className='data-record';button.dataset.row=row;button.dataset.metric=metric;button.setAttribute('aria-pressed','false');button.innerHTML=`<span>${field}</span><strong>${value}</strong><em>${meta}</em>`;button.setAttribute('aria-label',`${field}: ${value}, ${meta}. Variable: ${metric}`);recordList.appendChild(button);
+      const button=document.createElement('button');button.type='button';button.className='data-record';button.dataset.row=row;button.dataset.recordIndex=row;button.dataset.metric=metric;button.setAttribute('aria-pressed','false');button.innerHTML=`<span>${field}</span><strong>${value}</strong><em>${meta}</em>`;button.setAttribute('aria-label',`${field}: ${value}, ${meta}. Variable: ${metric}`);recordList.appendChild(button);
     });
   }
   if(matrix&&!matrix.children.length){
@@ -75,7 +75,8 @@
 
   const recordButtons=[...root.querySelectorAll('.data-record')],cells=[...root.querySelectorAll('.matrix-cell')];
   const slotRecords=Array.from({length:recordButtons.length},(_,i)=>i);
-  let pinnedRow=null,autoRow=-1,dataTick=0,dataTimer=0,userInteracting=false,streamCursor=INITIAL_RECORDS,streamSlot=0;
+  let pinnedRow=null,dataTick=0,userInteracting=false,streamCursor=INITIAL_RECORDS;
+  let streamTimer=0,valueTimer=0,lastStreamAt=0,lastValueAt=0,lastValueRow=-1;
   const clearVisualFocus=()=>{recordButtons.forEach(n=>n.classList.remove('is-active','is-auto-active'));cells.forEach(n=>n.classList.remove('is-active-cell','is-auto-active-cell'));};
   const showRow=(row,kind='active')=>{
     clearVisualFocus();
@@ -88,13 +89,13 @@
     cells.forEach((cell)=>cell.setAttribute('aria-pressed',String(Number(cell.dataset.row)===pinnedRow)));
   };
   const togglePinned=(row)=>{pinnedRow=pinnedRow===row?null:row;applyPinnedState();if(pinnedRow===null)clearVisualFocus();else showRow(pinnedRow);};
-
-  recordButtons.forEach((button)=>{
-    const row=Number(button.dataset.row);
-    const activate=()=>{userInteracting=true;if(pinnedRow===null)showRow(row);};
+  const recordRow=(button)=>recordButtons.indexOf(button);
+  const attachRecordInteractions=(button)=>{
+    const activate=()=>{const row=recordRow(button);if(row<0)return;userInteracting=true;if(pinnedRow===null)showRow(row);};
     const release=()=>{userInteracting=false;if(pinnedRow===null)clearVisualFocus();else showRow(pinnedRow);};
-    button.addEventListener('pointerenter',activate);button.addEventListener('focus',activate);button.addEventListener('pointerleave',release);button.addEventListener('blur',release);button.addEventListener('click',()=>togglePinned(row));
-  });
+    button.addEventListener('pointerenter',activate);button.addEventListener('focus',activate);button.addEventListener('pointerleave',release);button.addEventListener('blur',release);button.addEventListener('click',()=>{const row=recordRow(button);if(row>=0)togglePinned(row);});
+  };
+  recordButtons.forEach(attachRecordInteractions);
   cells.forEach((cell)=>{
     const row=Number(cell.dataset.row);
     const activate=()=>{userInteracting=true;if(pinnedRow===null)showRow(row);};
@@ -103,71 +104,113 @@
   });
   root.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&pinnedRow!==null){pinnedRow=null;applyPinnedState();clearVisualFocus();}});
 
-  const setRecordContent=(row,recordIndex)=>{
-    const button=recordButtons[row],record=records[recordIndex];if(!button||!record)return;
-    const [field,value,meta,metric]=record;
-    button.dataset.metric=metric;
-    button.querySelector('span').textContent=field;
-    button.querySelector('strong').textContent=value;
-    button.querySelector('em').textContent=meta;
-    button.setAttribute('aria-label',`${field}: ${value}, ${meta}. Variable: ${metric}`);
-    slotRecords[row]=recordIndex;
+  const reindexRecordRows=()=>{
+    recordButtons.forEach((button,row)=>button.dataset.row=row);
+    applyPinnedState();
+  };
+  const createRecordButton=(recordIndex)=>{
+    const [field,value,meta,metric]=records[recordIndex];
+    const button=document.createElement('button');
+    button.type='button';button.className='data-record';button.dataset.row=recordButtons.length;button.dataset.recordIndex=recordIndex;button.dataset.metric=metric;button.setAttribute('aria-pressed','false');button.innerHTML=`<span>${field}</span><strong>${value}</strong><em>${meta}</em>`;button.setAttribute('aria-label',`${field}: ${value}, ${meta}. Variable: ${metric}`);
+    attachRecordInteractions(button);
+    return button;
   };
   const animateValueChange=(button,value,meta)=>{
     const strong=button?.querySelector('strong'),detail=button?.querySelector('em');if(!strong||!detail)return;
-    const apply=()=>{strong.textContent=value;detail.textContent=meta;const field=button.querySelector('span')?.textContent||'';button.setAttribute('aria-label',`${field}: ${value}, ${meta}. Variable: ${button.dataset.metric||''}`);};
-    if(reduced.matches||typeof button.animate!=='function'){apply();return;}
-    const nodes=[strong,detail];
-    const out=nodes.map(node=>node.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-3px)'}],{duration:140,easing:'ease',fill:'forwards'}));
-    Promise.all(out.map(animation=>animation.finished.catch(()=>null))).then(()=>{
-      apply();
-      out.forEach(animation=>animation.cancel());
-      nodes.forEach(node=>{
-        const enter=node.animate([{opacity:0,transform:'translateY(3px)'},{opacity:1,transform:'translateY(0)'}],{duration:220,easing:'cubic-bezier(.2,.7,.2,1)'});
+    const changes=[];
+    if(strong.textContent!==value)changes.push([strong,value]);
+    if(detail.textContent!==meta)changes.push([detail,meta]);
+    if(!changes.length)return;
+    const updateAria=()=>{const field=button.querySelector('span')?.textContent||'';button.setAttribute('aria-label',`${field}: ${strong.textContent}, ${detail.textContent}. Variable: ${button.dataset.metric||''}`);};
+    if(reduced.matches||typeof button.animate!=='function'){changes.forEach(([node,next])=>node.textContent=next);updateAria();return;}
+    changes.forEach(([node,next])=>{
+      const out=node.animate([{opacity:1,transform:'translateY(0)',filter:'brightness(1)'},{opacity:.38,transform:'translateY(-2px)',filter:'brightness(1.22)'}],{duration:130,easing:'ease',fill:'forwards'});
+      out.finished.catch(()=>null).then(()=>{
+        node.textContent=next;out.cancel();updateAria();
+        const enter=node.animate([{opacity:.45,transform:'translateY(2px)',filter:'brightness(1.28)'},{opacity:1,transform:'translateY(0)',filter:'brightness(1)'}],{duration:240,easing:'cubic-bezier(.2,.7,.2,1)'});
         enter.finished.catch(()=>null).then(()=>enter.cancel());
       });
     });
   };
-  const streamRecord=()=>{
-    if(!recordButtons.length||streamCursor>=records.length)return;
-    const row=streamSlot%recordButtons.length,button=recordButtons[row],recordIndex=streamCursor;
-    streamSlot=(streamSlot+1)%recordButtons.length;
-    streamCursor+=1;if(streamCursor>=records.length)streamCursor=INITIAL_RECORDS;
-    const apply=()=>setRecordContent(row,recordIndex);
-    if(reduced.matches||typeof button.animate!=='function'){apply();return;}
-    const out=button.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-8px)'}],{duration:180,easing:'ease',fill:'forwards'});
-    out.finished.catch(()=>null).then(()=>{
-      apply();
-      out.cancel();
-      const enter=button.animate([{opacity:0,transform:'translateY(8px) scale(.985)'},{opacity:1,transform:'translateY(-1px) scale(1)',offset:.72},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:320,easing:'cubic-bezier(.18,.78,.22,1)'});
-      enter.finished.catch(()=>null).then(()=>enter.cancel());
-    });
-  };
-  const resetRecordStream=()=>{
-    streamCursor=INITIAL_RECORDS;streamSlot=0;
-    slotRecords.forEach((_,row)=>setRecordContent(row,row));
-  };
   const refreshDataRow=(row)=>{
-    const recordIndex=slotRecords[row],variants=recordVariants[recordIndex];if(!variants)return;
-    const variant=variants[(dataTick+row)%variants.length];
-    const button=recordButtons[row];if(button)animateValueChange(button,variant[0],variant[1]);
+    const recordIndex=slotRecords[row],variants=recordVariants[recordIndex],button=recordButtons[row];if(!variants||!button)return;
+    const strong=button.querySelector('strong')?.textContent||'',detail=button.querySelector('em')?.textContent||'';
+    const choices=variants.filter(([value,meta])=>value!==strong||meta!==detail);if(!choices.length)return;
+    const variant=choices[dataTick%choices.length];
+    animateValueChange(button,variant[0],variant[1]);
     cells.filter(c=>Number(c.dataset.row)===row).forEach((cell)=>{
       const col=Number(cell.dataset.col),base=matrixValues[row][col];
       const wobble=((dataTick+row+col)%5-2)*.018;
       cell.style.setProperty('--alpha',(0.10+Math.max(.12,Math.min(.95,base+wobble))*.60).toFixed(2));
     });
   };
-  const stopDataScan=()=>{if(dataTimer){clearTimeout(dataTimer);dataTimer=0;}};
-  const dataScan=()=>{
-    stopDataScan();
-    if(root.dataset.phase!=='data'||reduced.matches||document.hidden)return;
-    if(pinnedRow===null&&!userInteracting){
-      dataTick+=1;
-      autoRow=(autoRow+1)%recordButtons.length;
-      if(dataTick%3===0)streamRecord();else refreshDataRow(autoRow);
+  const streamRecord=()=>{
+    if(!recordList||!recordButtons.length)return false;
+    const recordIndex=streamCursor;
+    streamCursor=(streamCursor+1)%records.length;
+    const leaving=recordButtons[0],moving=recordButtons.slice(1);
+    const before=new Map(moving.map(button=>[button,button.getBoundingClientRect()]));
+    let ghost=null;
+    if(!reduced.matches&&typeof leaving.animate==='function'){
+      const rect=leaving.getBoundingClientRect();
+      ghost=leaving.cloneNode(true);ghost.setAttribute('aria-hidden','true');ghost.tabIndex=-1;
+      Object.assign(ghost.style,{position:'fixed',left:`${rect.left}px`,top:`${rect.top}px`,width:`${rect.width}px`,height:`${rect.height}px`,margin:'0',boxSizing:'border-box',pointerEvents:'none',zIndex:'9999'});
+      document.body.appendChild(ghost);
     }
-    dataTimer=setTimeout(dataScan,1250);
+    leaving.remove();recordButtons.shift();slotRecords.shift();
+    const incoming=createRecordButton(recordIndex);recordList.appendChild(incoming);recordButtons.push(incoming);slotRecords.push(recordIndex);reindexRecordRows();
+    if(reduced.matches||typeof incoming.animate!=='function'){ghost?.remove();return true;}
+    requestAnimationFrame(()=>{
+      moving.forEach((button)=>{
+        const first=before.get(button),last=button.getBoundingClientRect();if(!first)return;
+        const dy=first.top-last.top;if(Math.abs(dy)<.5)return;
+        const animation=button.animate([{transform:`translateY(${dy}px)`},{transform:'translateY(0)'}],{duration:360,easing:'cubic-bezier(.22,.72,.22,1)'});
+        animation.finished.catch(()=>null).then(()=>animation.cancel());
+      });
+      const enter=incoming.animate([{opacity:0,transform:'translateY(10px) scale(.985)'},{opacity:1,transform:'translateY(-1px) scale(1)',offset:.72},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:360,easing:'cubic-bezier(.18,.78,.22,1)'});
+      enter.finished.catch(()=>null).then(()=>enter.cancel());
+      if(ghost){const exit=ghost.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-10px)'}],{duration:260,easing:'ease'});exit.finished.catch(()=>null).then(()=>ghost.remove());}
+    });
+    return true;
   };
+  const resetRecordStream=()=>{
+    recordButtons.forEach(button=>button.remove());recordButtons.length=0;slotRecords.length=0;
+    records.slice(0,INITIAL_RECORDS).forEach((_,recordIndex)=>{const button=createRecordButton(recordIndex);recordList.appendChild(button);recordButtons.push(button);slotRecords.push(recordIndex);});
+    streamCursor=INITIAL_RECORDS;lastValueRow=-1;reindexRecordRows();
+  };
+  const randomDelay=(min,max)=>Math.round(min+Math.random()*(max-min));
+  const stopDataFlow=()=>{
+    if(streamTimer){clearTimeout(streamTimer);streamTimer=0;}
+    if(valueTimer){clearTimeout(valueTimer);valueTimer=0;}
+  };
+  const scheduleStream=(delay=randomDelay(3400,5000))=>{
+    if(streamTimer)clearTimeout(streamTimer);
+    if(root.dataset.phase!=='data'||document.hidden)return;
+    streamTimer=setTimeout(()=>{
+      streamTimer=0;
+      if(pinnedRow===null&&!userInteracting){
+        const sinceValue=performance.now()-lastValueAt;
+        if(sinceValue<550){scheduleStream(700);return;}
+        if(streamRecord())lastStreamAt=performance.now();
+      }
+      scheduleStream();
+    },delay);
+  };
+  const scheduleValueUpdate=(delay=randomDelay(1700,3000))=>{
+    if(valueTimer)clearTimeout(valueTimer);
+    if(root.dataset.phase!=='data'||document.hidden)return;
+    valueTimer=setTimeout(()=>{
+      valueTimer=0;
+      if(pinnedRow===null&&!userInteracting){
+        const sinceStream=performance.now()-lastStreamAt;
+        if(sinceStream<700){scheduleValueUpdate(850);return;}
+        const candidates=recordButtons.map((_,row)=>row).filter(row=>row!==lastValueRow&&recordVariants[slotRecords[row]]?.length>1);
+        if(candidates.length){const row=candidates[Math.floor(Math.random()*candidates.length)];dataTick+=1;refreshDataRow(row);lastValueRow=row;lastValueAt=performance.now();}
+      }
+      scheduleValueUpdate();
+    },delay);
+  };
+  const startDataFlow=()=>{stopDataFlow();if(root.dataset.phase!=='data'||document.hidden)return;scheduleStream();scheduleValueUpdate();};
 
   let phaseIndex=0,barSet=0,timer=0,inView=true;
   const setInteractive=(phase)=>{
@@ -194,14 +237,14 @@
     phaseIndex=(index+phases.length)%phases.length;
     const phase=phases[phaseIndex][0];
     root.dataset.phase=phase;setInteractive(phase);
-    if(phase!=='data'){stopDataScan();if(pinnedRow===null)clearVisualFocus();}
-    if(phase==='data')dataScan();
+    if(phase!=='data'){stopDataFlow();if(pinnedRow===null)clearVisualFocus();}
+    if(phase==='data')startDataFlow();
     if(phase==='bars')renderBars();
     root.classList.remove('is-phase-entering');void root.offsetWidth;root.classList.add('is-phase-entering');
   };
-  const stop=()=>{if(timer){clearTimeout(timer);timer=0;}stopDataScan();};
+  const stop=()=>{if(timer){clearTimeout(timer);timer=0;}stopDataFlow();};
   const schedule=()=>{if(timer){clearTimeout(timer);timer=0;}if(reduced.matches||!inView||document.hidden)return;timer=setTimeout(()=>{showPhase(phaseIndex+1);schedule();},phases[phaseIndex][1]);};
-  const restart=()=>{barSet=0;dataTick=0;autoRow=-1;pinnedRow=null;resetRecordStream();applyPinnedState();showPhase(0);schedule();};
+  const restart=()=>{barSet=0;dataTick=0;pinnedRow=null;resetRecordStream();applyPinnedState();showPhase(0);schedule();};
   replay?.addEventListener('click',restart);
   document.addEventListener('visibilitychange',()=>document.hidden?stop():(showPhase(phaseIndex),schedule()));
   if('IntersectionObserver'in window)new IntersectionObserver(([entry])=>{inView=Boolean(entry?.isIntersecting);if(inView){showPhase(phaseIndex);schedule();}else stop();},{threshold:.06}).observe(root);
