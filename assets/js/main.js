@@ -3,7 +3,7 @@
 
   const currentScript = document.currentScript;
   const assetBase = currentScript ? new URL('.', currentScript.src) : new URL('./assets/js/', location.href);
-  const VERSION = '20260910-integration1';
+  const VERSION = '20260911-ab1';
 
   const ensureScript = (src, marker) => {
     if (document.querySelector(`script[data-${marker}]`)) return;
@@ -62,25 +62,6 @@
       if (location.hash) requestAnimationFrame(() => { try { document.querySelector(location.hash)?.scrollIntoView({block:'start'}); } catch {} });
     }
 
-    const hero = document.querySelector('[data-territory-visual]');
-    if (hero) {
-      const hardHide = (node) => {
-        if (!node) return;
-        node.hidden = true;
-        node.setAttribute('aria-hidden', 'true');
-        node.style.setProperty('display', 'none', 'important');
-      };
-      hardHide(hero.querySelector('[data-hero-toggle]'));
-      hardHide(hero.querySelector('.territory-step'));
-      hardHide(hero.querySelector('[data-data-sample]'));
-      hardHide(hero.querySelector('.data-matrix-heading small'));
-      const kicker = hero.querySelector('.visual-kicker');
-      if (kicker) kicker.textContent = 'Demostración · datos simulados';
-      const captionTitle = hero.querySelector('.visual-caption h3');
-      const captionCopy = hero.querySelector('.visual-caption p');
-      if (captionTitle) captionTitle.textContent = 'La información por sí sola no mejora las decisiones.';
-      if (captionCopy) captionCopy.textContent = 'Uno de los principales retos de las organizaciones actuales no es generar más información, sino saber utilizar la que ya producen: ordenarla, contextualizarla, distinguir qué señales son relevantes y convertirlas en criterios claros para actuar. Analizar datos permite pasar de registros dispersos a evidencia interpretable, relacionar resultados con su contexto y detectar patrones que ayuden a decidir dónde intervenir, qué priorizar y cómo mejorar el desempeño.';
-    }
   };
 
   const initNavigation = () => {
