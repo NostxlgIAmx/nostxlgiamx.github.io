@@ -27,6 +27,24 @@
   let manipulating = false;
   let lastSignature = '';
 
+  /* El fondo violeta nativo se conserva, pero no debe imponer texto blanco:
+     de otro modo ::selection tapa el color por carácter de CSS Highlights. */
+  const neutralizeSelectionForeground = () => {
+    for (const sheet of [...document.styleSheets]) {
+      let rules;
+      try { rules = sheet.cssRules; } catch { continue; }
+      for (const rule of [...rules]) {
+        if (!(rule instanceof CSSStyleRule)) continue;
+        if (!rule.selectorText?.split(',').some((selector) => selector.trim() === '::selection')) continue;
+        rule.style.removeProperty('color');
+      }
+    }
+  };
+  neutralizeSelectionForeground();
+  document.querySelector('link[data-site-polish]')?.addEventListener('load', neutralizeSelectionForeground, {once:true});
+  window.addEventListener('load', neutralizeSelectionForeground, {once:true});
+  setTimeout(neutralizeSelectionForeground, 350);
+
   const idFor = (node) => {
     if (!node) return 0;
     if (!nodeIds.has(node)) nodeIds.set(node, nextNodeId++);
@@ -70,6 +88,7 @@
   };
   const rebuild = () => {
     rebuildTimer=0;
+    neutralizeSelectionForeground();
     const selection=window.getSelection();
     const signature=selectionSignature(selection);
     if(!signature){clearSelectionState();return;}
@@ -106,7 +125,7 @@
         if(groupStart!==null&&offset>groupStart){const rr=new Range();rr.setStart(node,groupStart);rr.setEnd(node,offset);buckets[(glyphIndex-1)%PHASES].push(rr);rangeCount++;if(rangeCount>=MAX_RANGES)break outer;}
       }
     }
-    buckets.forEach((ranges,index)=>{if(!ranges.length)return;const highlight=new Highlight(...ranges);highlight.priority=1;CSS.highlights.set(names[index],highlight);});
+    buckets.forEach((ranges,index)=>{if(!ranges.length)return;const highlight=new Highlight(...ranges);highlight.priority=10;CSS.highlights.set(names[index],highlight);});
     emitState(); startPaint();
   };
   const scheduleRebuild = () => { if(rebuildTimer)clearTimeout(rebuildTimer); rebuildTimer=window.setTimeout(rebuild,DEBOUNCE_MS); };
