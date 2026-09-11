@@ -1,0 +1,147 @@
+/* NostxlgIA — Inicio. Composición e interacción específicas de la portada. */
+.home-page{
+  --home-surface:linear-gradient(145deg,rgba(18,30,45,.96),rgba(12,21,33,.96));
+  --home-surface-soft:linear-gradient(180deg,rgba(20,32,47,.76),rgba(13,22,34,.76));
+}
+
+/* HERO: una sola caja; cada escena utiliza el espacio interior de forma distinta. */
+.home-page .data-territory-visual .visual-top{height:500px}
+.home-page .data-territory-visual .territory-scene{inset:58px 14px 12px}
+.home-page .data-territory-visual .data-workbench{grid-template-columns:minmax(0,.92fr) minmax(260px,1.08fr);gap:16px;padding:8px}
+.home-page .data-territory-visual .data-registers,
+.home-page .data-territory-visual .data-matrix-panel{padding:16px 16px 14px;background:rgba(8,15,24,.68);border:1px solid rgba(148,163,184,.14)}
+.home-page .data-territory-visual .data-phase-kicker,
+.home-page .data-territory-visual .data-matrix-heading span{font-size:11px}
+.home-page .data-territory-visual .data-phase-heading strong{font-size:24px}
+.home-page .data-territory-visual .data-matrix-heading strong{font-size:12.5px}
+.home-page .data-territory-visual .data-record{min-height:40px;grid-template-columns:76px minmax(0,1fr) auto;gap:10px;padding:7px 10px}
+.home-page .data-territory-visual .data-record span{font-size:10.5px}
+.home-page .data-territory-visual .data-record strong{font-size:12.5px}
+.home-page .data-territory-visual .data-record em{font-size:10.5px}
+.home-page .data-territory-visual .data-record.is-active,
+.home-page .data-territory-visual .data-record.is-auto-active{background:rgba(67,199,218,.09);border-color:rgba(67,199,218,.36);box-shadow:inset 2px 0 0 rgba(67,199,218,.72)}
+.home-page .data-territory-visual .matrix-cell{min-height:39px;transition:filter .22s ease,transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.home-page .data-territory-visual .matrix-cell.is-active-cell,
+.home-page .data-territory-visual .matrix-cell.is-auto-active-cell{filter:brightness(1.5);transform:scale(1.035);border-color:rgba(255,255,255,.22);box-shadow:0 0 18px rgba(67,199,218,.13)}
+
+/* Barras: nombre y valor deben leerse sin depender del hover. */
+.home-page .data-territory-visual .bars-chart{padding:24px 16px 54px 44px;gap:18px}
+.home-page .data-territory-visual .bars-grid{inset:22px 16px 54px 44px;background-size:100% 25%}
+.home-page .data-territory-visual .bars-axis-y{left:44px;top:22px;bottom:54px}
+.home-page .data-territory-visual .bars-axis-x{left:44px;right:16px;bottom:54px}
+.home-page .data-territory-visual .chart-bar{padding-bottom:39px;overflow:visible}
+.home-page .data-territory-visual .chart-bar .bar-fill{max-width:78px}
+.home-page .data-territory-visual .chart-bar .bar-cap{max-width:78px;bottom:calc((var(--value,50)*1.08%) + 39px)}
+.home-page .data-territory-visual .chart-bar .bar-label{bottom:2px;width:96px;margin-left:-48px;font-size:11px;line-height:1.18;letter-spacing:.02em;text-transform:none;white-space:normal;text-align:center;color:#c8d3e1}
+.home-page .data-territory-visual .chart-bar .bar-value{position:absolute;z-index:4;left:50%;bottom:calc((var(--value,50)*1.08%) + 52px);transform:translateX(-50%);font:800 11px/1 Inter,system-ui,sans-serif;color:#eef4fa;font-variant-numeric:tabular-nums;white-space:nowrap}
+.home-page .data-territory-visual .chart-bar .bar-tooltip{bottom:calc((var(--value,50)*1.08%) + 72px)}
+
+/* Tendencia: el estado base siempre es visible; la animación sólo mejora la entrada. */
+.home-page .data-territory-visual .analysis-svg{padding:0;overflow:visible}
+.home-page .data-territory-visual .analysis-trend{stroke-width:3.4;stroke-dasharray:none;stroke-dashoffset:0;filter:url(#trendGlow)}
+.home-page .data-territory-visual .analysis-dot{opacity:1;transform:scale(1);stroke-width:2.4}
+.home-page .data-territory-visual .analysis-metric{font-size:17px}
+.home-page .data-territory-visual .trend-label{font-size:12px}
+.home-page .data-territory-visual[data-phase="line"].is-phase-entering .analysis-trend{stroke-dasharray:1;stroke-dashoffset:1;animation:homeLineDraw 1.25s cubic-bezier(.2,.75,.2,1) forwards}
+.home-page .data-territory-visual[data-phase="line"].is-phase-entering .analysis-dot{animation:homeDotIn .38s ease both}
+@keyframes homeLineDraw{to{stroke-dashoffset:0}}
+@keyframes homeDotIn{from{opacity:.15;transform:scale(.62)}to{opacity:1;transform:scale(1)}}
+
+/* Territorio: ampliar la cámara interna sin agrandar la caja. */
+.home-page .data-territory-visual .city-scene{overflow:hidden;padding:0}
+.home-page .data-territory-visual .city-svg{width:100%;height:100%;transform:translate(-2.4%,1.2%) scale(1.16);transform-origin:52% 51%;filter:drop-shadow(0 22px 26px rgba(0,0,0,.30))}
+
+/* Tarjetas: recuperar profundidad, desplazamiento y reflejo ligados al cursor. */
+.home-page .depth-card{--depth-rx:0deg;--depth-ry:0deg;--depth-tx:0px;--depth-ty:0px;--shine-x:50%;--shine-y:35%;position:relative;isolation:isolate;transform:perspective(900px) translate3d(var(--depth-tx),var(--depth-ty),0) rotateX(var(--depth-rx)) rotateY(var(--depth-ry));transform-style:preserve-3d;will-change:transform;transition:border-color .22s ease,background .22s ease,box-shadow .22s ease}
+.home-page .depth-card::before{content:"";position:absolute;z-index:0;inset:-1px;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at var(--shine-x) var(--shine-y),rgba(199,236,242,.17),rgba(109,75,209,.065) 25%,transparent 53%);opacity:.48;transition:opacity .22s ease}
+.home-page .depth-card::after{content:"";position:absolute;z-index:0;left:-28%;top:-82%;width:54%;height:235%;pointer-events:none;background:linear-gradient(102deg,transparent 25%,rgba(255,255,255,.055) 47%,rgba(255,255,255,.11) 51%,rgba(255,255,255,.035) 56%,transparent 78%);transform:translateX(-5%) rotate(4deg);animation:homeCardSheen 10s ease-in-out infinite;animation-delay:var(--sheen-delay,0s);opacity:.58}
+.home-page .depth-card>*{position:relative;z-index:1}
+.home-page .depth-card:hover,.home-page .depth-card.is-depth-active{border-color:#3b506b;background:#122030;box-shadow:0 18px 42px rgba(0,0,0,.25)}
+@keyframes homeCardSheen{0%,52%,100%{transform:translateX(-12%) rotate(4deg);opacity:.2}66%{transform:translateX(185%) rotate(4deg);opacity:.68}78%{transform:translateX(215%) rotate(4deg);opacity:.12}}
+
+/* Superficies y tipografía de portada: evitar texto pequeño flotando sobre el fondo. */
+.home-page .services-preview .service-mini{background:var(--home-surface-soft);min-height:205px}
+.home-page .services-preview .service-mini h3{font-size:22px}
+.home-page .services-preview .service-mini p{font-size:15px;line-height:1.62;color:#b8c4d3}
+.home-page .services-preview .service-no{font-size:11.5px}
+.home-page .home-project-grid .project-card{min-height:326px;background:var(--home-surface-soft)}
+.home-page .home-project-grid .project-index{font-size:46px;color:#697a91}
+.home-page .home-project-grid .project-card h3{font-size:22px;line-height:1.25}
+.home-page .home-project-grid .project-card p{font-size:14.5px;line-height:1.66;color:#b8c4d3}
+.home-page .home-project-grid .category,.home-page .home-project-grid .tag{font-size:10.5px}
+.home-page .publication-card{background:var(--home-surface-soft)}
+.home-page .publication-card .card-title{font-size:21px;line-height:1.3}
+.home-page .publication-card .card-copy{font-size:14.5px;line-height:1.7;color:#b8c4d3}
+.home-page .publication-card .category{font-size:10.5px}
+.home-page .data-viz-principles{padding:10px 22px;border:1px solid var(--line);border-radius:14px;background:var(--home-surface-soft)}
+.home-page .data-viz-principles .principle{grid-template-columns:44px 1fr;padding:20px 0}
+.home-page .data-viz-principles .principle h3{font-size:17px}
+.home-page .data-viz-principles .principle p{font-size:13.5px;line-height:1.64;color:#aebccc}
+.home-page .meta-value{font-size:14px;line-height:1.55}
+.home-page .section-head-copy p{font-size:15.5px;line-height:1.72;color:#aebccc}
+
+/* Cierre de conversión: más contraste sin estética neón. */
+.home-page .cta{position:relative;overflow:hidden;padding:52px 54px;border-color:#34465e;background:radial-gradient(circle at 86% 18%,rgba(109,75,209,.16),transparent 30%),radial-gradient(circle at 10% 82%,rgba(67,199,218,.09),transparent 34%),linear-gradient(135deg,#111d2b,#0e1825 58%,#111a28);box-shadow:0 24px 64px rgba(0,0,0,.22)}
+.home-page .cta::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 0 48%,rgba(255,255,255,.045) 52%,transparent 57%);opacity:.8}
+.home-page .cta>*{position:relative;z-index:1}
+.home-page .cta .eyebrow{font-size:11.5px}
+.home-page .cta h2{max-width:820px;font-size:clamp(40px,4.5vw,60px);line-height:1.02;margin:14px 0 14px}
+.home-page .cta p{font-size:15.5px;line-height:1.68;color:#b9c5d3}
+.home-page .cta .btn-primary{min-width:170px;min-height:54px;padding-inline:25px;box-shadow:0 12px 30px rgba(109,75,209,.22)}
+
+@media (max-width:860px){
+  .home-page .data-territory-visual .visual-top{height:465px}
+  .home-page .data-territory-visual .data-workbench{grid-template-columns:minmax(0,.92fr) minmax(220px,1.08fr);gap:10px}
+  .home-page .data-territory-visual .chart-bar .bar-label{width:82px;margin-left:-41px;font-size:10.5px}
+  .home-page .services-preview{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .home-page .home-project-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .home-page .cta{padding:42px 36px}
+}
+
+@media (max-width:600px){
+  .home-page .data-territory-visual .visual-top{height:430px}
+  .home-page .data-territory-visual .territory-header{left:14px;right:14px;top:12px;flex-direction:row;align-items:center}
+  .home-page .data-territory-visual .visual-kicker{font-size:10px}
+  .home-page .data-territory-visual .territory-scene{inset:52px 4px 6px}
+  .home-page .data-territory-visual .data-workbench{grid-template-columns:minmax(0,.94fr) minmax(142px,1.06fr);gap:6px;padding:5px}
+  .home-page .data-territory-visual .data-registers,.home-page .data-territory-visual .data-matrix-panel{padding:9px 8px 8px}
+  .home-page .data-territory-visual .data-phase-kicker,.home-page .data-territory-visual .data-matrix-heading span{font-size:9px}
+  .home-page .data-territory-visual .data-phase-heading strong{font-size:17px}
+  .home-page .data-territory-visual .data-matrix-heading strong{font-size:10px}
+  .home-page .data-territory-visual .data-record-list{gap:4px;margin-top:8px}
+  .home-page .data-territory-visual .data-record{min-height:30px;grid-template-columns:46px minmax(0,1fr);gap:5px;padding:4px 6px}
+  .home-page .data-territory-visual .data-record span{font-size:8.5px}
+  .home-page .data-territory-visual .data-record strong{font-size:10px}
+  .home-page .data-territory-visual .data-record em{display:none}
+  .home-page .data-territory-visual .data-matrix{gap:3px;margin-top:8px;padding:5px}
+  .home-page .data-territory-visual .matrix-cell{min-height:25px}
+  .home-page .data-territory-visual .bars-chart{padding:18px 7px 54px 25px;gap:7px}
+  .home-page .data-territory-visual .bars-grid{inset:16px 7px 54px 25px}
+  .home-page .data-territory-visual .bars-axis-y{left:25px;top:16px;bottom:54px}
+  .home-page .data-territory-visual .bars-axis-x{left:25px;right:7px;bottom:54px}
+  .home-page .data-territory-visual .chart-bar{padding-bottom:39px}
+  .home-page .data-territory-visual .chart-bar .bar-fill,.home-page .data-territory-visual .chart-bar .bar-cap{max-width:44px}
+  .home-page .data-territory-visual .chart-bar .bar-label{width:64px;margin-left:-32px;font-size:9px;line-height:1.1}
+  .home-page .data-territory-visual .chart-bar .bar-value{font-size:9.5px}
+  .home-page .data-territory-visual .chart-bar .bar-tooltip{display:none}
+  .home-page .data-territory-visual .analysis-metric{font-size:15px}
+  .home-page .data-territory-visual .trend-label{font-size:11px}
+  .home-page .data-territory-visual .city-svg{transform:translate(-2%,1%) scale(1.12)}
+  .home-page .services-preview,.home-page .home-project-grid{grid-template-columns:1fr}
+  .home-page .services-preview .service-mini{min-height:0;padding:23px 22px}
+  .home-page .home-project-grid .project-card{min-height:280px}
+  .home-page .data-viz-principles{padding:7px 18px}
+  .home-page .cta{padding:34px 25px;align-items:stretch}
+  .home-page .cta h2{font-size:38px}
+  .home-page .cta p{font-size:15px}
+  .home-page .cta .btn-primary{width:100%}
+}
+
+@media (hover:none),(pointer:coarse){
+  .home-page .depth-card{transform:none!important;will-change:auto}
+  .home-page .depth-card::after{animation:none;opacity:.18}
+}
+@media (prefers-reduced-motion:reduce){
+  .home-page .depth-card,.home-page .depth-card::before,.home-page .depth-card::after{transition:none!important;animation:none!important;transform:none!important}
+  .home-page .data-territory-visual .analysis-trend,.home-page .data-territory-visual .analysis-dot{animation:none!important;stroke-dashoffset:0!important;opacity:1!important;transform:none!important}
+}
