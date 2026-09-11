@@ -166,13 +166,14 @@
   }
 
   function municipal(stage,data){
-    const top=data.slice(0,10),max=top[0]?.unidades||1,grid=E('div',{class:'dv-bubble-grid'});
+    const top=data.slice(0,10),max=top[0]?.unidades||1,list=E('div',{class:'dv-municipal-list'});
     top.forEach((row,i)=>{
-      const item=E('div',{class:`dv-bubble-item ${i<3?'is-top':''}`}), size=42+Math.sqrt(row.unidades/max)*54;
-      item.innerHTML=`<div class="dv-bubble" style="width:${size}px;height:${size}px"><strong>${i+1}</strong></div><span>${esc(row.municipio)}</span><b>${fmt.format(row.unidades)}</b><small>${pct(row.participacion)}</small>`;
-      grid.appendChild(item);
+      const item=E('div',{class:`dv-municipal-row ${i<3?'is-top':''}`,'aria-label':`${i+1}. ${row.municipio}: ${fmt.format(row.unidades)} unidades, ${pct(row.participacion)} del total estatal`});
+      item.style.setProperty('--share',`${row.unidades/max*100}%`);
+      item.innerHTML=`<span class="dv-municipal-rank">${i+1}</span><span class="dv-municipal-name">${esc(row.municipio)}</span><span class="dv-municipal-track"><i></i></span><strong>${fmt.format(row.unidades)}</strong><small>${pct(row.participacion)}</small>`;
+      list.appendChild(item);
     });
-    stage.appendChild(grid);
+    stage.appendChild(list);
   }
 
   function matrix(stage,data){
