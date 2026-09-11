@@ -57,7 +57,7 @@
   }
   if(matrix&&!matrix.children.length){
     matrixValues.forEach((values,row)=>values.forEach((value,col)=>{
-      const cell=document.createElement('button');cell.type='button';cell.className='matrix-cell';cell.dataset.row=row;cell.dataset.col=col;cell.dataset.tone=tones[row][col];cell.style.setProperty('--alpha',(0.10+value*.60).toFixed(2));cell.setAttribute('role','gridcell');cell.setAttribute('aria-pressed','false');cell.setAttribute('aria-label',`${records[row][0]}, ${metrics[col]}: ${Math.round(value*100)}`);cell.innerHTML=`<span class="matrix-tooltip"><b>${metrics[col]} · ${Math.round(value*100)}</b><span>${records[row][0]}: ${records[row][1]}</span></span>`;matrix.appendChild(cell);
+      const cell=document.createElement('button');cell.type='button';cell.className='matrix-cell';cell.dataset.row=row;cell.dataset.col=col;cell.dataset.tone=tones[row][col];cell.style.setProperty('--alpha',(0.10+value*.60).toFixed(2));cell.style.setProperty('--pulse-delay',`${0.95+((row*3+col*5)%12)*0.18}s`);cell.style.setProperty('--color-delay',`${-(((row*7+col*11)%21)*0.27).toFixed(2)}s`);cell.setAttribute('role','gridcell');cell.setAttribute('aria-pressed','false');cell.setAttribute('aria-label',`${records[row][0]}, ${metrics[col]}: ${Math.round(value*100)}`);cell.innerHTML=`<span class="matrix-tooltip"><b>${metrics[col]} · ${Math.round(value*100)}</b><span>${records[row][0]}: ${records[row][1]}</span></span>`;matrix.appendChild(cell);
     }));
   }
 
@@ -104,7 +104,7 @@
   const dataScan=()=>{
     stopDataScan();
     if(root.dataset.phase!=='data'||reduced.matches||document.hidden)return;
-    if(pinnedRow===null&&!userInteracting){autoRow=(autoRow+1)%recordButtons.length;dataTick+=1;refreshDataRow(autoRow);showRow(autoRow,'auto');}
+    if(pinnedRow===null&&!userInteracting){autoRow=(autoRow+1)%recordButtons.length;dataTick+=1;refreshDataRow(autoRow);}
     dataTimer=setTimeout(dataScan,760);
   };
 
