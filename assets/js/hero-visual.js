@@ -29,7 +29,8 @@
 
   const phases=[['data',5900],['bars',3900],['line',3600],['territory',4500]];
   const records=[
-    ['Segmento','Clientes recurrentes','72.4%','Demanda'],['Unidad','Proyecto 04','1,482','Volumen'],['Canal','Digital','+12.4%','Conversión'],['Operación','Entregas','96.1%','Tiempo'],['Línea','Servicios','0.617','Riesgo'],['Mercado','Demanda','84.9','Cobertura'],['Nodo','N-17','Riesgo medio','Riesgo'],['Cobertura','Zona 06','76.8%','Cobertura']
+    ['Segmento','Clientes recurrentes','72.4%','Demanda'],['Unidad','Proyecto 04','1,482','Volumen'],['Canal','Digital','+12.4%','Conversión'],['Operación','Entregas','96.1%','Tiempo'],['Línea','Servicios','0.617','Riesgo'],['Mercado','Demanda','84.9','Cobertura'],['Nodo','N-17','Riesgo medio','Riesgo'],['Cobertura','Zona 06','76.8%','Cobertura'],
+    ['Sucursal','Centro','58.2','Demanda'],['Periodo','T3 2026','+5.8%','Conversión'],['Producto','Línea X','31.4%','Rentabilidad'],['Inventario','Stock disponible','2,340','Inventario'],['Cliente','Grupo B','81.7%','Demanda'],['Costo','Operativo','1.24 M','Rentabilidad'],['Tráfico','Web','54.2k','Conversión'],['Región','Norte','0.72','Cobertura'],['Servicio','Premium','64.1%','Demanda'],['Frecuencia','Mensual','18.6','Tiempo']
   ];
   const recordVariants=[
     [['Clientes recurrentes','72.4%'],['Clientes recurrentes','73.1%'],['Clientes recurrentes','71.8%']],
@@ -39,7 +40,17 @@
     [['Servicios','0.617'],['Servicios','0.634'],['Servicios','0.608']],
     [['Demanda','84.9'],['Demanda','86.2'],['Demanda','83.7']],
     [['N-17','Riesgo medio'],['N-17','Riesgo bajo'],['N-17','Riesgo medio']],
-    [['Zona 06','76.8%'],['Zona 06','78.0%'],['Zona 06','77.4%']]
+    [['Zona 06','76.8%'],['Zona 06','78.0%'],['Zona 06','77.4%']],
+    [['Centro','58.2'],['Centro','59.1'],['Centro','57.8']],
+    [['T3 2026','+5.8%'],['T3 2026','+6.1%'],['T3 2026','+5.4%']],
+    [['Línea X','31.4%'],['Línea X','32.0%'],['Línea X','30.9%']],
+    [['Stock disponible','2,340'],['Stock disponible','2,318'],['Stock disponible','2,365']],
+    [['Grupo B','81.7%'],['Grupo B','82.1%'],['Grupo B','80.9%']],
+    [['Operativo','1.24 M'],['Operativo','1.27 M'],['Operativo','1.22 M']],
+    [['Web','54.2k'],['Web','55.1k'],['Web','53.8k']],
+    [['Norte','0.72'],['Norte','0.74'],['Norte','0.71']],
+    [['Premium','64.1%'],['Premium','65.0%'],['Premium','63.6%']],
+    [['Mensual','18.6'],['Mensual','19.2'],['Mensual','18.1']]
   ];
   const metrics=['Volumen','Demanda','Cobertura','Conversión','Tiempo','Riesgo'];
   const matrixValues=[[.72,.58,.84,.47,.66,.39],[.44,.76,.63,.88,.52,.71],[.61,.49,.78,.56,.42,.83],[.87,.65,.71,.59,.77,.46],[.53,.81,.67,.74,.48,.62],[.79,.69,.86,.51,.73,.57],[.38,.64,.55,.82,.68,.76],[.68,.73,.77,.61,.84,.49]];
@@ -49,9 +60,10 @@
     [['Segmento A',51.4,'Demanda'],['Segmento B',76.8,'Concentración'],['Segmento C',62.3,'Valor medio'],['Segmento D',88.2,'Pico reciente'],['Segmento E',43.7,'Menor intensidad']],
     [['Indicador 01',67.1,'Serie base'],['Indicador 02',54.9,'Estable'],['Indicador 03',79.6,'Hallazgo'],['Indicador 04',61.8,'Cambio moderado'],['Indicador 05',70.2,'Variación positiva']]
   ];
+  const INITIAL_RECORDS=8;
 
   if(recordList&&!recordList.children.length){
-    records.forEach(([field,value,meta,metric],row)=>{
+    records.slice(0,INITIAL_RECORDS).forEach(([field,value,meta,metric],row)=>{
       const button=document.createElement('button');button.type='button';button.className='data-record';button.dataset.row=row;button.dataset.metric=metric;button.setAttribute('aria-pressed','false');button.innerHTML=`<span>${field}</span><strong>${value}</strong><em>${meta}</em>`;button.setAttribute('aria-label',`${field}: ${value}, ${meta}. Variable: ${metric}`);recordList.appendChild(button);
     });
   }
@@ -62,7 +74,8 @@
   }
 
   const recordButtons=[...root.querySelectorAll('.data-record')],cells=[...root.querySelectorAll('.matrix-cell')];
-  let pinnedRow=null,autoRow=-1,dataTick=0,dataTimer=0,userInteracting=false;
+  const slotRecords=Array.from({length:recordButtons.length},(_,i)=>i);
+  let pinnedRow=null,autoRow=-1,dataTick=0,dataTimer=0,userInteracting=false,streamCursor=INITIAL_RECORDS,streamSlot=0;
   const clearVisualFocus=()=>{recordButtons.forEach(n=>n.classList.remove('is-active','is-auto-active'));cells.forEach(n=>n.classList.remove('is-active-cell','is-auto-active-cell'));};
   const showRow=(row,kind='active')=>{
     clearVisualFocus();
@@ -90,10 +103,54 @@
   });
   root.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&pinnedRow!==null){pinnedRow=null;applyPinnedState();clearVisualFocus();}});
 
+  const setRecordContent=(row,recordIndex)=>{
+    const button=recordButtons[row],record=records[recordIndex];if(!button||!record)return;
+    const [field,value,meta,metric]=record;
+    button.dataset.metric=metric;
+    button.querySelector('span').textContent=field;
+    button.querySelector('strong').textContent=value;
+    button.querySelector('em').textContent=meta;
+    button.setAttribute('aria-label',`${field}: ${value}, ${meta}. Variable: ${metric}`);
+    slotRecords[row]=recordIndex;
+  };
+  const animateValueChange=(button,value,meta)=>{
+    const strong=button?.querySelector('strong'),detail=button?.querySelector('em');if(!strong||!detail)return;
+    const apply=()=>{strong.textContent=value;detail.textContent=meta;const field=button.querySelector('span')?.textContent||'';button.setAttribute('aria-label',`${field}: ${value}, ${meta}. Variable: ${button.dataset.metric||''}`);};
+    if(reduced.matches||typeof button.animate!=='function'){apply();return;}
+    const nodes=[strong,detail];
+    const out=nodes.map(node=>node.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-3px)'}],{duration:140,easing:'ease',fill:'forwards'}));
+    Promise.all(out.map(animation=>animation.finished.catch(()=>null))).then(()=>{
+      apply();
+      out.forEach(animation=>animation.cancel());
+      nodes.forEach(node=>{
+        const enter=node.animate([{opacity:0,transform:'translateY(3px)'},{opacity:1,transform:'translateY(0)'}],{duration:220,easing:'cubic-bezier(.2,.7,.2,1)'});
+        enter.finished.catch(()=>null).then(()=>enter.cancel());
+      });
+    });
+  };
+  const streamRecord=()=>{
+    if(!recordButtons.length||streamCursor>=records.length)return;
+    const row=streamSlot%recordButtons.length,button=recordButtons[row],recordIndex=streamCursor;
+    streamSlot=(streamSlot+1)%recordButtons.length;
+    streamCursor+=1;if(streamCursor>=records.length)streamCursor=INITIAL_RECORDS;
+    const apply=()=>setRecordContent(row,recordIndex);
+    if(reduced.matches||typeof button.animate!=='function'){apply();return;}
+    const out=button.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(-8px)'}],{duration:180,easing:'ease',fill:'forwards'});
+    out.finished.catch(()=>null).then(()=>{
+      apply();
+      out.cancel();
+      const enter=button.animate([{opacity:0,transform:'translateY(8px) scale(.985)'},{opacity:1,transform:'translateY(-1px) scale(1)',offset:.72},{opacity:1,transform:'translateY(0) scale(1)'}],{duration:320,easing:'cubic-bezier(.18,.78,.22,1)'});
+      enter.finished.catch(()=>null).then(()=>enter.cancel());
+    });
+  };
+  const resetRecordStream=()=>{
+    streamCursor=INITIAL_RECORDS;streamSlot=0;
+    slotRecords.forEach((_,row)=>setRecordContent(row,row));
+  };
   const refreshDataRow=(row)=>{
-    const variants=recordVariants[row];if(!variants)return;
+    const recordIndex=slotRecords[row],variants=recordVariants[recordIndex];if(!variants)return;
     const variant=variants[(dataTick+row)%variants.length];
-    const button=recordButtons[row];if(button){button.querySelector('strong').textContent=variant[0];button.querySelector('em').textContent=variant[1];}
+    const button=recordButtons[row];if(button)animateValueChange(button,variant[0],variant[1]);
     cells.filter(c=>Number(c.dataset.row)===row).forEach((cell)=>{
       const col=Number(cell.dataset.col),base=matrixValues[row][col];
       const wobble=((dataTick+row+col)%5-2)*.018;
@@ -104,8 +161,12 @@
   const dataScan=()=>{
     stopDataScan();
     if(root.dataset.phase!=='data'||reduced.matches||document.hidden)return;
-    if(pinnedRow===null&&!userInteracting){autoRow=(autoRow+1)%recordButtons.length;dataTick+=1;refreshDataRow(autoRow);}
-    dataTimer=setTimeout(dataScan,760);
+    if(pinnedRow===null&&!userInteracting){
+      dataTick+=1;
+      autoRow=(autoRow+1)%recordButtons.length;
+      if(dataTick%3===0)streamRecord();else refreshDataRow(autoRow);
+    }
+    dataTimer=setTimeout(dataScan,1250);
   };
 
   let phaseIndex=0,barSet=0,timer=0,inView=true;
@@ -140,7 +201,7 @@
   };
   const stop=()=>{if(timer){clearTimeout(timer);timer=0;}stopDataScan();};
   const schedule=()=>{if(timer){clearTimeout(timer);timer=0;}if(reduced.matches||!inView||document.hidden)return;timer=setTimeout(()=>{showPhase(phaseIndex+1);schedule();},phases[phaseIndex][1]);};
-  const restart=()=>{barSet=0;dataTick=0;autoRow=-1;pinnedRow=null;applyPinnedState();showPhase(0);schedule();};
+  const restart=()=>{barSet=0;dataTick=0;autoRow=-1;pinnedRow=null;resetRecordStream();applyPinnedState();showPhase(0);schedule();};
   replay?.addEventListener('click',restart);
   document.addEventListener('visibilitychange',()=>document.hidden?stop():(showPhase(phaseIndex),schedule()));
   if('IntersectionObserver'in window)new IntersectionObserver(([entry])=>{inView=Boolean(entry?.isIntersecting);if(inView){showPhase(phaseIndex);schedule();}else stop();},{threshold:.06}).observe(root);
