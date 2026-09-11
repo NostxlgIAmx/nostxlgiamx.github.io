@@ -3,7 +3,7 @@
 
   const currentScript = document.currentScript;
   const assetBase = currentScript ? new URL('.', currentScript.src) : new URL('./assets/js/', location.href);
-  const VERSION = '20260911-ab1';
+  const VERSION = '20260911-home2';
 
   const ensureScript = (src, marker) => {
     if (document.querySelector(`script[data-${marker}]`)) return;
@@ -24,7 +24,6 @@
     document.head.appendChild(link);
     return link;
   })();
-  setTimeout(() => { if (polishLink?.isConnected) document.head.appendChild(polishLink); }, 0);
 
   ensureScript(`selection-rainbow.js?v=${VERSION}`, 'selection-rainbow');
   ensureScript(`cursor-ambient.js?v=${VERSION}`, 'cursor-ambient');
@@ -150,11 +149,11 @@
     const focal = [...svg.querySelectorAll('.city-building,.city-decor > *')];
     const geometric = {x:bounds.x+bounds.width/2,y:bounds.y+bounds.height/2};
     const optical = opticalCenter(focal, geometric);
-    const cx = geometric.x + bounds.width*.025 + Math.max(-bounds.width*.08, Math.min(bounds.width*.08, (optical.x-geometric.x)*.36));
-    const cy = geometric.y + Math.max(-bounds.height*.07, Math.min(bounds.height*.07, (optical.y-geometric.y)*.22));
+    const cx = geometric.x + bounds.width*.04 + Math.max(-bounds.width*.07, Math.min(bounds.width*.07, (optical.x-geometric.x)*.42));
+    const cy = geometric.y + Math.max(-bounds.height*.06, Math.min(bounds.height*.06, (optical.y-geometric.y)*.24));
     const containerAspect = Math.max(.9, host.clientWidth / Math.max(host.clientHeight, 1));
-    let viewW = bounds.width * 1.075;
-    let viewH = bounds.height * 1.10;
+    let viewW = bounds.width * 1.01;
+    let viewH = bounds.height * 1.03;
     const contentAspect = viewW / viewH;
     if (contentAspect > containerAspect) viewH = viewW / containerAspect;
     else viewW = viewH * containerAspect;
