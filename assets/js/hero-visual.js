@@ -183,14 +183,12 @@
     if(streamTimer){clearTimeout(streamTimer);streamTimer=0;}
     if(valueTimer){clearTimeout(valueTimer);valueTimer=0;}
   };
-  const scheduleStream=(delay=randomDelay(3400,5000))=>{
+  const scheduleStream=(delay=randomDelay(500,800))=>{
     if(streamTimer)clearTimeout(streamTimer);
     if(root.dataset.phase!=='data'||document.hidden)return;
     streamTimer=setTimeout(()=>{
       streamTimer=0;
       if(pinnedRow===null&&!userInteracting){
-        const sinceValue=performance.now()-lastValueAt;
-        if(sinceValue<550){scheduleStream(700);return;}
         if(streamRecord())lastStreamAt=performance.now();
       }
       scheduleStream();
