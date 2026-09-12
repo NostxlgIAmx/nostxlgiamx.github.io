@@ -30,6 +30,10 @@
 .home-page .data-territory-visual .bars-axis-y{left:44px;top:22px;bottom:58px}
 .home-page .data-territory-visual .bars-axis-x{left:44px;right:18px;bottom:58px}
 .home-page .data-territory-visual .chart-bar{padding-bottom:39px;overflow:visible;isolation:isolate;cursor:pointer}
+.home-page .data-territory-visual .chart-bar:hover,
+.home-page .data-territory-visual .chart-bar:focus,
+.home-page .data-territory-visual .chart-bar:focus-visible,
+.home-page .data-territory-visual .chart-bar:active{z-index:20}
 .home-page .data-territory-visual .chart-bar .bar-fill{max-width:78px;transition:height .85s cubic-bezier(.2,.76,.2,1),transform .6s ease,border-color .18s ease,filter .18s ease,box-shadow .18s ease}
 .home-page .data-territory-visual .chart-bar .bar-cap{max-width:78px;bottom:calc((var(--value,50)*.88%) + 39px);background:rgba(255,255,255,.22);transition:background .18s ease,box-shadow .18s ease}
 .home-page .data-territory-visual .chart-bar .bar-label{left:50%;bottom:2px;width:104px;margin-left:0;transform:translateX(-50%);font-size:11px;line-height:1.18;letter-spacing:.02em;text-transform:none;white-space:normal;text-align:center;color:#c8d3e1;transition:color .18s ease}
@@ -61,8 +65,8 @@
 @keyframes homeDotIn{from{opacity:.15;transform:scale(.62)}to{opacity:1;transform:scale(1)}}
 
 /* Territorio: ampliar la cámara interna sin agrandar la caja. */
-.home-page .data-territory-visual .city-scene{overflow:hidden;padding:0}
-.home-page .data-territory-visual .city-svg{width:100%;height:100%;transform:none;transform-origin:50% 50%;filter:drop-shadow(0 22px 26px rgba(0,0,0,.30))}
+.home-page .data-territory-visual .city-scene{overflow:hidden;padding:0;display:grid;place-items:center}
+.home-page .data-territory-visual .city-svg{display:block;width:100%;height:100%;max-width:100%;max-height:100%;transform:none;transform-origin:50% 50%;filter:drop-shadow(0 22px 26px rgba(0,0,0,.30))}
 
 /* Tarjetas: recuperar profundidad, desplazamiento y reflejo ligados al cursor. */
 .home-page .depth-card{--depth-rx:0deg;--depth-ry:0deg;--depth-tx:0px;--depth-ty:0px;--shine-x:50%;--shine-y:35%;position:relative;isolation:isolate;transform:perspective(900px) translate3d(var(--depth-tx),var(--depth-ty),0) rotateX(var(--depth-rx)) rotateY(var(--depth-ry));transform-style:preserve-3d;will-change:transform;transition:border-color .22s ease,background .22s ease,box-shadow .22s ease}
@@ -156,7 +160,14 @@
 
 @media (hover:none),(pointer:coarse){
   .home-page .data-territory-visual .chart-bar .bar-tooltip{display:none}
-  .home-page .data-territory-visual .chart-bar:active .bar-fill{filter:brightness(1.18) saturate(1.08);border-color:rgba(216,180,102,.72)}
+  .home-page .data-territory-visual .chart-bar:active .bar-fill,
+  .home-page .data-territory-visual .chart-bar:focus .bar-fill{filter:brightness(1.24) saturate(1.12);border-color:rgba(216,180,102,.78);box-shadow:0 -8px 22px rgba(67,199,218,.16)}
+  .home-page .data-territory-visual .chart-bar:active .bar-label,
+  .home-page .data-territory-visual .chart-bar:focus .bar-label{color:#fff;font-weight:800}
+  .home-page .data-territory-visual .chart-bar:active .bar-value,
+  .home-page .data-territory-visual .chart-bar:focus .bar-value{border-color:rgba(216,180,102,.42);background:rgba(15,23,34,.96);color:#fff;transform:translateX(-50%) translateY(-1px)}
+  .home-page .data-territory-visual .chart-bar:active .bar-cap,
+  .home-page .data-territory-visual .chart-bar:focus .bar-cap{background:rgba(216,180,102,.82);box-shadow:0 0 12px rgba(216,180,102,.28)}
   .home-page .depth-card{transform:none!important;will-change:auto}
   .home-page .depth-card::after{animation:none;opacity:.18}
 }
