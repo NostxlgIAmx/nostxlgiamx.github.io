@@ -52,8 +52,8 @@
   const ox = 340;
   const oy = 46;
   const sx = 32;
-  const sy = 16;
-  const zScale = 10.4;
+  const sy = 20;
+  const zScale = 13;
   const project = (x, y, z = 0) => [ox + (x - y) * sx, oy + (x + y) * sy - z * zScale];
 
   const prism = (x, y, w, d, h) => {
@@ -325,6 +325,7 @@
 
   const cityLayers = [groundLayer, roadsLayer, decorLayer, buildingsLayer];
   const VIEWBOX_MARGIN = 10;
+  const VIEWBOX_OPTICAL_Y = 28;
   const getCityBounds = () => {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     cityLayers.forEach((layer) => {
@@ -360,6 +361,7 @@
       x -= (fittedWidth - width) / 2;
       width = fittedWidth;
     }
+    y -= VIEWBOX_OPTICAL_Y;
 
     const clean = (value) => Number(value.toFixed(2));
     const viewBox = [clean(x), clean(y), clean(width), clean(height)];
