@@ -64,9 +64,13 @@
 @keyframes homeLineDraw{to{stroke-dashoffset:0}}
 @keyframes homeDotIn{from{opacity:.15;transform:scale(.62)}to{opacity:1;transform:scale(1)}}
 
-/* Territorio: ampliar la cámara interna sin agrandar la caja. */
+/* Territorio: encuadre derivado de los bounds reales de la ciudad determinista. */
 .home-page .data-territory-visual .city-scene{overflow:hidden;padding:0;display:grid;place-items:center}
-.home-page .data-territory-visual .city-svg{display:block;width:100%;height:100%;max-width:100%;max-height:100%;transform:none;transform-origin:50% 50%;filter:drop-shadow(0 22px 26px rgba(0,0,0,.30))}
+.home-page .data-territory-visual .city-svg{display:block;width:100%;height:100%;max-width:100%;max-height:100%;transform:translate(-8.45%,1.16%) scale(1.10);transform-origin:50% 50%;filter:drop-shadow(0 22px 26px rgba(0,0,0,.30))}
+.home-page .data-territory-visual[data-phase="territory"] .territory-stage::after{height:18%;background:linear-gradient(to top,rgba(8,13,21,.50),transparent)}
+.home-page .data-territory-visual .city-scene.has-focus .city-building:not(.is-hovered){opacity:.62!important;filter:saturate(.78) brightness(.88)}
+.home-page .data-territory-visual .city-building.is-hovered{opacity:1!important;transform:translateY(-3px) scale(1.025);filter:brightness(1.18) saturate(1.14)}
+.home-page .data-territory-visual .city-tooltip{z-index:22;border-color:rgba(148,163,184,.28);background:rgba(5,10,17,.98);box-shadow:0 14px 30px rgba(0,0,0,.34),0 0 0 1px rgba(255,255,255,.02)}
 
 /* Tarjetas: recuperar profundidad, desplazamiento y reflejo ligados al cursor. */
 .home-page .depth-card{--depth-rx:0deg;--depth-ry:0deg;--depth-tx:0px;--depth-ty:0px;--shine-x:50%;--shine-y:35%;position:relative;isolation:isolate;transform:perspective(900px) translate3d(var(--depth-tx),var(--depth-ty),0) rotateX(var(--depth-rx)) rotateY(var(--depth-ry));transform-style:preserve-3d;will-change:transform;transition:border-color .22s ease,background .22s ease,box-shadow .22s ease}
