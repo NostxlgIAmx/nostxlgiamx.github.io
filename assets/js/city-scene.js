@@ -7,6 +7,7 @@
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('class', 'city-svg');
   svg.setAttribute('viewBox', '0 0 680 360');
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
   svg.setAttribute('role', 'presentation');
   svg.setAttribute('aria-hidden', 'true');
   host.appendChild(svg);
@@ -29,7 +30,8 @@
   glow.innerHTML = '<feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>';
   defs.appendChild(glow);
   svg.appendChild(defs);
-  svg.appendChild(el('rect', { x:0, y:0, width:680, height:360, class:'city-ground' }));
+  const cityGround = el('rect', { x:0, y:0, width:680, height:360, class:'city-ground' });
+  svg.appendChild(cityGround);
 
   const hash = (text) => {
     let h = 2166136261;
@@ -320,6 +322,61 @@
     group.appendChild(polygon([p.A,p.B,p.C,p.D],'car-top'));
     decorLayer.appendChild(group);
   });
+
+  const cityLayers = [groundLayer, roadsLayer, decorLayer, buildingsLayer];
+  const VIEWBOX_MARGIN = 10;
+  const getCityBounds = () => {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    cityLayers.forEach((layer) => {
+      const box = layer.getBBox();
+      if (!box.width && !box.height) return;
+      minX = Math.min(minX, box.x);
+      minY = Math.min(minY, box.y);
+      maxX = Math.max(maxX, box.x + box.width);
+      maxY = Math.max(maxY, box.y + box.height);
+    });
+    if (!Number.isFinite(minX) || !Number.isFinite(minY) || !Number.isFinite(maxX) || !Number.isFinite(maxY)) return null;
+    return { x:minX, y:minY, width:maxX - minX, height:maxY - minY };
+  };
+  const fitCityViewBox = () => {
+    const hostRect = host.getBoundingClientRect();
+    if (!hostRect.width || !hostRect.height) return;
+    const bounds = getCityBounds();
+    if (!bounds || !bounds.width || !bounds.height) return;
+
+    let x = bounds.x - VIEWBOX_MARGIN;
+    let y = bounds.y - VIEWBOX_MARGIN;
+    let width = bounds.width + VIEWBOX_MARGIN * 2;
+    let height = bounds.height + VIEWBOX_MARGIN * 2;
+    const hostAspect = hostRect.width / hostRect.height;
+    const contentAspect = width / height;
+
+    if (contentAspect > hostAspect) {
+      const fittedHeight = width / hostAspect;
+      y -= (fittedHeight - height) / 2;
+      height = fittedHeight;
+    } else {
+      const fittedWidth = height * hostAspect;
+      x -= (fittedWidth - width) / 2;
+      width = fittedWidth;
+    }
+
+    const clean = (value) => Number(value.toFixed(2));
+    const viewBox = [clean(x), clean(y), clean(width), clean(height)];
+    svg.setAttribute('viewBox', viewBox.join(' '));
+    cityGround.setAttribute('x', String(viewBox[0]));
+    cityGround.setAttribute('y', String(viewBox[1]));
+    cityGround.setAttribute('width', String(viewBox[2]));
+    cityGround.setAttribute('height', String(viewBox[3]));
+  };
+
+  requestAnimationFrame(fitCityViewBox);
+  if ('ResizeObserver' in window) {
+    const cityResizeObserver = new ResizeObserver(() => fitCityViewBox());
+    cityResizeObserver.observe(host);
+  } else {
+    window.addEventListener('resize', fitCityViewBox, { passive:true });
+  }
 
   const positionTooltip = (source) => {
     const hostRect = host.getBoundingClientRect();
