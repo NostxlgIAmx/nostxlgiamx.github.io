@@ -152,7 +152,7 @@
   .home-page .data-territory-visual .chart-bar .bar-tooltip{display:none}
   .home-page .data-territory-visual .analysis-metric{font-size:15px}
   .home-page .data-territory-visual .trend-label{font-size:11px}
-  .home-page .data-territory-visual .city-svg{transform:translateX(8px)}
+  .home-page .data-territory-visual .city-svg{transform:none}
   .home-page .services-preview,.home-page .home-project-grid{grid-template-columns:1fr}
   .home-page .services-preview .service-mini{min-height:0;padding:23px 22px}
   .home-page .home-project-grid .project-card{min-height:280px}
