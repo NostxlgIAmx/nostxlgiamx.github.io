@@ -325,8 +325,8 @@
 
   const cityLayers = [groundLayer, roadsLayer, decorLayer, buildingsLayer];
   const VIEWBOX_MARGIN = 10;
-  const VIEWBOX_OPTICAL_X_PX = 32;
   const VIEWBOX_OPTICAL_Y = 28;
+  let cityCenterFrame = 0;
   const getCityBounds = () => {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     cityLayers.forEach((layer) => {
@@ -362,17 +362,35 @@
       x -= (fittedWidth - width) / 2;
       width = fittedWidth;
     }
-    const opticalX = VIEWBOX_OPTICAL_X_PX * (width / hostRect.width);
-    x -= opticalX;
     y -= VIEWBOX_OPTICAL_Y;
 
     const clean = (value) => Number(value.toFixed(2));
-    const viewBox = [clean(x), clean(y), clean(width), clean(height)];
-    svg.setAttribute('viewBox', viewBox.join(' '));
-    cityGround.setAttribute('x', String(viewBox[0]));
-    cityGround.setAttribute('y', String(viewBox[1]));
-    cityGround.setAttribute('width', String(viewBox[2]));
-    cityGround.setAttribute('height', String(viewBox[3]));
+    const applyViewBox = (nextX) => {
+      const viewBox = [clean(nextX), clean(y), clean(width), clean(height)];
+      svg.setAttribute('viewBox', viewBox.join(' '));
+      cityGround.setAttribute('x', String(viewBox[0]));
+      cityGround.setAttribute('y', String(viewBox[1]));
+      cityGround.setAttribute('width', String(viewBox[2]));
+      cityGround.setAttribute('height', String(viewBox[3]));
+      return viewBox;
+    };
+
+    const provisionalViewBox = applyViewBox(x);
+    x = provisionalViewBox[0];
+    if (cityCenterFrame) cancelAnimationFrame(cityCenterFrame);
+    cityCenterFrame = requestAnimationFrame(() => {
+      cityCenterFrame = 0;
+      const centeredHostRect = host.getBoundingClientRect();
+      const groundRect = groundLayer.getBoundingClientRect();
+      if (!centeredHostRect.width || !groundRect.width) return;
+      const hostCenter = centeredHostRect.left + centeredHostRect.width / 2;
+      const groundCenter = groundRect.left + groundRect.width / 2;
+      const deltaPx = hostCenter - groundCenter;
+      const unitsPerPx = width / centeredHostRect.width;
+      const deltaUnits = deltaPx * unitsPerPx;
+      x -= deltaUnits;
+      applyViewBox(x);
+    });
   };
 
   requestAnimationFrame(fitCityViewBox);
