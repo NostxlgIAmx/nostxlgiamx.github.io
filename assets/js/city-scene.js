@@ -66,7 +66,9 @@
   const roadsLayer = el('g', { class:'city-roads' });
   const decorLayer = el('g', { class:'city-decor' });
   const buildingsLayer = el('g', { class:'city-buildings' });
-  svg.append(groundLayer, roadsLayer, decorLayer, buildingsLayer);
+  const cityContent = el('g', { class:'city-content' });
+  svg.appendChild(cityContent);
+  cityContent.append(groundLayer, roadsLayer, decorLayer, buildingsLayer);
 
   const blockW = 1.45;
   const blockD = 1.25;
@@ -326,7 +328,7 @@
   const cityLayers = [groundLayer, roadsLayer, decorLayer, buildingsLayer];
   const VIEWBOX_MARGIN = 10;
   const VIEWBOX_OPTICAL_Y = 28;
-  const VIEWBOX_VISUAL_X_PX = 19;
+  const CITY_OPTICAL_SHIFT_RATIO = 19 / 600;
   const getCityBounds = () => {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     cityLayers.forEach((layer) => {
@@ -362,7 +364,6 @@
       x -= (fittedWidth - width) / 2;
       width = fittedWidth;
     }
-    x -= VIEWBOX_VISUAL_X_PX * (width / hostRect.width);
     y -= VIEWBOX_OPTICAL_Y;
 
     const clean = (value) => Number(value.toFixed(2));
@@ -372,6 +373,8 @@
     cityGround.setAttribute('y', String(viewBox[1]));
     cityGround.setAttribute('width', String(viewBox[2]));
     cityGround.setAttribute('height', String(viewBox[3]));
+    const shiftUnits = width * CITY_OPTICAL_SHIFT_RATIO;
+    cityContent.setAttribute('transform', `translate(${shiftUnits} 0)`);
   };
 
   requestAnimationFrame(fitCityViewBox);
