@@ -326,6 +326,7 @@
   const cityLayers = [groundLayer, roadsLayer, decorLayer, buildingsLayer];
   const VIEWBOX_MARGIN = 10;
   const VIEWBOX_OPTICAL_Y = 28;
+  const VIEWBOX_VISUAL_X_PX = 19;
   const getCityBounds = () => {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     cityLayers.forEach((layer) => {
@@ -361,6 +362,7 @@
       x -= (fittedWidth - width) / 2;
       width = fittedWidth;
     }
+    x -= VIEWBOX_VISUAL_X_PX * (width / hostRect.width);
     y -= VIEWBOX_OPTICAL_Y;
 
     const clean = (value) => Number(value.toFixed(2));
