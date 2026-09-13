@@ -159,7 +159,6 @@
   .home-page .data-viz-principles{padding:7px 18px}
   .home-page .cta{grid-template-columns:1fr;gap:26px;padding:34px 26px 28px 30px;align-items:stretch}
   .home-page .cta h2{max-width:100%;font-size:38px}
-  .home-page .data-territory-visual .city-svg{transform:none}
   .home-page .cta p{font-size:15px}
   .home-page .cta .btn-primary{width:100%;min-height:56px}
 }
