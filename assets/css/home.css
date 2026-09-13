@@ -67,7 +67,7 @@
 /* Territorio: el viewport SVG ocupa físicamente todo el stage y comparte el fondo del mapa. */
 .home-page .data-territory-visual[data-phase="territory"] .territory-stage{background:#071019}
 .home-page .data-territory-visual .city-scene{position:absolute;inset:0;width:100%;height:100%;overflow:hidden;padding:0;display:block;background:#071019}
-.home-page .data-territory-visual .city-svg{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;max-height:none;background:#071019;transform:none;transform-origin:50% 50%;filter:drop-shadow(0 22px 26px rgba(0,0,0,.30))}
+.home-page .data-territory-visual .city-svg{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;max-height:none;background:#071019;transform:translateX(8px);transform-origin:50% 50%;filter:drop-shadow(0 22px 26px rgba(0,0,0,.30))}
 .home-page .data-territory-visual[data-phase="territory"] .territory-stage::after{display:none}
 .home-page .data-territory-visual .city-scene.has-focus .city-building:not(.is-hovered){opacity:.62!important;filter:saturate(.78) brightness(.88)}
 .home-page .data-territory-visual .city-building.is-hovered{opacity:1!important;transform:translateY(-3px) scale(1.025);filter:brightness(1.18) saturate(1.14)}
@@ -152,7 +152,7 @@
   .home-page .data-territory-visual .chart-bar .bar-tooltip{display:none}
   .home-page .data-territory-visual .analysis-metric{font-size:15px}
   .home-page .data-territory-visual .trend-label{font-size:11px}
-  .home-page .data-territory-visual .city-svg{transform:none}
+  .home-page .data-territory-visual .city-svg{transform:translateX(8px)}
   .home-page .services-preview,.home-page .home-project-grid{grid-template-columns:1fr}
   .home-page .services-preview .service-mini{min-height:0;padding:23px 22px}
   .home-page .home-project-grid .project-card{min-height:280px}
