@@ -37,8 +37,8 @@
 
   const style = document.createElement('style');
   style.textContent = `
-  [data-projects-page] .project-case--electoral .project-visual{min-height:620px}
-  [data-projects-page] .electoral-explorer{display:grid;grid-template-rows:auto 1fr;gap:14px;min-height:620px;height:100%;padding:18px;box-sizing:border-box;background:radial-gradient(circle at 86% 4%,rgba(180,94,104,.15),transparent 29%),radial-gradient(circle at 7% 94%,rgba(211,140,66,.08),transparent 31%),linear-gradient(145deg,#10151e,#0c141d 62%,#09111a)}
+  [data-projects-page] .project-case--electoral .project-visual{min-height:720px}
+  [data-projects-page] .electoral-explorer{display:grid;grid-template-rows:auto 1fr;gap:14px;min-height:720px;height:100%;padding:18px;box-sizing:border-box;background:radial-gradient(circle at 86% 4%,rgba(180,94,104,.15),transparent 29%),radial-gradient(circle at 7% 94%,rgba(211,140,66,.08),transparent 31%),linear-gradient(145deg,#10151e,#0c141d 62%,#09111a)}
   [data-projects-page] .electoral-explorer *{box-sizing:border-box}
   [data-projects-page] .electoral-explorer-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding:0 2px}
   [data-projects-page] .electoral-explorer-copy{min-width:0}
@@ -49,8 +49,8 @@
   [data-projects-page] .electoral-explorer .demo-switch button{min-height:32px;padding:0 11px;border:0;border-radius:7px;background:transparent;color:#9eacba;font-size:11.5px;font-weight:750;cursor:pointer}
   [data-projects-page] .electoral-explorer .demo-switch button:hover,[data-projects-page] .electoral-explorer .demo-switch button:focus-visible{color:#f6e9e7;outline:none}
   [data-projects-page] .electoral-explorer .demo-switch button.is-active{background:#6f3540;color:#fff7f5;box-shadow:inset 0 0 0 1px rgba(238,169,170,.15)}
-  [data-projects-page] .electoral-workspace{display:grid;grid-template-columns:minmax(0,2.7fr) minmax(215px,1fr);gap:12px;min-height:0;align-items:stretch}
-  [data-projects-page] .electoral-map-column{position:relative;display:grid;grid-template-rows:438px auto;gap:10px;min-width:0}
+  [data-projects-page] .electoral-workspace{display:block;min-width:0;min-height:0}
+  [data-projects-page] .electoral-map-column{display:grid;grid-template-rows:480px auto auto;gap:10px;min-width:0}
   [data-projects-page] .electoral-map-canvas{position:relative;min-width:0;min-height:0;overflow:hidden;border:1px solid rgba(180,94,104,.19);border-radius:12px;background:radial-gradient(circle at 48% 46%,rgba(76,91,108,.19),transparent 48%),linear-gradient(180deg,#0a121b,#070e16)}
   [data-projects-page] .electoral-map-canvas:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 50%,transparent 45%,rgba(2,7,12,.22) 100%)}
   [data-projects-page] .electoral-explorer-svg{position:absolute;inset:0;width:100%;height:100%;margin:0;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -58,7 +58,6 @@
   [data-projects-page] .electoral-explorer .electoral-section{stroke:rgba(222,231,238,.31);stroke-width:.68;vector-effect:non-scaling-stroke;opacity:.98;cursor:pointer;transition:fill .16s ease,stroke .12s ease,filter .12s ease}
   [data-projects-page] .electoral-explorer .electoral-section:hover,[data-projects-page] .electoral-explorer .electoral-section.is-hovered,[data-projects-page] .electoral-explorer .electoral-section:focus-visible{stroke:#f0cf78;stroke-width:1.6;filter:brightness(1.13) saturate(1.04);outline:none}
   [data-projects-page] .electoral-explorer .electoral-section.is-selected{stroke:#fff0b5;stroke-width:2.35;filter:drop-shadow(0 0 2.5px rgba(216,180,102,.42)) brightness(1.12) saturate(1.04)}
-  [data-projects-page] .electoral-map-footer{min-width:0}
   [data-projects-page] .electoral-map-controls{position:absolute;z-index:6;right:12px;top:12px;display:flex;gap:4px;padding:4px;border:1px solid rgba(180,94,104,.2);border-radius:10px;background:rgba(7,13,20,.84);box-shadow:0 8px 20px rgba(0,0,0,.18);backdrop-filter:blur(8px)}
   [data-projects-page] .electoral-map-controls button{display:grid;place-items:center;min-width:34px;height:34px;padding:0 9px;border:0;border-radius:7px;background:rgba(255,255,255,.035);color:#e7edf3;font-size:17px;font-weight:750;line-height:1;cursor:pointer}
   [data-projects-page] .electoral-map-controls button:hover,[data-projects-page] .electoral-map-controls button:focus-visible{background:rgba(216,180,102,.11);color:#fff0c5;outline:none}
@@ -66,20 +65,17 @@
   [data-projects-page] .electoral-explorer-legend{display:flex;align-items:center;gap:9px 15px;min-height:46px;padding:10px 12px;border:1px solid rgba(180,94,104,.16);border-radius:10px;background:rgba(9,16,24,.76);color:#acb7c3;font-size:12px;font-weight:650;line-height:1.25;flex-wrap:wrap}
   [data-projects-page] .electoral-explorer-legend span{display:flex;align-items:center;gap:6px;white-space:nowrap}
   [data-projects-page] .electoral-explorer-legend i{display:block;flex:0 0 auto;width:10px;height:10px;border:1px solid rgba(255,255,255,.12);border-radius:3px}
-  [data-projects-page] .electoral-inspector{align-self:start;min-width:0;padding:22px;border:1px solid rgba(180,94,104,.18);border-radius:12px;background:linear-gradient(180deg,rgba(18,26,37,.94),rgba(10,17,26,.94));box-shadow:0 16px 32px rgba(0,0,0,.16)}
-  [data-projects-page] .electoral-inspector-empty strong{display:block;color:#f2e7e5;font-family:"Instrument Serif",Georgia,serif;font-size:27px;font-weight:400;line-height:1.05}
-  [data-projects-page] .electoral-inspector-empty p{margin:10px 0 0;color:#a4b0bd;font-size:13.5px;line-height:1.48}
-  [data-projects-page] .electoral-inspector-detail{display:grid;gap:0}
-  [data-projects-page] .electoral-inspector-field{padding:15px 0;border-bottom:1px solid rgba(180,94,104,.12)}
-  [data-projects-page] .electoral-inspector-field:first-child{padding-top:0}
-  [data-projects-page] .electoral-inspector-field:last-child{padding-bottom:0;border-bottom:0}
-  [data-projects-page] .electoral-inspector-field span{display:block;color:#8999aa;font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
-  [data-projects-page] .electoral-inspector-field strong{display:block;margin-top:5px;color:#f2e8e6;font-size:20px;font-weight:750;line-height:1.15;overflow-wrap:anywhere}
+  [data-projects-page] .electoral-reading{display:flex;align-items:center;min-width:0;min-height:66px;padding:11px 16px;border:1px solid rgba(180,94,104,.17);border-radius:10px;background:linear-gradient(90deg,rgba(18,26,37,.94),rgba(10,17,26,.9));box-shadow:0 12px 26px rgba(0,0,0,.13)}
+  [data-projects-page] .electoral-reading-empty{width:100%;color:#d8e0e7;font-size:14px;font-weight:650;line-height:1.45}
+  [data-projects-page] .electoral-reading-detail{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+  [data-projects-page] .electoral-reading-field{display:flex;align-items:baseline;gap:10px;min-width:0;padding:4px 18px}
+  [data-projects-page] .electoral-reading-field:first-child{padding-left:0}
+  [data-projects-page] .electoral-reading-field+ .electoral-reading-field{border-left:1px solid rgba(180,94,104,.14)}
+  [data-projects-page] .electoral-reading-field span{flex:0 0 auto;color:#8999aa;font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+  [data-projects-page] .electoral-reading-field strong{min-width:0;color:#f2e8e6;font-size:18px;font-weight:750;line-height:1.2;overflow-wrap:anywhere}
   [data-projects-page] .electoral-explorer [hidden]{display:none!important}
   @media(max-width:1080px){
-    [data-projects-page] .electoral-workspace{grid-template-columns:minmax(0,2.45fr) minmax(205px,1fr)}
-    [data-projects-page] .electoral-map-column{grid-template-rows:420px auto}
-    [data-projects-page] .electoral-inspector{padding:16px}
+    [data-projects-page] .electoral-map-column{grid-template-rows:460px auto auto}
   }
   @media(max-width:680px){
     [data-projects-page] .project-case--electoral .project-visual{height:auto!important;min-height:0!important;overflow:visible}
@@ -88,22 +84,23 @@
     [data-projects-page] .electoral-explorer-title{font-size:19px}
     [data-projects-page] .electoral-explorer .demo-switch{justify-self:start;width:100%}
     [data-projects-page] .electoral-explorer .demo-switch button{flex:1;min-height:36px;font-size:12px}
-    [data-projects-page] .electoral-workspace{grid-template-columns:1fr;gap:12px}
-    [data-projects-page] .electoral-map-column{grid-template-rows:360px auto;gap:8px}
-    [data-projects-page] .electoral-map-footer{display:grid;gap:8px}
-    [data-projects-page] .electoral-map-controls{position:static;justify-self:end;grid-row:1;padding:3px}
+    [data-projects-page] .electoral-map-column{grid-template-rows:380px auto auto;gap:8px}
+    [data-projects-page] .electoral-map-controls{right:10px;top:10px;padding:3px}
     [data-projects-page] .electoral-map-controls button{min-width:38px;height:36px}
     [data-projects-page] .electoral-map-controls .electoral-reset{min-width:62px;font-size:12px}
-    [data-projects-page] .electoral-explorer-legend{grid-row:2;min-height:0;padding:11px 12px;font-size:12px}
-    [data-projects-page] .electoral-inspector{padding:20px}
-    [data-projects-page] .electoral-inspector-field span{font-size:12px}
-    [data-projects-page] .electoral-inspector-empty p{font-size:13.5px}
+    [data-projects-page] .electoral-explorer-legend{min-height:0;padding:11px 12px;font-size:12px}
+    [data-projects-page] .electoral-reading{min-height:70px;padding:12px 14px}
+    [data-projects-page] .electoral-reading-empty{font-size:13.5px}
+    [data-projects-page] .electoral-reading-field{display:grid;gap:4px;padding:3px 12px}
+    [data-projects-page] .electoral-reading-field span{font-size:12px}
   }
   @media(max-width:420px){
     [data-projects-page] .electoral-explorer{padding:12px}
-    [data-projects-page] .electoral-map-column{grid-template-rows:350px auto}
+    [data-projects-page] .electoral-map-column{grid-template-rows:360px auto auto}
     [data-projects-page] .electoral-explorer-legend{gap:8px 12px}
-    [data-projects-page] .electoral-inspector{padding:18px}
+    [data-projects-page] .electoral-reading-detail{grid-template-columns:1fr 1fr}
+    [data-projects-page] .electoral-reading-field:nth-child(2){border-left:1px solid rgba(180,94,104,.14)}
+    [data-projects-page] .electoral-reading-field:last-child{grid-column:1/-1;margin-top:10px;padding:10px 0 0;border-top:1px solid rgba(180,94,104,.14);border-left:0}
   }
   @media(prefers-reduced-motion:reduce){[data-projects-page] .electoral-explorer .electoral-section{transition:none}}
   `;
@@ -125,27 +122,22 @@
       <section class="electoral-map-column" aria-label="Mapa electoral">
         <div class="electoral-map-canvas">
           <svg class="electoral-explorer-svg" viewBox="0 0 440 330" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Explorador territorial de resultados electorales por sección" data-map-svg><g data-map></g></svg>
-        </div>
-        <div class="electoral-map-footer">
           <div class="electoral-map-controls" aria-label="Controles del mapa">
             <button type="button" data-zoom-in aria-label="Acercar">+</button>
             <button type="button" data-zoom-out aria-label="Alejar">−</button>
             <button type="button" class="electoral-reset" data-reset>Reset</button>
           </div>
-          <div class="electoral-explorer-legend" data-legend></div>
+        </div>
+        <div class="electoral-explorer-legend" data-legend></div>
+        <div class="electoral-reading" aria-live="polite">
+          <div class="electoral-reading-empty" data-empty>Selecciona una sección para consultar ganador y participación.</div>
+          <div class="electoral-reading-detail" data-detail hidden>
+            <div class="electoral-reading-field"><span>Sección</span><strong data-section>—</strong></div>
+            <div class="electoral-reading-field"><span>Ganador</span><strong data-winner>—</strong></div>
+            <div class="electoral-reading-field"><span>Participación</span><strong data-participation>—</strong></div>
+          </div>
         </div>
       </section>
-      <aside class="electoral-inspector" aria-live="polite">
-        <div class="electoral-inspector-empty" data-empty>
-          <strong>Selecciona una sección</strong>
-          <p>Consulta ganador y participación.</p>
-        </div>
-        <div class="electoral-inspector-detail" data-detail hidden>
-          <div class="electoral-inspector-field"><span>Sección</span><strong data-section>—</strong></div>
-          <div class="electoral-inspector-field"><span>Ganador</span><strong data-winner>—</strong></div>
-          <div class="electoral-inspector-field"><span>Participación</span><strong data-participation>—</strong></div>
-        </div>
-      </aside>
     </div>
   </div>`;
 
