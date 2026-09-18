@@ -1,6 +1,5 @@
 
 /* Proyectos · pulido editorial y sistema visual · 2026-09-18 */
-@property --resource-border-angle{syntax:"<angle>";inherits:false;initial-value:0deg}
 [data-projects-page] .projects-hero{padding:54px 0 36px}
 [data-projects-page] .projects-hero .container{gap:32px}
 [data-projects-page] .projects-hero-grid{display:block}
@@ -80,43 +79,30 @@
 [data-projects-page] .territory-preview--resolved .territory-legend>span{color:#90a5a3;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em}
 [data-projects-page] .territory-preview--resolved .territory-legend-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}.territory-preview--resolved .territory-legend-row i{height:7px;border-radius:99px}.territory-preview--resolved .territory-legend small{color:#8fa3a1;font-size:10px}.territory-preview--resolved .territory-legend small b{color:#d5dedc;font-weight:700}
 
-/* Electoral: cartografía real como lectura principal, resumen integrado abajo. */
-[data-projects-page] .electoral-preview--resolved{padding:19px;background:radial-gradient(circle at 84% 8%,rgba(180,94,104,.16),transparent 29%),radial-gradient(circle at 10% 92%,rgba(211,140,66,.10),transparent 31%),linear-gradient(145deg,#10141d,#121821 58%,#0b121a)}
-[data-projects-page] .electoral-preview--resolved .electoral-head{margin-bottom:10px}
-[data-projects-page] .electoral-preview--resolved .demo-eyebrow{color:#d98a8e}
-[data-projects-page] .electoral-preview--resolved .demo-title{color:#fff2f0}
-[data-projects-page] .electoral-preview--resolved .demo-switch{border-color:rgba(180,94,104,.22);background:rgba(10,14,20,.72)}
-[data-projects-page] .electoral-preview--resolved .demo-switch button.is-active{background:#6f3540;color:#fff4f2;box-shadow:inset 0 0 0 1px rgba(232,157,158,.16)}
-[data-projects-page] .electoral-preview--resolved .electoral-map-card{position:relative;height:388px;padding:0;overflow:hidden;border-color:rgba(180,94,104,.22);background:radial-gradient(circle at 45% 48%,rgba(73,84,99,.24),transparent 48%),linear-gradient(180deg,#0b121b,#080f17)}
-[data-projects-page] .electoral-map-meta{position:absolute;z-index:4;left:15px;right:15px;top:13px;display:flex;justify-content:space-between;gap:12px;color:#8999aa;font-size:10px}.electoral-map-meta strong{color:#d7b2a4;font-size:10px}
-[data-projects-page] .electoral-preview--resolved .electoral-svg{position:absolute;left:10px;right:10px;top:34px;width:calc(100% - 20px);height:270px;margin:0}
-[data-projects-page] .electoral-preview--resolved .electoral-section{stroke:rgba(238,231,228,.33);stroke-width:.55;opacity:.96}
-[data-projects-page] .electoral-preview--resolved .electoral-section:hover,[data-projects-page] .electoral-preview--resolved .electoral-section.is-selected{stroke:#f0cf78;stroke-width:1.55;filter:brightness(1.16) saturate(1.08)}
-[data-projects-page] .electoral-bottom{position:absolute;z-index:4;left:12px;right:12px;bottom:11px;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(240px,.65fr);gap:10px}
-[data-projects-page] .electoral-selection,[data-projects-page] .electoral-summary{border:1px solid rgba(180,94,104,.18);border-radius:10px;background:rgba(12,18,27,.91);box-shadow:0 12px 26px rgba(0,0,0,.22);backdrop-filter:blur(9px)}
-[data-projects-page] .electoral-selection{padding:10px 12px}.electoral-selection span{display:block;color:#d17a82;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em}.electoral-selection strong{display:block;margin-top:3px;color:#f4e9e9;font-size:13px}.electoral-selection small{display:block;margin-top:2px;color:#94a1ae;font-size:10.5px}
-[data-projects-page] .electoral-summary{display:grid;grid-template-columns:1fr 1fr;overflow:hidden}.electoral-summary>div{padding:10px 11px}.electoral-summary>div+div{border-left:1px solid rgba(180,94,104,.13)}.electoral-summary span{display:block;color:#8998a8;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em}.electoral-summary strong{display:block;margin-top:3px;color:#f2d4b6;font-size:18px}
-[data-projects-page] .electoral-preview--resolved .electoral-legend{position:absolute;z-index:4;left:16px;bottom:104px;display:flex;gap:10px;flex-wrap:wrap;padding:6px 8px;border-radius:8px;background:rgba(7,12,18,.72);color:#8f9cab;font-size:9.5px;backdrop-filter:blur(6px)}.electoral-preview--resolved .electoral-legend i{width:7px;height:7px}
-
-/* Cierre editorial: una sola invitación, con luz sutil recorriendo el marco. */
+/* Cierre editorial horizontal, con un segmento de luz que sigue el perímetro real. */
 [data-projects-page] .projects-resources-section{padding:4px 0 48px}
-[data-projects-page] .projects-resource-cta{--resource-border-angle:0deg;position:relative;isolation:isolate;display:flex;align-items:center;min-height:318px;padding:46px 50px;border:1px solid rgba(138,111,234,.28);border-radius:20px;background:radial-gradient(circle at 7% 0%,rgba(138,111,234,.22),transparent 35%),radial-gradient(circle at 96% 90%,rgba(67,199,218,.14),transparent 36%),radial-gradient(circle at 74% 7%,rgba(216,180,102,.075),transparent 25%),linear-gradient(135deg,#151b2a,#0d1723 58%,#101b27);box-shadow:0 26px 68px rgba(0,0,0,.23),inset 0 1px 0 rgba(255,255,255,.025);overflow:hidden}
-[data-projects-page] .projects-resource-cta:before{content:"";position:absolute;z-index:3;inset:-1px;padding:1px;border-radius:inherit;background:conic-gradient(from var(--resource-border-angle),rgba(138,111,234,.16) 0 8%,rgba(138,111,234,.95) 11%,rgba(67,199,218,.92) 15%,rgba(216,180,102,.62) 18%,rgba(138,111,234,.14) 23% 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;filter:drop-shadow(0 0 5px rgba(91,193,220,.2));pointer-events:none;animation:resource-border-travel 13s linear infinite}
-[data-projects-page] .projects-resource-cta:after{content:"";position:absolute;z-index:0;inset:0;background:linear-gradient(115deg,transparent 15%,rgba(255,255,255,.018) 48%,transparent 72%),radial-gradient(circle at 50% 120%,rgba(138,111,234,.09),transparent 48%);pointer-events:none}
-[data-projects-page] .projects-resource-copy{position:relative;z-index:4;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.58fr);column-gap:64px;row-gap:17px;align-items:end;width:100%}
-[data-projects-page] .projects-resource-copy .eyebrow{grid-column:1/-1;margin:0 0 2px;color:#aa91ff;font-size:11px;font-weight:800;letter-spacing:.13em}
-[data-projects-page] .projects-resource-copy h2{grid-column:1;grid-row:2/4;align-self:center;max-width:10.5ch;margin:0;font-size:clamp(47px,4.7vw,64px);line-height:.94;text-wrap:balance}
-[data-projects-page] .projects-resource-copy p{grid-column:2;grid-row:2;align-self:end;max-width:460px;margin:0;color:#b5c0cd;font-size:15px;line-height:1.68}
-[data-projects-page] .projects-resource-copy .btn{grid-column:2;grid-row:3;justify-self:start;min-height:54px;margin:2px 0 0;padding:0 23px;border-color:rgba(155,127,236,.88);background:linear-gradient(135deg,#7654d7,#6241c0);box-shadow:0 16px 34px rgba(84,57,167,.27);font-size:13.5px}
-[data-projects-page] .projects-resource-copy .btn:hover{background:linear-gradient(135deg,#8261df,#6c49c9);box-shadow:0 18px 38px rgba(84,57,167,.34)}
-@keyframes resource-border-travel{to{--resource-border-angle:360deg}}
+[data-projects-page] .projects-resource-cta{position:relative;isolation:isolate;display:block;min-height:0;padding:38px 48px;border:1px solid rgba(138,111,234,.28);border-right-color:rgba(67,199,218,.25);border-bottom-color:rgba(67,199,218,.21);border-radius:20px;background:radial-gradient(circle at 7% 0%,rgba(138,111,234,.20),transparent 35%),radial-gradient(circle at 96% 90%,rgba(67,199,218,.13),transparent 36%),radial-gradient(circle at 74% 7%,rgba(216,180,102,.065),transparent 25%),linear-gradient(135deg,#151b2a,#0d1723 58%,#101b27);box-shadow:0 26px 68px rgba(0,0,0,.23),inset 0 1px 0 rgba(255,255,255,.025);overflow:hidden}
+[data-projects-page] .projects-resource-cta:before,[data-projects-page] .projects-resource-cta:after{content:none}
+[data-projects-page] .projects-resource-border{position:absolute;z-index:3;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+[data-projects-page] .projects-resource-border-run{x:1px;y:1px;width:calc(100% - 2px);height:calc(100% - 2px);rx:19px;ry:19px;fill:none;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-width:2;animation:resource-border-travel 12s linear infinite}
+[data-projects-page] .projects-resource-border-run--violet{stroke:#9a7df4;stroke-dasharray:1.55 98.45;filter:drop-shadow(0 0 4px rgba(138,111,234,.42))}
+[data-projects-page] .projects-resource-border-run--cyan{stroke:#55d1df;stroke-dasharray:1.75 98.25;stroke-dashoffset:-1.35;filter:drop-shadow(0 0 4px rgba(67,199,218,.38));animation-name:resource-border-travel-cyan}
+[data-projects-page] .projects-resource-border-run--gold{stroke:#ddb968;stroke-dasharray:.65 99.35;stroke-dashoffset:-2.85;filter:drop-shadow(0 0 3px rgba(216,180,102,.35));animation-name:resource-border-travel-gold}
+[data-projects-page] .projects-resource-copy{position:relative;z-index:4;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(340px,.88fr);gap:40px;align-items:center;width:100%}
+[data-projects-page] .projects-resource-heading,[data-projects-page] .projects-resource-action{min-width:0}
+[data-projects-page] .projects-resource-heading .eyebrow{display:block;margin:0 0 12px;color:#aa91ff;font-size:11px;font-weight:800;letter-spacing:.13em}
+[data-projects-page] .projects-resource-heading h2{max-width:17ch;margin:0;font-size:clamp(45px,4.15vw,57px);line-height:.98;text-wrap:balance}
+[data-projects-page] .projects-resource-action{display:flex;flex-direction:column;align-items:flex-start;gap:17px}
+[data-projects-page] .projects-resource-action p{max-width:510px;margin:0;color:#b5c0cd;font-size:15px;line-height:1.65}
+[data-projects-page] .projects-resource-action .btn{min-height:52px;margin:0;padding:0 23px;border-color:rgba(155,127,236,.88);background:linear-gradient(135deg,#7654d7,#6241c0);box-shadow:0 16px 34px rgba(84,57,167,.27);font-size:13.5px}
+[data-projects-page] .projects-resource-action .btn:hover{background:linear-gradient(135deg,#8261df,#6c49c9);box-shadow:0 18px 38px rgba(84,57,167,.34)}
+@keyframes resource-border-travel{to{stroke-dashoffset:-100}}
+@keyframes resource-border-travel-cyan{to{stroke-dashoffset:-101.35}}
+@keyframes resource-border-travel-gold{to{stroke-dashoffset:-102.85}}
 
-@media(max-width:1080px){[data-projects-page] .projects-resource-cta{grid-template-columns:1fr 1fr;gap:30px}.territory-map-footer{grid-template-columns:1fr 210px}.electoral-bottom{grid-template-columns:1fr 220px}}
-@media(max-width:860px){[data-projects-page] .projects-hero{padding:36px 0 24px}[data-projects-page] .projects-hero .container{gap:22px}[data-projects-page] .projects-hero-grid{grid-template-columns:1fr;gap:0}[data-projects-page] .projects-hero p{font-size:16px}[data-projects-page] .projects-framework>div{grid-template-columns:55px 1fr;gap:13px;padding:18px 16px 19px 0}[data-projects-page] .projects-framework>div+div{padding-left:16px}[data-projects-page] .projects-framework>div>span{font-size:31px}[data-projects-page] .projects-framework small{font-size:12.5px}[data-projects-page] .projects-showcase{padding-top:16px}[data-projects-page] .projects-resource-cta{grid-template-columns:1fr;gap:22px}.resource-editorial{padding:21px 0 4px;border-left:0;border-top:1px solid rgba(148,163,184,.16)}[data-projects-page] .electoral-preview--resolved .electoral-map-card{height:360px}}
-@media(max-width:600px){[data-projects-page] .projects-hero{padding:31px 0 21px}[data-projects-page] .projects-hero .container{gap:17px}[data-projects-page] .projects-hero h1{font-size:46px;max-width:10.4ch;margin-bottom:13px}[data-projects-page] .projects-hero p{font-size:14.5px;line-height:1.64}[data-projects-page] .projects-framework>div,[data-projects-page] .projects-framework>div+div{grid-template-columns:52px 1fr;gap:12px;padding:15px 0}[data-projects-page] .projects-framework>div>span{font-size:29px}[data-projects-page] .projects-framework strong{font-size:12.5px}[data-projects-page] .projects-framework small{margin-top:5px;font-size:12px;line-height:1.5}[data-projects-page] .territory-preview--resolved .territory-topbar{left:10px;right:10px;top:10px;display:grid;gap:8px}.territory-preview--resolved .territory-topbar strong{font-size:11px}.territory-preview--resolved .territory-mode{justify-self:start}.territory-preview--resolved .territory-svg{inset:78px 7px 104px;width:calc(100% - 14px);height:calc(100% - 182px)}.territory-map-footer{left:8px;right:8px;bottom:8px;grid-template-columns:1fr;gap:6px}.territory-reading{grid-template-columns:auto auto 1fr;padding:8px 9px}.territory-reading strong{font-size:21px}.territory-reading>span,.territory-reading small,.territory-preview--resolved .territory-legend>span,.territory-preview--resolved .territory-legend small{font-size:10px}.territory-preview--resolved .territory-legend{padding:7px 9px;gap:5px}.territory-preview--resolved .territory-legend-row{max-width:170px}[data-projects-page] .electoral-preview--resolved{padding:11px}.electoral-preview--resolved .electoral-head{display:grid;gap:8px}.electoral-preview--resolved .electoral-map-card{height:330px}.electoral-map-meta{left:9px;right:9px;top:9px;font-size:10px}.electoral-map-meta strong{font-size:10px}.electoral-preview--resolved .electoral-svg{left:4px;right:4px;top:30px;width:calc(100% - 8px);height:208px}.electoral-preview--resolved .electoral-legend{left:8px;right:8px;bottom:91px;gap:7px;font-size:10px;padding:5px 6px}.electoral-bottom{left:7px;right:7px;bottom:7px;grid-template-columns:1fr 130px;gap:6px}.electoral-selection{padding:7px 8px}.electoral-selection span{font-size:10px}.electoral-selection strong{font-size:11px}.electoral-selection small{font-size:10px}.electoral-summary>div{padding:7px 6px}.electoral-summary span{font-size:10px}.electoral-summary strong{font-size:14px}[data-projects-page] .projects-resource-cta{padding:26px 21px 23px;gap:18px}.resource-editorial strong{font-size:34px;max-width:13ch}.resource-editorial p{font-size:12.5px}.resource-editorial footer{font-size:10px}}
-[data-projects-page] .electoral-summary span{font-size:10.5px}
-[data-projects-page] .electoral-preview--resolved .electoral-legend{font-size:10px}
-@media(max-width:600px){[data-projects-page] .electoral-summary span{font-size:10px}[data-projects-page] .electoral-preview--resolved .electoral-legend{font-size:10px}}
+@media(max-width:1080px){.territory-map-footer{grid-template-columns:1fr 210px}}
+@media(max-width:860px){[data-projects-page] .projects-hero{padding:36px 0 24px}[data-projects-page] .projects-hero .container{gap:22px}[data-projects-page] .projects-hero-grid{grid-template-columns:1fr;gap:0}[data-projects-page] .projects-hero p{font-size:16px}[data-projects-page] .projects-framework>div{grid-template-columns:55px 1fr;gap:13px;padding:18px 16px 19px 0}[data-projects-page] .projects-framework>div+div{padding-left:16px}[data-projects-page] .projects-framework>div>span{font-size:31px}[data-projects-page] .projects-framework small{font-size:12.5px}[data-projects-page] .projects-showcase{padding-top:16px}}
+@media(max-width:600px){[data-projects-page] .projects-hero{padding:31px 0 21px}[data-projects-page] .projects-hero .container{gap:17px}[data-projects-page] .projects-hero h1{font-size:46px;max-width:10.4ch;margin-bottom:13px}[data-projects-page] .projects-hero p{font-size:14.5px;line-height:1.64}[data-projects-page] .projects-framework>div,[data-projects-page] .projects-framework>div+div{grid-template-columns:52px 1fr;gap:12px;padding:15px 0}[data-projects-page] .projects-framework>div>span{font-size:29px}[data-projects-page] .projects-framework strong{font-size:12.5px}[data-projects-page] .projects-framework small{margin-top:5px;font-size:12px;line-height:1.5}[data-projects-page] .territory-preview--resolved .territory-topbar{left:10px;right:10px;top:10px;display:grid;gap:8px}.territory-preview--resolved .territory-topbar strong{font-size:11px}.territory-preview--resolved .territory-mode{justify-self:start}.territory-preview--resolved .territory-svg{inset:78px 7px 104px;width:calc(100% - 14px);height:calc(100% - 182px)}.territory-map-footer{left:8px;right:8px;bottom:8px;grid-template-columns:1fr;gap:6px}.territory-reading{grid-template-columns:auto auto 1fr;padding:8px 9px}.territory-reading strong{font-size:21px}.territory-reading>span,.territory-reading small,.territory-preview--resolved .territory-legend>span,.territory-preview--resolved .territory-legend small{font-size:10px}.territory-preview--resolved .territory-legend{padding:7px 9px;gap:5px}.territory-preview--resolved .territory-legend-row{max-width:170px}}
 
 /* Respuesta final del pulido editorial. */
 @media(max-width:1080px){
@@ -126,7 +112,9 @@
   [data-projects-page] .project-feature,[data-projects-page] .project-feature:nth-child(even){grid-template-columns:minmax(0,1.25fr) minmax(340px,.85fr)}
   [data-projects-page] .project-feature:nth-child(even){grid-template-columns:minmax(340px,.85fr) minmax(0,1.25fr)}
   [data-projects-page] .project-feature .card-body{padding:31px 30px 30px}
-  [data-projects-page] .projects-resource-copy{grid-template-columns:minmax(0,1.08fr) minmax(290px,.72fr);column-gap:40px}
+  [data-projects-page] .projects-resource-cta{padding:36px 38px}
+  [data-projects-page] .projects-resource-copy{grid-template-columns:minmax(0,1.08fr) minmax(290px,.82fr);gap:30px}
+  [data-projects-page] .projects-resource-heading h2{max-width:16ch;font-size:48px}
 }
 
 @media(max-width:860px){
@@ -147,11 +135,10 @@
   [data-projects-page] .project-case--territory .project-visual{min-height:500px;height:500px}
   [data-projects-page] .project-feature .card-body,[data-projects-page] .project-feature:nth-child(even) .card-body{order:2;padding:29px 28px 30px}
   [data-projects-page] .project-feature .card-title{font-size:35px}
-  [data-projects-page] .projects-resource-cta{min-height:0;padding:38px 36px}
-  [data-projects-page] .projects-resource-copy{grid-template-columns:1fr;row-gap:16px}
-  [data-projects-page] .projects-resource-copy .eyebrow,[data-projects-page] .projects-resource-copy h2,[data-projects-page] .projects-resource-copy p,[data-projects-page] .projects-resource-copy .btn{grid-column:1;grid-row:auto}
-  [data-projects-page] .projects-resource-copy h2{max-width:12ch}
-  [data-projects-page] .projects-resource-copy p{max-width:650px}
+  [data-projects-page] .projects-resource-cta{padding:35px 34px}
+  [data-projects-page] .projects-resource-copy{grid-template-columns:1fr;gap:21px}
+  [data-projects-page] .projects-resource-heading h2{max-width:17ch}
+  [data-projects-page] .projects-resource-action p{max-width:650px}
 }
 
 @media(max-width:700px){
@@ -185,16 +172,17 @@
   [data-projects-page] .project-context>div{grid-template-columns:72px 1fr;gap:10px;padding:12px 0}
   [data-projects-page] .project-context small{font-size:10px}
   [data-projects-page] .project-context strong{font-size:12px;line-height:1.52}
-  [data-projects-page] .electoral-preview--resolved .electoral-detail-grid span,[data-projects-page] .electoral-preview--resolved .electoral-summary small{font-size:10px!important}
   [data-projects-page] .projects-resources-section{padding:3px 0 42px}
-  [data-projects-page] .projects-resource-cta{padding:30px 23px 27px;border-radius:16px}
-  [data-projects-page] .projects-resource-copy{row-gap:14px}
-  [data-projects-page] .projects-resource-copy .eyebrow{font-size:10.5px}
-  [data-projects-page] .projects-resource-copy h2{max-width:10.8ch;font-size:41px}
-  [data-projects-page] .projects-resource-copy p{font-size:14px;line-height:1.62}
-  [data-projects-page] .projects-resource-copy .btn{width:100%;min-height:52px;font-size:13px}
+  [data-projects-page] .projects-resource-cta{padding:29px 23px 27px;border-radius:16px}
+  [data-projects-page] .projects-resource-border-run{rx:15px;ry:15px}
+  [data-projects-page] .projects-resource-copy{gap:18px}
+  [data-projects-page] .projects-resource-heading .eyebrow{font-size:10.5px}
+  [data-projects-page] .projects-resource-heading h2{max-width:14ch;font-size:40px}
+  [data-projects-page] .projects-resource-action{gap:15px}
+  [data-projects-page] .projects-resource-action p{font-size:14px;line-height:1.62}
+  [data-projects-page] .projects-resource-action .btn{width:100%;min-height:52px;font-size:13px}
 }
 
 @media(prefers-reduced-motion:reduce){
-  [data-projects-page] .projects-resource-cta:before{animation:none;--resource-border-angle:42deg}
+  [data-projects-page] .projects-resource-border-run{display:none}
 }
