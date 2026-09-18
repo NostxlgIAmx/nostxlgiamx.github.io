@@ -6,10 +6,12 @@
 
   const NS = 'http://www.w3.org/2000/svg';
   const DATA_CHUNKS = Array.from({ length: 22 }, (_, i) => `../assets/data/durango-ageb-grs-2020.geojson.chunks/${String(i + 1).padStart(2, '0')}.bin`);
+  const CONTEXT_URL = '../assets/data/durango-municipios-2020.geojson';
   const MAP_W = 1000;
   const MAP_H = 700;
-  const MIN_ZOOM_FACTOR = 0.07;
+  const MIN_ZOOM_FACTOR = 0.02;
   const MAX_ZOOM_FACTOR = 2.5;
+  const PAN_THRESHOLD = 8;
   const GRS_ORDER = ['Muy bajo', 'Bajo', 'Medio', 'Alto', 'Muy alto'];
   const GRS_COLORS = {
     'Muy bajo': '#3f707a',
@@ -36,6 +38,11 @@
 [data-projects-page] .ntx-tr-map-wrap{position:relative;z-index:2;min-height:0;overflow:hidden;border:1px solid rgba(114,168,157,.16);border-radius:12px;background:rgba(4,13,16,.44)}
 [data-projects-page] .ntx-tr-svg{display:block;width:100%;height:100%;min-height:330px;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 [data-projects-page] .ntx-tr-svg.is-panning{cursor:grabbing}
+[data-projects-page] .ntx-tr-context{pointer-events:none}
+[data-projects-page] .ntx-tr-state-fill{fill:#102427;fill-opacity:.72;stroke:none}
+[data-projects-page] .ntx-tr-municipality{fill:#13282a;fill-opacity:.18;stroke:#58736f;stroke-width:.9;stroke-opacity:.78;vector-effect:non-scaling-stroke;transition:fill-opacity .14s ease,stroke .14s ease,stroke-width .14s ease}
+[data-projects-page] .ntx-tr-municipality.is-active{fill:#34524f;fill-opacity:.34;stroke:#9ab0ab;stroke-width:1.8;stroke-opacity:.95}
+[data-projects-page] .ntx-tr-state-outline{fill:none;stroke:#819a95;stroke-width:1.75;stroke-opacity:.9;vector-effect:non-scaling-stroke}
 [data-projects-page] .ntx-tr-unit{stroke:#1f3b3d;stroke-width:1.15;vector-effect:non-scaling-stroke;opacity:1;transition:opacity .12s ease,filter .12s ease,stroke .12s ease}
 [data-projects-page] .ntx-tr-unit:hover,[data-projects-page] .ntx-tr-unit.is-hovered{stroke:#f0d083;stroke-width:2;filter:brightness(1.16) saturate(1.04)}
 [data-projects-page] .ntx-tr-unit.is-selected{stroke:#fff0b0;stroke-width:2.5;filter:brightness(1.22) saturate(1.08)}
@@ -46,6 +53,7 @@
 [data-projects-page] .ntx-tr-status{position:absolute;z-index:5;left:10px;top:10px;padding:7px 9px;border:1px solid rgba(114,168,157,.18);border-radius:8px;background:rgba(7,18,21,.82);color:#9bb0ad;font-size:12px;line-height:1.2;backdrop-filter:blur(8px)}
 [data-projects-page] .ntx-tr-status strong{color:#dce8e5;font-weight:700}
 [data-projects-page] .ntx-tr-view-hint{position:absolute;z-index:5;left:10px;bottom:10px;padding:5px 8px;border:1px solid rgba(114,168,157,.14);border-radius:7px;background:rgba(7,18,21,.72);color:#8fa6a2;font-size:11px;line-height:1.2;pointer-events:none;backdrop-filter:blur(6px)}
+[data-projects-page] .ntx-tr-scope{position:absolute;z-index:5;right:10px;bottom:10px;padding:5px 8px;border:1px solid rgba(114,168,157,.12);border-radius:7px;background:rgba(7,18,21,.66);color:#7f9894;font-size:10px;font-weight:700;letter-spacing:.04em;line-height:1.2;pointer-events:none;backdrop-filter:blur(6px)}
 [data-projects-page] .ntx-tr-footer{position:relative;z-index:5;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:10px;min-width:0}
 [data-projects-page] .ntx-tr-detail,[data-projects-page] .ntx-tr-legend{min-width:0;padding:11px 13px;border:1px solid rgba(114,168,157,.2);border-radius:11px;background:rgba(7,18,21,.9);box-shadow:0 12px 25px rgba(0,0,0,.18)}
 [data-projects-page] .ntx-tr-detail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
@@ -78,6 +86,8 @@
   [data-projects-page] .ntx-tr-controls{top:8px;right:8px;gap:5px}
   [data-projects-page] .ntx-tr-controls button{width:42px;height:42px}
   [data-projects-page] .ntx-tr-status{left:8px;top:8px;max-width:calc(100% - 66px);font-size:12px}
+  [data-projects-page] .ntx-tr-view-hint{left:8px;bottom:8px;max-width:calc(100% - 145px)}
+  [data-projects-page] .ntx-tr-scope{right:8px;bottom:8px}
   [data-projects-page] .ntx-tr-detail{grid-template-columns:1fr 1fr;gap:9px 12px;padding:9px 10px}
   [data-projects-page] .ntx-tr-field span,[data-projects-page] .ntx-tr-field strong{font-size:12px}
   [data-projects-page] .ntx-tr-legend{padding:9px 10px}
@@ -102,10 +112,12 @@
     </div>
     <div class="ntx-tr-map-wrap" data-map-wrap>
       <svg class="ntx-tr-svg" viewBox="0 0 ${MAP_W} ${MAP_H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa de AGEB de Durango por grado de rezago social" data-map>
+        <g class="ntx-tr-context" data-context aria-hidden="true"></g>
         <g data-features></g>
       </svg>
       <div class="ntx-tr-status"><strong data-count>—</strong> AGEB visibles</div>
-      <div class="ntx-tr-view-hint" data-view-hint>Vista estatal · filtra un municipio para acercar</div>
+      <div class="ntx-tr-view-hint" data-view-hint>Vista estatal · selecciona un municipio para acercar</div>
+      <div class="ntx-tr-scope">AGEB urbanas · GRS 2020</div>
       <div class="ntx-tr-controls" aria-label="Controles del mapa">
         <button type="button" data-zoom-in aria-label="Acercar">+</button>
         <button type="button" data-zoom-out aria-label="Alejar">−</button>
@@ -125,6 +137,7 @@
 </div>`;
 
   const svg = host.querySelector('[data-map]');
+  const contextLayer = host.querySelector('[data-context]');
   const layer = host.querySelector('[data-features]');
   const municipalitySelect = host.querySelector('[data-municipality]');
   const detail = host.querySelector('[data-detail]');
@@ -135,28 +148,17 @@
   const zoomOutBtn = host.querySelector('[data-zoom-out]');
 
   let records = [];
+  let municipalityRecords = new Map();
   let stateBounds = null;
   let activeBounds = null;
   let selectedRecord = null;
   let hoveredRecord = null;
   let viewBox = { x: 0, y: 0, w: MAP_W, h: MAP_H };
   let drag = null;
-  let suppressClickUntil = 0;
 
   const walkCoords = (coords, fn) => {
     if (typeof coords?.[0] === 'number') fn(coords);
     else if (Array.isArray(coords)) coords.forEach(part => walkCoords(part, fn));
-  };
-
-  const boundsFrom = items => {
-    const b = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
-    items.forEach(item => {
-      b.minX = Math.min(b.minX, item.bounds.minX);
-      b.minY = Math.min(b.minY, item.bounds.minY);
-      b.maxX = Math.max(b.maxX, item.bounds.maxX);
-      b.maxY = Math.max(b.maxY, item.bounds.maxY);
-    });
-    return Number.isFinite(b.minX) ? b : null;
   };
 
   const paddedView = bounds => {
@@ -180,8 +182,11 @@
     const maxH = MAP_H * MAX_ZOOM_FACTOR;
     const minW = MAP_W * MIN_ZOOM_FACTOR;
     const minH = MAP_H * MIN_ZOOM_FACTOR;
-    const w = Math.min(maxW, Math.max(minW, v.w));
-    const h = Math.min(maxH, Math.max(minH, v.h));
+    let scale = 1;
+    if (v.w < minW || v.h < minH) scale = Math.max(minW / v.w, minH / v.h);
+    else if (v.w > maxW || v.h > maxH) scale = Math.min(maxW / v.w, maxH / v.h);
+    const w = v.w * scale;
+    const h = v.h * scale;
     const cx = v.x + v.w / 2;
     const cy = v.y + v.h / 2;
     return { x: cx - w / 2, y: cy - h / 2, w, h };
@@ -226,56 +231,83 @@
 
   const filterMunicipality = code => {
     let visible = 0;
-    const active = [];
     records.forEach(record => {
       const match = !code || record.feature.properties.cve_mun === code;
       record.path.hidden = !match;
       record.path.style.display = match ? '' : 'none';
-      if (match) { visible += 1; active.push(record); }
+      if (match) visible += 1;
+    });
+    municipalityRecords.forEach((record, municipalityCode) => {
+      record.path.classList.toggle('is-active', Boolean(code) && municipalityCode === code);
     });
     count.textContent = visible.toLocaleString('es-MX');
     viewHint.hidden = Boolean(code);
-    activeBounds = boundsFrom(active) || stateBounds;
+    activeBounds = (code && municipalityRecords.get(code)?.bounds) || stateBounds;
     if (selectedRecord && selectedRecord.path.hidden) selectRecord(null);
     setHovered(null);
     fitActive();
   };
 
-  const zoom = factor => {
-    const cx = viewBox.x + viewBox.w / 2;
-    const cy = viewBox.y + viewBox.h / 2;
-    const w = viewBox.w * factor;
-    const h = viewBox.h * factor;
-    setView({ x: cx - w / 2, y: cy - h / 2, w, h });
+  const zoomAt = (factor, clientX = null, clientY = null) => {
+    const minW = MAP_W * MIN_ZOOM_FACTOR;
+    const minH = MAP_H * MIN_ZOOM_FACTOR;
+    const maxW = MAP_W * MAX_ZOOM_FACTOR;
+    const maxH = MAP_H * MAX_ZOOM_FACTOR;
+    const minFactor = Math.max(minW / viewBox.w, minH / viewBox.h);
+    const maxFactor = Math.min(maxW / viewBox.w, maxH / viewBox.h);
+    const effectiveFactor = Math.min(maxFactor, Math.max(minFactor, factor));
+    const w = viewBox.w * effectiveFactor;
+    const h = viewBox.h * effectiveFactor;
+    const rect = svg.getBoundingClientRect();
+    const px = clientX === null ? 0.5 : Math.min(1, Math.max(0, (clientX - rect.left) / Math.max(1, rect.width)));
+    const py = clientY === null ? 0.5 : Math.min(1, Math.max(0, (clientY - rect.top) / Math.max(1, rect.height)));
+    const anchorX = viewBox.x + viewBox.w * px;
+    const anchorY = viewBox.y + viewBox.h * py;
+    setView({ x: anchorX - w * px, y: anchorY - h * py, w, h });
   };
 
-  zoomInBtn.addEventListener('click', () => zoom(0.78));
-  zoomOutBtn.addEventListener('click', () => zoom(1.28));
+  zoomInBtn.addEventListener('click', () => zoomAt(0.66));
+  zoomOutBtn.addEventListener('click', () => zoomAt(1 / 0.66));
   resetBtn.addEventListener('click', fitActive);
   municipalitySelect.addEventListener('change', () => filterMunicipality(municipalitySelect.value));
 
   svg.addEventListener('wheel', event => {
     event.preventDefault();
-    zoom(event.deltaY > 0 ? 1.12 : 0.89);
+    zoomAt(event.deltaY > 0 ? 1.22 : 0.82, event.clientX, event.clientY);
   }, { passive: false });
 
+  const recordFromTarget = target => {
+    const path = target?.closest?.('.ntx-tr-unit');
+    if (!path || path.hidden) return null;
+    return records[Number(path.dataset.index)] || null;
+  };
+
   svg.addEventListener('pointerdown', event => {
+    if (event.isPrimary === false) return;
     if (event.button !== undefined && event.button !== 0) return;
-    drag = { id: event.pointerId, x: event.clientX, y: event.clientY, start: { ...viewBox }, moved: false, touch: event.pointerType === 'touch' };
-    if (!drag.touch) svg.setPointerCapture(event.pointerId);
+    drag = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      start: { ...viewBox },
+      moved: false,
+      touch: event.pointerType === 'touch',
+      record: recordFromTarget(event.target)
+    };
   });
 
   svg.addEventListener('pointermove', event => {
     if (!drag || event.pointerId !== drag.id) return;
     const dx = event.clientX - drag.x;
     const dy = event.clientY - drag.y;
-    if (drag.touch && !drag.moved) {
-      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) { drag = null; return; }
-      if (Math.abs(dx) > 8) { drag.moved = true; try { svg.setPointerCapture(event.pointerId); } catch (_) {} }
-      else return;
-    } else if (!drag.touch && (Math.abs(dx) > 2 || Math.abs(dy) > 2)) drag.moved = true;
-    if (!drag.moved) return;
-    svg.classList.add('is-panning');
+    if (!drag.moved) {
+      if (Math.hypot(dx, dy) < PAN_THRESHOLD) return;
+      if (drag.touch && Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
+      drag.moved = true;
+      svg.classList.add('is-panning');
+      try { svg.setPointerCapture(event.pointerId); } catch (_) {}
+    }
+    event.preventDefault();
     const rect = svg.getBoundingClientRect();
     setView({
       x: drag.start.x - dx * drag.start.w / Math.max(1, rect.width),
@@ -285,19 +317,19 @@
     });
   });
 
-  const endDrag = event => {
+  const finishPointer = (event, cancelled = false) => {
     if (!drag || event.pointerId !== drag.id) return;
-    try { svg.releasePointerCapture(event.pointerId); } catch (_) {}
-    svg.classList.remove('is-panning');
-    if (drag.moved) suppressClickUntil = Date.now() + 250;
+    const interaction = drag;
     drag = null;
+    if (svg.hasPointerCapture?.(event.pointerId)) {
+      try { svg.releasePointerCapture(event.pointerId); } catch (_) {}
+    }
+    svg.classList.remove('is-panning');
+    if (cancelled || interaction.moved) return;
+    selectRecord(interaction.record === selectedRecord ? null : interaction.record);
   };
-  svg.addEventListener('pointerup', endDrag);
-  svg.addEventListener('pointercancel', endDrag);
-  svg.addEventListener('click', event => {
-    if (Date.now() < suppressClickUntil) return;
-    if (!event.target.closest?.('.ntx-tr-unit')) selectRecord(null);
-  });
+  svg.addEventListener('pointerup', event => finishPointer(event));
+  svg.addEventListener('pointercancel', event => finishPointer(event, true));
 
   const loadGeoJSON = async () => {
     const responses = await Promise.all(DATA_CHUNKS.map(url => fetch(url, { cache: 'force-cache' })));
@@ -313,16 +345,28 @@
     return new Response(stream).json();
   };
 
-  loadGeoJSON()
-    .then(data => {
+  const loadContextGeoJSON = async () => {
+    const response = await fetch(CONTEXT_URL, { cache: 'force-cache' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  };
+
+  Promise.all([loadGeoJSON(), loadContextGeoJSON()])
+    .then(([data, contextData]) => {
       const features = Array.isArray(data?.features) ? data.features.filter(f => f?.geometry && f?.properties) : [];
       if (!features.length) throw new Error('GeoJSON sin entidades');
+      const contextFeatures = Array.isArray(contextData?.features)
+        ? contextData.features.filter(feature => feature?.geometry && feature?.properties)
+        : [];
+      const stateFeature = contextFeatures.find(feature => feature.properties.kind === 'state');
+      const municipalityFeatures = contextFeatures.filter(feature => feature.properties.kind === 'municipality');
+      if (!stateFeature || municipalityFeatures.length !== 39) throw new Error('Contexto territorial incompleto');
 
       let minLon = Infinity, minLat = Infinity, maxLon = -Infinity, maxLat = -Infinity;
-      features.forEach(feature => walkCoords(feature.geometry.coordinates, ([lon, lat]) => {
+      walkCoords(stateFeature.geometry.coordinates, ([lon, lat]) => {
         minLon = Math.min(minLon, lon); maxLon = Math.max(maxLon, lon);
         minLat = Math.min(minLat, lat); maxLat = Math.max(maxLat, lat);
-      }));
+      });
       const cosLat = Math.cos(((minLat + maxLat) / 2) * Math.PI / 180);
       const projectedW = (maxLon - minLon) * cosLat;
       const projectedH = maxLat - minLat;
@@ -344,6 +388,44 @@
         ? geometry.coordinates.map(ringPath).join(' ')
         : geometry.coordinates.map(poly => poly.map(ringPath).join(' ')).join(' ');
 
+      const boundsForGeometry = geometry => {
+        const bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+        walkCoords(geometry.coordinates, coord => {
+          const [x, y] = project(coord);
+          bounds.minX = Math.min(bounds.minX, x); bounds.maxX = Math.max(bounds.maxX, x);
+          bounds.minY = Math.min(bounds.minY, y); bounds.maxY = Math.max(bounds.maxY, y);
+        });
+        return bounds;
+      };
+
+      const contextFragment = document.createDocumentFragment();
+      const statePathData = geometryPath(stateFeature.geometry);
+      const stateFill = document.createElementNS(NS, 'path');
+      stateFill.setAttribute('d', statePathData);
+      stateFill.setAttribute('class', 'ntx-tr-state-fill');
+      stateFill.setAttribute('fill-rule', 'evenodd');
+      contextFragment.appendChild(stateFill);
+
+      municipalityRecords = new Map();
+      municipalityFeatures.forEach(feature => {
+        const path = document.createElementNS(NS, 'path');
+        path.setAttribute('d', geometryPath(feature.geometry));
+        path.setAttribute('class', 'ntx-tr-municipality');
+        path.setAttribute('fill-rule', 'evenodd');
+        path.dataset.municipality = feature.properties.cve_mun;
+        const record = { feature, path, bounds: boundsForGeometry(feature.geometry) };
+        municipalityRecords.set(feature.properties.cve_mun, record);
+        contextFragment.appendChild(path);
+      });
+
+      const stateOutline = document.createElementNS(NS, 'path');
+      stateOutline.setAttribute('d', statePathData);
+      stateOutline.setAttribute('class', 'ntx-tr-state-outline');
+      stateOutline.setAttribute('fill-rule', 'evenodd');
+      contextFragment.appendChild(stateOutline);
+      contextLayer.appendChild(contextFragment);
+      stateBounds = boundsForGeometry(stateFeature.geometry);
+
       const fragment = document.createDocumentFragment();
       records = features.map((feature, index) => {
         const path = document.createElementNS(NS, 'path');
@@ -355,26 +437,15 @@
         path.setAttribute('role', 'graphics-symbol');
         path.setAttribute('aria-label', `${feature.properties.nom_mun || ''}, ${feature.properties.nom_loc || ''}, AGEB ${feature.properties.ageb || ''}, GRS ${feature.properties.GRS || ''}`);
 
-        const b = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
-        walkCoords(feature.geometry.coordinates, coord => {
-          const [x, y] = project(coord);
-          b.minX = Math.min(b.minX, x); b.maxX = Math.max(b.maxX, x);
-          b.minY = Math.min(b.minY, y); b.maxY = Math.max(b.maxY, y);
-        });
-        const record = { feature, path, bounds: b };
+        const record = { feature, path };
         path.addEventListener('pointerenter', () => setHovered(record));
         path.addEventListener('pointerleave', () => setHovered(null));
-        path.addEventListener('click', event => {
-          if (Date.now() < suppressClickUntil) return;
-          event.stopPropagation();
-          selectRecord(record === selectedRecord ? null : record);
-        });
         fragment.appendChild(path);
         return record;
       });
       layer.appendChild(fragment);
 
-      const municipalities = [...new Map(features.map(f => [f.properties.cve_mun, f.properties.nom_mun])).entries()]
+      const municipalities = municipalityFeatures.map(feature => [feature.properties.cve_mun, feature.properties.name])
         .filter(([code, name]) => code && name)
         .sort((a, b) => a[1].localeCompare(b[1], 'es'));
       const options = document.createDocumentFragment();
@@ -386,7 +457,6 @@
       });
       municipalitySelect.appendChild(options);
 
-      stateBounds = boundsFrom(records);
       activeBounds = stateBounds;
       count.textContent = records.length.toLocaleString('es-MX');
       requestAnimationFrame(fitActive);
@@ -394,9 +464,12 @@
       window.__NTX_TERRITORY_STATE__ = {
         featureCount: records.length,
         municipalityCount: municipalities.length,
+        contextSource: contextData.source,
         grsCategories: GRS_ORDER.slice(),
         get visibleCount() { return records.filter(r => !r.path.hidden).length; },
-        get municipality() { return municipalitySelect.value; }
+        get municipality() { return municipalitySelect.value; },
+        get selectedAgeb() { return selectedRecord?.feature.properties.ageb || null; },
+        get viewBox() { return { ...viewBox }; }
       };
     })
     .catch(error => {
