@@ -46,20 +46,6 @@
       if (intro) intro.textContent = 'Análisis de datos, analítica y tecnología e inteligencia electoral encabezan una oferta que también integra cartografía, planeación y evaluación. El alcance se adapta al problema, la información disponible y quién utilizará el resultado.';
     }
 
-    const familyContainer = [...document.querySelectorAll('main .section-pad>.container')].find((container) => container.querySelector(':scope > .service-family'));
-    if (familyContainer) {
-      const cta = familyContainer.querySelector(':scope > .cta');
-      order.forEach((id, index) => {
-        const family = familyContainer.querySelector(`:scope > #${id}`);
-        if (!family) return;
-        const no = family.querySelector('.service-family-no');
-        if (no) no.textContent = String(index + 1).padStart(2, '0');
-        familyContainer.insertBefore(family, cta || null);
-      });
-      const aside = document.querySelector('.page-hero .page-aside');
-      if (aside) aside.innerHTML = '<strong>Áreas</strong>Análisis de datos · Analítica y tecnología · Inteligencia electoral · Soluciones cartográficas · Planeación y gestión pública · Evaluación';
-      if (location.hash) requestAnimationFrame(() => { try { document.querySelector(location.hash)?.scrollIntoView({block:'start'}); } catch {} });
-    }
 
   };
 
