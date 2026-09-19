@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const host = document.querySelector('[data-services-page] .data-projects-cta');
+  const host = document.querySelector('[data-data-library] .data-projects-cta');
   const canvas = host?.querySelector('.data-projects-beam');
   if (!host || !canvas) return;
 
