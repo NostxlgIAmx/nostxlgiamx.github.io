@@ -38,11 +38,11 @@
 [data-projects-page] .ntx-tr-map-wrap{position:relative;z-index:2;min-height:0;overflow:hidden;border:1px solid rgba(114,168,157,.16);border-radius:12px;background:rgba(4,13,16,.44)}
 [data-projects-page] .ntx-tr-svg{display:block;width:100%;height:100%;min-height:330px;cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 [data-projects-page] .ntx-tr-svg.is-panning{cursor:grabbing}
-[data-projects-page] .ntx-tr-context{pointer-events:none}
-[data-projects-page] .ntx-tr-state-fill{fill:#102427;fill-opacity:.72;stroke:none}
-[data-projects-page] .ntx-tr-municipality{fill:#13282a;fill-opacity:.18;stroke:#58736f;stroke-width:.9;stroke-opacity:.78;vector-effect:non-scaling-stroke;transition:fill-opacity .14s ease,stroke .14s ease,stroke-width .14s ease}
-[data-projects-page] .ntx-tr-municipality.is-active{fill:#34524f;fill-opacity:.34;stroke:#9ab0ab;stroke-width:1.8;stroke-opacity:.95}
-[data-projects-page] .ntx-tr-state-outline{fill:none;stroke:#819a95;stroke-width:1.75;stroke-opacity:.9;vector-effect:non-scaling-stroke}
+[data-projects-page] .ntx-tr-context{pointer-events:auto}
+[data-projects-page] .ntx-tr-state-fill{fill:#102427;fill-opacity:.72;stroke:none;pointer-events:none}
+[data-projects-page] .ntx-tr-municipality{fill:#13282a;fill-opacity:.18;stroke:#58736f;stroke-width:.9;stroke-opacity:.78;vector-effect:non-scaling-stroke;pointer-events:visiblePainted;cursor:pointer;transition:fill .14s ease,fill-opacity .14s ease,stroke .14s ease,stroke-width .14s ease,filter .14s ease}
+[data-projects-page] .ntx-tr-municipality.is-active,[data-projects-page] .ntx-tr-municipality.is-preview{fill:#34524f;fill-opacity:.34;stroke:#9ab0ab;stroke-width:1.8;stroke-opacity:.95;filter:brightness(1.12)}
+[data-projects-page] .ntx-tr-state-outline{fill:none;stroke:#819a95;stroke-width:1.75;stroke-opacity:.9;vector-effect:non-scaling-stroke;pointer-events:none}
 [data-projects-page] .ntx-tr-unit{stroke:#1f3b3d;stroke-width:1.15;vector-effect:non-scaling-stroke;opacity:1;transition:opacity .12s ease,filter .12s ease,stroke .12s ease}
 [data-projects-page] .ntx-tr-unit:hover,[data-projects-page] .ntx-tr-unit.is-hovered{stroke:#f0d083;stroke-width:2;filter:brightness(1.16) saturate(1.04)}
 [data-projects-page] .ntx-tr-unit.is-selected{stroke:#fff0b0;stroke-width:2.5;filter:brightness(1.22) saturate(1.08)}
@@ -153,6 +153,7 @@
   let activeBounds = null;
   let selectedRecord = null;
   let hoveredRecord = null;
+  let previewMunicipalityCode = null;
   let viewBox = { x: 0, y: 0, w: MAP_W, h: MAP_H };
   let drag = null;
 
@@ -229,6 +230,13 @@
     showDetail(record);
   };
 
+  const setMunicipalityPreview = code => {
+    previewMunicipalityCode = code || null;
+    municipalityRecords.forEach((record, municipalityCode) => {
+      record.path.classList.toggle('is-preview', Boolean(code) && municipalityCode === code && municipalitySelect.value !== code);
+    });
+  };
+
   const filterMunicipality = code => {
     let visible = 0;
     records.forEach(record => {
@@ -245,6 +253,7 @@
     activeBounds = (code && municipalityRecords.get(code)?.bounds) || stateBounds;
     if (selectedRecord && selectedRecord.path.hidden) selectRecord(null);
     setHovered(null);
+    setMunicipalityPreview(null);
     fitActive();
   };
 
@@ -282,6 +291,13 @@
     return records[Number(path.dataset.index)] || null;
   };
 
+  const municipalityCodeFromTarget = target => {
+    const unit = target?.closest?.('.ntx-tr-unit');
+    if (unit && !unit.hidden) return unit.dataset.municipality || null;
+    const municipality = target?.closest?.('.ntx-tr-municipality');
+    return municipality?.dataset.municipality || null;
+  };
+
   svg.addEventListener('pointerdown', event => {
     if (event.isPrimary === false) return;
     if (event.button !== undefined && event.button !== 0) return;
@@ -292,11 +308,13 @@
       start: { ...viewBox },
       moved: false,
       touch: event.pointerType === 'touch',
-      record: recordFromTarget(event.target)
+      record: recordFromTarget(event.target),
+      municipalityCode: municipalityCodeFromTarget(event.target)
     };
   });
 
   svg.addEventListener('pointermove', event => {
+    if (event.pointerType === 'mouse') setMunicipalityPreview(municipalityCodeFromTarget(event.target));
     if (!drag || event.pointerId !== drag.id) return;
     const dx = event.clientX - drag.x;
     const dy = event.clientY - drag.y;
@@ -326,10 +344,19 @@
     }
     svg.classList.remove('is-panning');
     if (cancelled || interaction.moved) return;
+    if (interaction.touch && interaction.municipalityCode && municipalitySelect.value !== interaction.municipalityCode) {
+      municipalitySelect.value = interaction.municipalityCode;
+      filterMunicipality(interaction.municipalityCode);
+      return;
+    }
     selectRecord(interaction.record === selectedRecord ? null : interaction.record);
   };
   svg.addEventListener('pointerup', event => finishPointer(event));
   svg.addEventListener('pointercancel', event => finishPointer(event, true));
+  svg.addEventListener('pointerleave', event => {
+    if (event.pointerType === 'mouse' || previewMunicipalityCode) setMunicipalityPreview(null);
+    setHovered(null);
+  });
 
   const loadGeoJSON = async () => {
     const responses = await Promise.all(DATA_CHUNKS.map(url => fetch(url, { cache: 'force-cache' })));
@@ -469,6 +496,7 @@
         get visibleCount() { return records.filter(r => !r.path.hidden).length; },
         get municipality() { return municipalitySelect.value; },
         get selectedAgeb() { return selectedRecord?.feature.properties.ageb || null; },
+        get previewMunicipality() { return previewMunicipalityCode; },
         get viewBox() { return { ...viewBox }; }
       };
     })
