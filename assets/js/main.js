@@ -211,6 +211,7 @@
     const root = document.querySelector('[data-data-library]');
     if (!root) return;
     root.querySelectorAll('.source-viz-card').forEach((card, index) => {
+      if (card.dataset.vizHelp === 'off') return;
       const stage = card.querySelector('.dv-stage:not([hidden])');
       const info = stage ? VIZ_INFO[stage.dataset.viz] : null;
       const copy = card.querySelector('.source-viz-copy');
