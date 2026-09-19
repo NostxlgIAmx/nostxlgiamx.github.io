@@ -240,3 +240,250 @@
     transform:none;
   }
 }
+
+
+/* ==========================================================================
+   Servicios · fase 2 · familias y capacidades
+   ========================================================================== */
+
+[data-services-page] .services-catalog{
+  padding:54px 0 58px;
+}
+[data-services-page] .services-family-list{
+  display:grid;
+  gap:22px;
+}
+
+/* Cada familia es una sola superficie editorial; no se comporta como botón. */
+[data-services-page] .service-family{
+  --service-accent:#43c7da;
+  --service-rgb:67,199,218;
+  position:relative;
+  isolation:isolate;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  border:1px solid rgba(var(--service-rgb),.25);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 5% 0%,rgba(var(--service-rgb),.10),transparent 31%),
+    linear-gradient(145deg,rgba(var(--service-rgb),.025),#101925 34%,#0c151f);
+  box-shadow:0 20px 48px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.015);
+  transform:none!important;
+  transition:border-color .18s ease,background .18s ease;
+}
+[data-services-page] .service-family:hover{
+  transform:none!important;
+  border-color:rgba(var(--service-rgb),.34);
+  background:
+    radial-gradient(circle at 5% 0%,rgba(var(--service-rgb),.12),transparent 33%),
+    linear-gradient(145deg,rgba(var(--service-rgb),.034),#101a27 34%,#0d1621);
+}
+[data-services-page] .service-family:before{
+  content:"";
+  position:absolute;
+  z-index:2;
+  left:16px;
+  right:16px;
+  top:-1px;
+  height:2px;
+  border-radius:999px;
+  background:linear-gradient(90deg,rgba(var(--service-rgb),0),var(--service-accent) 20%,rgba(var(--service-rgb),.34) 72%,rgba(var(--service-rgb),0));
+  opacity:.78;
+  pointer-events:none;
+}
+
+[data-services-page] #datos{
+  --service-accent:#43c7da;
+  --service-rgb:67,199,218;
+}
+[data-services-page] #tecnologia{
+  --service-accent:#8a6fea;
+  --service-rgb:138,111,234;
+}
+[data-services-page] #electoral{
+  --service-accent:#b86c78;
+  --service-rgb:184,108,120;
+}
+[data-services-page] #cartografia{
+  --service-accent:#72a8a1;
+  --service-rgb:114,168,161;
+}
+[data-services-page] #planeacion{
+  --service-accent:#d8b466;
+  --service-rgb:216,180,102;
+}
+[data-services-page] #evaluacion{
+  --service-accent:#a98adc;
+  --service-rgb:169,138,220;
+}
+
+[data-services-page] .service-family-head{
+  display:grid;
+  grid-template-columns:82px minmax(0,1fr);
+  gap:22px;
+  align-items:start;
+  padding:28px 30px 26px;
+  border-bottom:1px solid rgba(var(--service-rgb),.16);
+  background:linear-gradient(90deg,rgba(var(--service-rgb),.022),transparent 52%);
+}
+[data-services-page] .service-family .service-family-no{
+  color:var(--service-accent);
+  font-family:"Instrument Serif",Georgia,serif;
+  font-size:48px!important;
+  font-weight:400;
+  line-height:.88;
+  letter-spacing:-.035em;
+  opacity:.96;
+}
+[data-services-page] .service-family .service-family-no:after{
+  content:none!important;
+  display:none!important;
+}
+[data-services-page] .service-family-head>div:last-child{
+  min-width:0;
+}
+[data-services-page] .service-family .category{
+  color:var(--service-accent);
+  font-size:10.5px;
+  font-weight:800;
+  line-height:1.35;
+  letter-spacing:.125em;
+}
+[data-services-page] .service-family-head h2{
+  max-width:19ch;
+  margin:7px 0 11px;
+  color:#f2f5f7;
+  font-family:"Instrument Serif",Georgia,serif;
+  font-size:clamp(37px,3.4vw,44px);
+  font-weight:400;
+  line-height:.98;
+  letter-spacing:-.018em;
+  text-wrap:balance;
+}
+[data-services-page] .service-family-head p{
+  max-width:900px;
+  margin:0;
+  color:#acb8c6;
+  font-size:14.25px;
+  line-height:1.68;
+}
+
+/* Las capacidades forman parte de la misma superficie, no tarjetas anidadas. */
+[data-services-page] .subservices{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:1px;
+  padding:0;
+  background:rgba(var(--service-rgb),.13);
+}
+[data-services-page] #tecnologia .subservices{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+[data-services-page] .subservice{
+  min-width:0;
+  min-height:0;
+  padding:22px 24px 24px;
+  border:0;
+  background:rgba(11,20,30,.96);
+  transition:background .16s ease;
+}
+[data-services-page] .subservice:hover{
+  background:
+    linear-gradient(145deg,rgba(var(--service-rgb),.048),rgba(12,22,32,.98) 54%);
+}
+[data-services-page] .subservice h3{
+  margin:0 0 9px;
+  color:#edf2f6;
+  font-size:17px;
+  font-weight:700;
+  line-height:1.3;
+}
+[data-services-page] .subservice p{
+  margin:0;
+  color:#a5b1bf;
+  font-size:13.25px;
+  line-height:1.64;
+}
+
+/* La sección ya tiene su propio ritmo; anulamos el margen histórico de cada card. */
+[data-services-page] .services-family-list>.service-family{
+  margin-bottom:0;
+}
+
+@media(max-width:1080px){
+  [data-services-page] .services-catalog{
+    padding:48px 0 54px;
+  }
+  [data-services-page] .service-family-head{
+    grid-template-columns:72px minmax(0,1fr);
+    gap:18px;
+    padding:26px 27px 24px;
+  }
+  [data-services-page] .service-family .service-family-no{
+    font-size:44px!important;
+  }
+  [data-services-page] .subservices,
+  [data-services-page] #tecnologia .subservices{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:700px){
+  [data-services-page] .services-catalog{
+    padding:38px 0 46px;
+  }
+  [data-services-page] .services-family-list{
+    gap:16px;
+  }
+  [data-services-page] .service-family{
+    border-radius:16px;
+  }
+  [data-services-page] .service-family-head{
+    grid-template-columns:56px minmax(0,1fr);
+    gap:13px;
+    padding:23px 20px 21px;
+  }
+  [data-services-page] .service-family .service-family-no{
+    font-size:39px!important;
+  }
+  [data-services-page] .service-family .category{
+    font-size:10px;
+  }
+  [data-services-page] .service-family-head h2{
+    margin-top:5px;
+    font-size:34px;
+  }
+  [data-services-page] .service-family-head p{
+    font-size:13.5px;
+    line-height:1.64;
+  }
+  [data-services-page] .subservices,
+  [data-services-page] #tecnologia .subservices{
+    grid-template-columns:1fr;
+  }
+  [data-services-page] .subservice{
+    padding:19px 20px 20px;
+  }
+  [data-services-page] .subservice h3{
+    font-size:16.5px;
+  }
+  [data-services-page] .subservice p{
+    font-size:13px;
+    line-height:1.6;
+  }
+}
+
+@media(max-width:420px){
+  [data-services-page] .service-family-head{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  [data-services-page] .service-family .service-family-no{
+    font-size:36px!important;
+  }
+  [data-services-page] .service-family-head h2{
+    max-width:none;
+    font-size:32px;
+  }
+}
