@@ -139,3 +139,186 @@
  .data-projects-copy{padding:30px 24px}.data-projects-action{padding:24px}.data-projects-copy>p{font-size:13px}
  [data-data-library] .source-method{grid-template-columns:1fr;gap:7px}
 }
+
+
+/* ==========================================================================
+   Datos · ajustes puntuales solicitados · 2026-09-19
+   ========================================================================== */
+
+/* Hero tras retirar la tira de métricas y "Colección inicial". */
+[data-data-library] .page-hero-grid{
+  grid-template-columns:minmax(0,920px);
+  align-items:start;
+}
+[data-data-library] .page-hero p{
+  max-width:820px;
+}
+[data-data-library] .collection-strip,
+[data-data-library] .page-aside{
+  display:none!important;
+}
+
+/* ENBIARE · salud mental: eliminar la altura artificial que generaba aire vacío. */
+[data-data-library] .source-viz-card:has([data-viz="enbiare-mental"]) .dv-stage{
+  min-height:0;
+  padding:18px 24px 20px;
+}
+[data-data-library] [data-viz="enbiare-mental"]{
+  min-height:0;
+  justify-content:flex-start;
+}
+
+/* Tarjeta final: una sola superficie, sin panel interno ni chips. */
+[data-data-library] .data-projects-section{
+  padding-top:42px!important;
+  padding-bottom:68px!important;
+}
+[data-data-library] .data-projects-cta{
+  position:relative;
+  isolation:isolate;
+  display:grid;
+  grid-template-columns:minmax(0,1.12fr) minmax(330px,.88fr);
+  gap:42px;
+  align-items:center;
+  padding:38px 46px;
+  overflow:visible;
+  border:1px solid rgba(138,111,234,.27);
+  border-right-color:rgba(67,199,218,.22);
+  border-bottom-color:rgba(216,180,102,.18);
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(138,111,234,.17),transparent 34%),
+    radial-gradient(circle at 96% 92%,rgba(67,199,218,.11),transparent 34%),
+    radial-gradient(circle at 72% 6%,rgba(216,180,102,.055),transparent 22%),
+    linear-gradient(135deg,#151b2a,#0d1723 58%,#101a26);
+  box-shadow:0 24px 62px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.022);
+}
+[data-data-library] .data-projects-cta:before{
+  content:none;
+}
+[data-data-library] .data-projects-heading,
+[data-data-library] .data-projects-action{
+  position:relative;
+  z-index:4;
+  min-width:0;
+}
+[data-data-library] .data-projects-heading .eyebrow{
+  margin-bottom:12px;
+  color:#a98cea;
+}
+[data-data-library] .data-projects-heading h2{
+  max-width:16.5ch;
+  margin:0;
+  color:#f4f6f9;
+  font-family:"Instrument Serif",Georgia,serif;
+  font-size:clamp(44px,4.2vw,57px);
+  font-weight:400;
+  line-height:.98;
+  letter-spacing:-.018em;
+  text-wrap:balance;
+}
+[data-data-library] .data-projects-action{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:18px;
+  padding:0;
+  border:0;
+  background:none;
+}
+[data-data-library] .data-projects-action p{
+  max-width:520px;
+  margin:0;
+  color:#b4c0cd;
+  font-size:15px;
+  line-height:1.66;
+  text-wrap:pretty;
+}
+[data-data-library] .data-projects-button{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  min-width:190px;
+  min-height:52px;
+  padding:0 20px;
+  border:1px solid rgba(155,127,236,.86);
+  border-radius:9px;
+  background:linear-gradient(135deg,#7654d7,#6241c0);
+  box-shadow:0 15px 32px rgba(84,57,167,.24);
+  color:#fff;
+  font-size:13.5px;
+  font-weight:800;
+}
+[data-data-library] .data-projects-button span{
+  font-size:19px;
+  transition:transform .18s ease;
+}
+[data-data-library] .data-projects-button:hover{
+  background:linear-gradient(135deg,#8261df,#6c49c9);
+  box-shadow:0 17px 36px rgba(84,57,167,.31);
+}
+[data-data-library] .data-projects-button:hover span{
+  transform:translateX(3px);
+}
+[data-data-library] .data-projects-beam{
+  position:absolute;
+  z-index:3;
+  left:-10px;
+  top:-10px;
+  display:block;
+  pointer-events:none;
+  overflow:visible;
+}
+
+@media(max-width:900px){
+  [data-data-library] .page-hero-grid{
+    grid-template-columns:1fr;
+  }
+  [data-data-library] .data-projects-cta{
+    grid-template-columns:1fr;
+    gap:21px;
+    padding:34px 32px;
+  }
+  [data-data-library] .data-projects-heading h2{
+    max-width:17ch;
+  }
+}
+
+@media(max-width:640px){
+  [data-data-library] .source-viz-card:has([data-viz="enbiare-mental"]) .dv-stage{
+    min-height:0;
+    padding:16px;
+  }
+  [data-data-library] .data-projects-section{
+    padding-top:28px!important;
+    padding-bottom:50px!important;
+  }
+  [data-data-library] .data-projects-cta{
+    padding:29px 23px 27px;
+    border-radius:16px;
+  }
+  [data-data-library] .data-projects-heading h2{
+    max-width:14ch;
+    font-size:40px;
+  }
+  [data-data-library] .data-projects-action{
+    gap:15px;
+  }
+  [data-data-library] .data-projects-action p{
+    font-size:14px;
+    line-height:1.62;
+  }
+  [data-data-library] .data-projects-button{
+    width:100%;
+    min-height:52px;
+    font-size:13px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  [data-data-library] .data-projects-beam{
+    display:none;
+  }
+}
