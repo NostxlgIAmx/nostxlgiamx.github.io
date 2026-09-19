@@ -487,3 +487,183 @@
     font-size:32px;
   }
 }
+
+
+/* ==========================================================================
+   Servicios · fase 3 · cierre, ritmo y responsive final
+   ========================================================================== */
+
+[data-services-page] .service-family:target{
+  border-color:rgba(var(--service-rgb),.48);
+  box-shadow:0 22px 52px rgba(0,0,0,.18),0 0 0 1px rgba(var(--service-rgb),.08),inset 0 1px 0 rgba(255,255,255,.018);
+}
+
+[data-services-page] .services-closing-cta{
+  position:relative;
+  isolation:isolate;
+  display:grid;
+  grid-template-columns:minmax(0,1.12fr) minmax(340px,.88fr);
+  gap:42px;
+  align-items:center;
+  margin-top:14px;
+  padding:38px 46px;
+  overflow:hidden;
+  border:1px solid rgba(138,111,234,.27);
+  border-right-color:rgba(67,199,218,.22);
+  border-bottom-color:rgba(216,180,102,.18);
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(138,111,234,.17),transparent 34%),
+    radial-gradient(circle at 96% 92%,rgba(67,199,218,.11),transparent 34%),
+    radial-gradient(circle at 72% 6%,rgba(216,180,102,.055),transparent 22%),
+    linear-gradient(135deg,#151b2a,#0d1723 58%,#101a26);
+  box-shadow:0 24px 62px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.022);
+}
+[data-services-page] .services-closing-cta:before{
+  content:"";
+  position:absolute;
+  z-index:1;
+  left:18px;
+  right:18px;
+  top:-1px;
+  height:2px;
+  border-radius:999px;
+  background:linear-gradient(90deg,transparent,#8a6fea 13%,#43c7da 48%,#d8b466 76%,transparent);
+  opacity:.72;
+}
+[data-services-page] .services-closing-cta:after{
+  content:"";
+  position:absolute;
+  z-index:0;
+  width:260px;
+  height:260px;
+  right:-90px;
+  bottom:-130px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(67,199,218,.09),transparent 67%);
+  pointer-events:none;
+}
+[data-services-page] .services-closing-copy,
+[data-services-page] .services-closing-action{
+  position:relative;
+  z-index:2;
+  min-width:0;
+}
+[data-services-page] .services-closing-copy .eyebrow{
+  margin-bottom:12px;
+  color:#a98cea;
+}
+[data-services-page] .services-closing-copy h2{
+  max-width:16.5ch;
+  margin:0;
+  font-size:clamp(44px,4.2vw,57px);
+  line-height:.98;
+  text-wrap:balance;
+}
+[data-services-page] .services-closing-action{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:18px;
+}
+[data-services-page] .services-closing-action p{
+  max-width:520px;
+  margin:0;
+  color:#b4c0cd;
+  font-size:15px;
+  line-height:1.66;
+}
+[data-services-page] .services-closing-action .btn{
+  min-height:52px;
+  margin:0;
+  padding:0 23px;
+  border-color:rgba(155,127,236,.86);
+  background:linear-gradient(135deg,#7654d7,#6241c0);
+  box-shadow:0 15px 32px rgba(84,57,167,.24);
+  font-size:13.5px;
+}
+[data-services-page] .services-closing-action .btn:hover{
+  background:linear-gradient(135deg,#8261df,#6c49c9);
+  box-shadow:0 17px 36px rgba(84,57,167,.31);
+}
+
+/* Ritmo de lectura: catálogo compacto pero no apretado. */
+[data-services-page] .services-catalog.section{
+  border-bottom:0;
+}
+[data-services-page] .services-family-list{
+  align-items:stretch;
+}
+[data-services-page] .service-family-head p,
+[data-services-page] .subservice p{
+  text-wrap:pretty;
+}
+
+/* Tablet: protege anchuras y evita bloques excesivamente altos. */
+@media(max-width:1080px){
+  [data-services-page] .services-closing-cta{
+    grid-template-columns:minmax(0,1.06fr) minmax(300px,.94fr);
+    gap:32px;
+    padding:35px 36px;
+  }
+  [data-services-page] .services-closing-copy h2{
+    font-size:48px;
+  }
+}
+
+@media(max-width:860px){
+  [data-services-page] .services-catalog{
+    padding-top:42px;
+  }
+  [data-services-page] .services-family-list{
+    gap:18px;
+  }
+  [data-services-page] .services-closing-cta{
+    grid-template-columns:1fr;
+    gap:21px;
+    padding:34px 32px;
+  }
+  [data-services-page] .services-closing-copy h2{
+    max-width:17ch;
+  }
+  [data-services-page] .services-closing-action p{
+    max-width:680px;
+  }
+}
+
+@media(max-width:700px){
+  [data-services-page] .services-index-link:hover,
+  [data-services-page] .services-index-link:focus-visible{
+    transform:none;
+  }
+  [data-services-page] .subservice:hover{
+    background:rgba(11,20,30,.96);
+  }
+  [data-services-page] .services-closing-cta{
+    margin-top:4px;
+    padding:29px 23px 27px;
+    border-radius:16px;
+  }
+  [data-services-page] .services-closing-copy h2{
+    max-width:14ch;
+    font-size:40px;
+  }
+  [data-services-page] .services-closing-action{
+    gap:15px;
+  }
+  [data-services-page] .services-closing-action p{
+    font-size:14px;
+    line-height:1.62;
+  }
+  [data-services-page] .services-closing-action .btn{
+    width:100%;
+    min-height:52px;
+    font-size:13px;
+  }
+}
+
+@media(max-width:420px){
+  [data-services-page] .services-closing-copy h2{
+    font-size:37px;
+  }
+}
