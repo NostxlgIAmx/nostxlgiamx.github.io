@@ -86,19 +86,19 @@
 [data-projects-page] .projects-resource-border{position:absolute;z-index:3;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 [data-projects-page] .projects-resource-border-run{x:.5px;y:.5px;width:calc(100% - 1px);height:calc(100% - 1px);rx:19.5px;ry:19.5px;fill:none;vector-effect:non-scaling-stroke;stroke-linecap:round;animation:resource-border-travel 14s linear infinite}
 [data-projects-page] .projects-resource-beam-glow .projects-resource-border-run{mix-blend-mode:screen}
-[data-projects-page] .projects-resource-beam-glow--outer{stroke:#748fc7;stroke-width:1.8;stroke-dasharray:12.1 87.9;opacity:.05;filter:blur(3.4px)}
-[data-projects-page] .projects-resource-beam-glow--inner{stroke:#76cbd2;stroke-width:2;stroke-dasharray:10.9 89.1;opacity:.09;filter:blur(1.4px)}
-[data-projects-page] .projects-resource-beam-spectrum .projects-resource-border-run{stroke:currentColor;stroke-width:1.45;stroke-dasharray:1.9 98.1;opacity:var(--beam-opacity);filter:blur(.35px) drop-shadow(0 0 1.2px currentColor);mix-blend-mode:screen}
-[data-projects-page] .projects-resource-beam--1{color:#8d70d6;--beam-opacity:.10}
-[data-projects-page] .projects-resource-beam--2{color:#526fc8;--beam-opacity:.24;animation-delay:-.15s}
-[data-projects-page] .projects-resource-beam--3{color:#5aaed2;--beam-opacity:.42;animation-delay:-.30s}
-[data-projects-page] .projects-resource-beam--4{color:#52bda9;--beam-opacity:.62;animation-delay:-.45s}
-[data-projects-page] .projects-resource-beam--5{color:#d7b774;--beam-opacity:.82;animation-delay:-.60s}
-[data-projects-page] .projects-resource-beam--6{color:#52bda9;--beam-opacity:.62;animation-delay:-.75s}
-[data-projects-page] .projects-resource-beam--7{color:#5aaed2;--beam-opacity:.42;animation-delay:-.90s}
-[data-projects-page] .projects-resource-beam--8{color:#526fc8;--beam-opacity:.24;animation-delay:-1.05s}
-[data-projects-page] .projects-resource-beam--9{color:#8d70d6;--beam-opacity:.10;animation-delay:-1.20s}
-[data-projects-page] .projects-resource-beam-core{stroke:#f2eee2;stroke-width:1.3;stroke-dasharray:.95 99.05;opacity:.96;filter:drop-shadow(0 0 1.3px rgba(225,245,244,.46));animation-delay:-.60s}
+[data-projects-page] .projects-resource-beam-glow--outer{stroke:#677bb3;stroke-width:1.5;stroke-dasharray:22.8 77.2;opacity:.035;filter:blur(8px)}
+[data-projects-page] .projects-resource-beam-glow--inner{stroke:#76b6c4;stroke-width:1.9;stroke-dasharray:21.2 78.8;opacity:.12;filter:blur(3.4px)}
+[data-projects-page] .projects-resource-beam-spectrum .projects-resource-border-run{stroke:currentColor;stroke-width:1.6;stroke-dasharray:3.8 96.2;opacity:var(--beam-opacity);filter:blur(.45px) drop-shadow(0 0 1.3px currentColor);mix-blend-mode:screen}
+[data-projects-page] .projects-resource-beam--1{color:#8d70d6;--beam-opacity:.025}
+[data-projects-page] .projects-resource-beam--2{color:#526fc8;--beam-opacity:.11;animation-delay:-.30s}
+[data-projects-page] .projects-resource-beam--3{color:#5aaed2;--beam-opacity:.28;animation-delay:-.60s}
+[data-projects-page] .projects-resource-beam--4{color:#52bda9;--beam-opacity:.52;animation-delay:-.90s}
+[data-projects-page] .projects-resource-beam--5{color:#d7b774;--beam-opacity:.78;stroke-dasharray:2.3 97.7;animation-delay:-1.20s}
+[data-projects-page] .projects-resource-beam--6{color:#52bda9;--beam-opacity:.52;animation-delay:-1.50s}
+[data-projects-page] .projects-resource-beam--7{color:#5aaed2;--beam-opacity:.28;animation-delay:-1.80s}
+[data-projects-page] .projects-resource-beam--8{color:#526fc8;--beam-opacity:.11;animation-delay:-2.10s}
+[data-projects-page] .projects-resource-beam--9{color:#8d70d6;--beam-opacity:.025;animation-delay:-2.40s}
+[data-projects-page] .projects-resource-beam-core{stroke:#f4ead8;stroke-width:1.75;stroke-dasharray:1.1 98.9;opacity:.98;filter:drop-shadow(0 0 2px rgba(237,245,239,.58));animation-delay:-1.20s}
 [data-projects-page] .projects-resource-copy{position:relative;z-index:4;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(340px,.88fr);gap:40px;align-items:center;width:100%}
 [data-projects-page] .projects-resource-heading,[data-projects-page] .projects-resource-action{min-width:0}
 [data-projects-page] .projects-resource-heading .eyebrow{display:block;margin:0 0 12px;color:#aa91ff;font-size:11px;font-weight:800;letter-spacing:.13em}
