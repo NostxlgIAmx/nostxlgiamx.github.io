@@ -667,3 +667,132 @@
     font-size:37px;
   }
 }
+
+
+/* ==========================================================================
+   Servicios · haz móvil integrado · mantiene la tarjeta de fase 3
+   ========================================================================== */
+
+@property --services-beam-angle{
+  syntax:"<angle>";
+  inherits:true;
+  initial-value:0deg;
+}
+
+[data-services-page] .services-closing-cta:before{
+  content:none;
+}
+
+[data-services-page] .services-moving-beam{
+  --services-beam-angle:0deg;
+  position:absolute;
+  z-index:3;
+  inset:-1px;
+  display:block;
+  box-sizing:border-box;
+  border-radius:inherit;
+  padding:1px;
+  pointer-events:none;
+  background:
+    conic-gradient(
+      from var(--services-beam-angle) at 50% 50%,
+      transparent 0deg 296deg,
+      rgba(138,111,234,0) 298deg,
+      rgba(138,111,234,.46) 305deg,
+      #8a6fea 313deg,
+      #43c7da 333deg,
+      #d8b466 351deg,
+      rgba(216,180,102,.28) 356deg,
+      rgba(216,180,102,0) 360deg
+    );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  animation:services-beam-orbit 12.5s linear infinite;
+}
+
+[data-services-page] .services-moving-beam:before,
+[data-services-page] .services-moving-beam:after{
+  content:"";
+  position:absolute;
+  box-sizing:border-box;
+  border-radius:inherit;
+  pointer-events:none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+}
+
+/* Refuerzo central: el haz se vuelve ligeramente más ancho en la zona media. */
+[data-services-page] .services-moving-beam:before{
+  inset:0;
+  padding:2.15px;
+  opacity:.72;
+  background:
+    conic-gradient(
+      from var(--services-beam-angle) at 50% 50%,
+      transparent 0deg 307deg,
+      rgba(138,111,234,0) 309deg,
+      rgba(138,111,234,.34) 315deg,
+      #8a6fea 320deg,
+      #43c7da 334deg,
+      #d8b466 347deg,
+      rgba(216,180,102,.22) 352deg,
+      rgba(216,180,102,0) 356deg,
+      transparent 360deg
+    );
+}
+
+/* Halo tenue: acompaña exactamente el mismo orden cromático sin reciclar colores. */
+[data-services-page] .services-moving-beam:after{
+  inset:-2px;
+  padding:4.4px;
+  opacity:.19;
+  filter:blur(4px);
+  background:
+    conic-gradient(
+      from var(--services-beam-angle) at 50% 50%,
+      transparent 0deg 292deg,
+      rgba(138,111,234,0) 296deg,
+      rgba(138,111,234,.40) 305deg,
+      #8a6fea 314deg,
+      #43c7da 333deg,
+      #d8b466 351deg,
+      rgba(216,180,102,.20) 357deg,
+      rgba(216,180,102,0) 360deg
+    );
+}
+
+[data-services-page] .services-closing-copy,
+[data-services-page] .services-closing-action{
+  z-index:4;
+}
+
+@keyframes services-beam-orbit{
+  from{--services-beam-angle:0deg}
+  to{--services-beam-angle:360deg}
+}
+
+@media(max-width:700px){
+  [data-services-page] .services-moving-beam{
+    padding:.9px;
+  }
+  [data-services-page] .services-moving-beam:before{
+    padding:1.9px;
+  }
+  [data-services-page] .services-moving-beam:after{
+    padding:4px;
+    filter:blur(3.6px);
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  [data-services-page] .services-moving-beam{
+    --services-beam-angle:0deg;
+    animation:none;
+  }
+}
