@@ -40,12 +40,12 @@
 [data-projects-page] .ntx-tr-svg.is-panning{cursor:grabbing}
 [data-projects-page] .ntx-tr-context{pointer-events:auto}
 [data-projects-page] .ntx-tr-state-fill{fill:#102427;fill-opacity:.72;stroke:none;pointer-events:none}
-[data-projects-page] .ntx-tr-municipality{fill:#13282a;fill-opacity:.18;stroke:#58736f;stroke-width:.9;stroke-opacity:.78;vector-effect:non-scaling-stroke;pointer-events:visiblePainted;cursor:pointer;transition:fill .14s ease,fill-opacity .14s ease,stroke .14s ease,stroke-width .14s ease,filter .14s ease}
-[data-projects-page] .ntx-tr-municipality.is-active,[data-projects-page] .ntx-tr-municipality.is-preview{fill:#34524f;fill-opacity:.34;stroke:#9ab0ab;stroke-width:1.8;stroke-opacity:.95;filter:brightness(1.12)}
+[data-projects-page] .ntx-tr-municipality{fill:#13282a;fill-opacity:.18;stroke:#58736f;stroke-width:.9;stroke-opacity:.78;vector-effect:non-scaling-stroke;pointer-events:visiblePainted;cursor:pointer;transition:fill .1s ease,fill-opacity .1s ease,stroke .08s ease,stroke-width .08s ease}
+[data-projects-page] .ntx-tr-municipality.is-active,[data-projects-page] .ntx-tr-municipality.is-preview{fill:#34524f;fill-opacity:.34;stroke:#9ab0ab;stroke-width:1.8;stroke-opacity:.95}
 [data-projects-page] .ntx-tr-state-outline{fill:none;stroke:#819a95;stroke-width:1.75;stroke-opacity:.9;vector-effect:non-scaling-stroke;pointer-events:none}
-[data-projects-page] .ntx-tr-unit{stroke:#1f3b3d;stroke-width:1.15;vector-effect:non-scaling-stroke;opacity:1;transition:opacity .12s ease,filter .12s ease,stroke .12s ease}
-[data-projects-page] .ntx-tr-unit:hover,[data-projects-page] .ntx-tr-unit.is-hovered{stroke:#f0d083;stroke-width:2;filter:brightness(1.16) saturate(1.04)}
-[data-projects-page] .ntx-tr-unit.is-selected{stroke:#fff0b0;stroke-width:2.5;filter:brightness(1.22) saturate(1.08)}
+[data-projects-page] .ntx-tr-unit{stroke:#1f3b3d;stroke-width:1.15;vector-effect:non-scaling-stroke;paint-order:stroke fill;opacity:1;transition:opacity .1s ease,stroke .08s ease,stroke-width .08s ease}
+[data-projects-page] .ntx-tr-unit:hover,[data-projects-page] .ntx-tr-unit.is-hovered{stroke:#f0d083;stroke-width:2}
+[data-projects-page] .ntx-tr-unit.is-selected{stroke:#fff0b0;stroke-width:2.5}
 [data-projects-page] .ntx-tr-controls{position:absolute;z-index:6;top:10px;right:10px;display:grid;gap:6px}
 [data-projects-page] .ntx-tr-controls button{display:grid;place-items:center;width:38px;height:38px;padding:0;border:1px solid rgba(114,168,157,.28);border-radius:9px;background:rgba(7,18,21,.91);color:#e8f0ee;font:700 18px/1 Inter,system-ui,sans-serif;box-shadow:0 8px 18px rgba(0,0,0,.18);cursor:pointer}
 [data-projects-page] .ntx-tr-controls button:last-child{font-size:12px;letter-spacing:.02em}
@@ -218,13 +218,15 @@
   };
 
   const setHovered = record => {
-    if (hoveredRecord?.path && hoveredRecord !== selectedRecord) hoveredRecord.path.classList.remove('is-hovered');
+    if (hoveredRecord?.path) hoveredRecord.path.classList.remove('is-hovered');
     hoveredRecord = record;
     if (record?.path && record !== selectedRecord) record.path.classList.add('is-hovered');
   };
 
   const selectRecord = record => {
     if (selectedRecord?.path) selectedRecord.path.classList.remove('is-selected');
+    if (hoveredRecord?.path) hoveredRecord.path.classList.remove('is-hovered');
+    hoveredRecord = null;
     selectedRecord = record;
     if (record?.path) record.path.classList.add('is-selected');
     showDetail(record);
@@ -232,9 +234,28 @@
 
   const setMunicipalityPreview = code => {
     previewMunicipalityCode = code || null;
-    municipalityRecords.forEach((record, municipalityCode) => {
-      record.path.classList.toggle('is-preview', Boolean(code) && municipalityCode === code && municipalitySelect.value !== code);
+    const committedCode = municipalitySelect.value;
+    const effectiveCode = previewMunicipalityCode || committedCode;
+    let visible = 0;
+
+    records.forEach(record => {
+      const match = !effectiveCode || record.feature.properties.cve_mun === effectiveCode;
+      record.path.hidden = !match;
+      record.path.style.display = match ? '' : 'none';
+      if (match) visible += 1;
     });
+
+    municipalityRecords.forEach((record, municipalityCode) => {
+      record.path.classList.toggle(
+        'is-preview',
+        Boolean(previewMunicipalityCode) &&
+        municipalityCode === previewMunicipalityCode &&
+        committedCode !== previewMunicipalityCode
+      );
+    });
+
+    count.textContent = visible.toLocaleString('es-MX');
+    viewHint.hidden = Boolean(effectiveCode);
   };
 
   const filterMunicipality = code => {
@@ -253,7 +274,8 @@
     activeBounds = (code && municipalityRecords.get(code)?.bounds) || stateBounds;
     if (selectedRecord && selectedRecord.path.hidden) selectRecord(null);
     setHovered(null);
-    setMunicipalityPreview(null);
+    previewMunicipalityCode = null;
+    municipalityRecords.forEach(record => record.path.classList.remove('is-preview'));
     fitActive();
   };
 
@@ -314,7 +336,9 @@
   });
 
   svg.addEventListener('pointermove', event => {
-    if (event.pointerType === 'mouse') setMunicipalityPreview(municipalityCodeFromTarget(event.target));
+    if (event.pointerType === 'mouse' && !drag) {
+      setMunicipalityPreview(municipalityCodeFromTarget(event.target));
+    }
     if (!drag || event.pointerId !== drag.id) return;
     const dx = event.clientX - drag.x;
     const dy = event.clientY - drag.y;
