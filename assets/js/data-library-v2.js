@@ -87,13 +87,13 @@
   function municipal(stage,data){
     const top=data.slice(0,20),max=top[0]?.unidades||1;const meta=E('div',{class:'dv-municipal-meta'});meta.innerHTML='<strong>20 municipios con más unidades</strong><span>de 39 municipios</span>';const head=E('div',{class:'dv-municipal-head'});head.innerHTML='<span>#</span><span>Municipio</span><span>Escala relativa</span><span>Unidades</span><span>% estatal</span>';const list=E('div',{class:'dv-municipal-list',tabindex:'0','aria-label':'Ranking de los 20 municipios con más unidades económicas'});
     top.forEach((r,i)=>{const item=E('div',{class:`dv-municipal-row ${i<3?'is-top':''}`,'aria-label':`${i+1}. ${r.municipio}: ${fmt.format(r.unidades)} unidades, ${pct(r.participacion)} del total estatal`});item.style.setProperty('--share',`${r.unidades/max*100}%`);item.innerHTML=`<span class="dv-municipal-rank">${i+1}</span><span class="dv-municipal-name">${esc(r.municipio)}</span><span class="dv-municipal-track"><i></i></span><strong>${fmt.format(r.unidades)}</strong><small>${pct(r.participacion)}</small>`;list.appendChild(item);});
-    stage.replaceChildren(meta,head,list,E('p',{class:'dv-municipal-note'},'El listado amplía el corte visible a 20 municipios; desplázate dentro de la lista para revisar todos.'));
+    stage.replaceChildren(meta,head,list);
   }
 
   function matrix(stage,data){
     const sectors=[...new Set(data.map(x=>x.sector))],sizes=[...new Set(data.map(x=>x.tamano))],max=Math.log10(Math.max(...data.map(x=>x.unidades))+1),grid=E('div',{class:'dv-size-matrix'});grid.style.setProperty('--cols',sizes.length);grid.appendChild(E('div',{class:'dv-matrix-corner'}));sizes.forEach(size=>grid.appendChild(E('div',{class:'dv-matrix-head'},size.replace(' personas','').replace('251 y más','251+').replace(/ a /g,'–'))));
     sectors.forEach(sector=>{grid.appendChild(E('div',{class:'dv-matrix-rowhead'},sector.replace('Servicios profesionales y empresariales','Servicios empresariales').replace('Alojamiento, alimentos y recreación','Alojamiento y alimentos').replace('Otros servicios y gobierno','Otros servicios')));sizes.forEach(size=>{const r=data.find(x=>x.sector===sector&&x.tamano===size),value=r?r.unidades:0,cell=E('div',{class:'dv-matrix-cell'});cell.style.setProperty('--heat',(Math.log10(value+1)/max).toFixed(3));cell.innerHTML=`<strong>${value?short(value):'—'}</strong>`;cell.title=`${sector} · ${size}: ${fmt.format(value)} unidades`;grid.appendChild(cell);});});
-    const classified=data.reduce((sum,r)=>sum+r.unidades,0);stage.replaceChildren(grid,E('p',{class:'dv-mini-note'},`La intensidad usa escala logarítmica para que sean visibles tanto los grupos grandes como los pequeños. Registros clasificados: ${fmt.format(classified)}.`));
+    stage.replaceChildren(grid);
   }
 
   const jobs=[
@@ -110,18 +110,7 @@
 
   function removeIncomeHelp(){const card=ROOT.querySelector('.source-viz-card:has([data-viz="enoe-income"])');if(!card)return;card.dataset.vizHelp='off';const button=card.querySelector('.viz-info-trigger');if(button){document.getElementById(button.getAttribute('aria-controls'))?.remove();button.remove();}}
 
-  function initDenueZoom(){
-    const stage=ROOT.querySelector('[data-viz="denue-context"]');if(!stage)return;
-    const attach=()=>{const map=stage.querySelector('.denue-v5-map'),svg=map?.querySelector('svg');if(!map||!svg||map.dataset.zoomReady==='true')return false;map.dataset.zoomReady='true';const base=(svg.getAttribute('viewBox')||'0 0 460 350').trim().split(/\s+/).map(Number);const [bx,by,bw,bh]=base;const levels=[1,1.2,1.4,1.6];let index=0;
-      const controls=E('div',{class:'denue-zoom-controls','aria-label':'Zoom limitado del mapa'});const out=E('button',{type:'button','aria-label':'Alejar mapa'},'−'),label=E('span',{},'1.0×'),inside=E('button',{type:'button','aria-label':'Acercar mapa'},'+'),reset=E('button',{type:'button',class:'denue-zoom-reset','aria-label':'Restablecer vista'},'↺');controls.append(out,label,inside,reset);map.appendChild(controls);
-      const center=()=>{const selected=svg.querySelector('.denue-v5-mun.is-selected');if(selected&&levels[index]>1){try{const b=selected.getBBox();return [b.x+b.width/2,b.y+b.height/2];}catch{}}return[bx+bw/2,by+bh/2];};
-      const apply=()=>{const z=levels[index],[cx,cy]=center(),w=bw/z,h=bh/z;svg.setAttribute('viewBox',`${cx-w/2} ${cy-h/2} ${w} ${h}`);label.textContent=`${z.toFixed(1)}×`;out.disabled=index===0;inside.disabled=index===levels.length-1;};
-      out.addEventListener('click',()=>{if(index>0){index-=1;apply();}});inside.addEventListener('click',()=>{if(index<levels.length-1){index+=1;apply();}});reset.addEventListener('click',()=>{index=0;apply();});stage.addEventListener('change',()=>{if(index>0)requestAnimationFrame(apply);});stage.addEventListener('click',(e)=>{if(index>0&&e.target instanceof Element&&e.target.closest('.denue-v5-mun'))requestAnimationFrame(apply);});
-      const note=stage.querySelector('.denue-v5-note');if(note)note.textContent='Selecciona municipio o sector para explorar la concentración. Zoom limitado de 1.0× a 1.6×; la vista base conserva el contexto estatal completo.';apply();return true;};
-    if(attach())return;const observer=new MutationObserver(()=>{if(attach())observer.disconnect();});observer.observe(stage,{childList:true,subtree:true});setTimeout(()=>observer.disconnect(),12000);
-  }
 
   removeIncomeHelp();
   Promise.allSettled(jobs.map(mount)).then(()=>{ROOT.dataset.ready='true';removeIncomeHelp();});
-  initDenueZoom();
 })();
