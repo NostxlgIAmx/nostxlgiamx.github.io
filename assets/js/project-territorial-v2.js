@@ -45,7 +45,7 @@
 [data-projects-page] .ntx-tr-state-outline{fill:none;stroke:#819a95;stroke-width:1.75;stroke-opacity:.9;vector-effect:non-scaling-stroke;pointer-events:none}
 [data-projects-page] .ntx-tr-unit{stroke:#1f3b3d;stroke-width:1.15;vector-effect:non-scaling-stroke;opacity:1;transition:none}
 [data-projects-page] .ntx-tr-overlays{pointer-events:none}
-[data-projects-page] .ntx-tr-unit-outline{display:none;fill:none;vector-effect:non-scaling-stroke;pointer-events:none;shape-rendering:geometricPrecision;stroke-linecap:round;stroke-linejoin:round}
+[data-projects-page] .ntx-tr-unit-outline{visibility:hidden;fill:none;vector-effect:non-scaling-stroke;pointer-events:none;shape-rendering:geometricPrecision;stroke-linecap:round;stroke-linejoin:round}
 [data-projects-page] .ntx-tr-unit-outline--hover{stroke:#f0d083;stroke-width:2}
 [data-projects-page] .ntx-tr-unit-outline--selected{stroke:#fff0b0;stroke-width:2.8}
 [data-projects-page] .ntx-tr-controls{position:absolute;z-index:6;top:10px;right:10px;display:grid;gap:6px}
@@ -228,12 +228,12 @@
   const renderOutline = (outline, record) => {
     if (!outline) return;
     if (!record?.path || record.path.hidden || record.path.style.display === 'none') {
-      outline.style.display = 'none';
+      outline.style.visibility = 'hidden';
       outline.removeAttribute('d');
       return;
     }
     outline.setAttribute('d', record.path.getAttribute('d') || '');
-    outline.style.display = '';
+    outline.style.visibility = 'visible';
   };
 
   const syncOutlines = () => {
@@ -333,7 +333,12 @@
 
   zoomInBtn.addEventListener('click', () => zoomAt(0.66));
   zoomOutBtn.addEventListener('click', () => zoomAt(1 / 0.66));
-  resetBtn.addEventListener('click', fitActive);
+  resetBtn.addEventListener('click', () => {
+    municipalitySelect.value = '';
+    previewMunicipalityCode = null;
+    selectRecord(null);
+    filterMunicipality('');
+  });
   municipalitySelect.addEventListener('change', () => filterMunicipality(municipalitySelect.value));
 
   svg.addEventListener('wheel', event => {
