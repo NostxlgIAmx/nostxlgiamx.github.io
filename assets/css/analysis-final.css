@@ -1,0 +1,67 @@
+/* Análisis · estado temporal · 2026-09-19 */
+
+[data-analysis-page] .analysis-coming-section{
+  padding:58px 0 72px;
+}
+[data-analysis-page] .analysis-coming-soon{
+  position:relative;
+  overflow:hidden;
+  min-height:300px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:48px 52px;
+  border:1px solid rgba(138,111,234,.22);
+  border-right-color:rgba(67,199,218,.17);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(138,111,234,.11),transparent 34%),
+    radial-gradient(circle at 96% 92%,rgba(67,199,218,.07),transparent 32%),
+    linear-gradient(145deg,#111a28,#0d1621 68%);
+  box-shadow:0 22px 52px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.018);
+}
+[data-analysis-page] .analysis-coming-soon:before{
+  content:"";
+  position:absolute;
+  left:18px;
+  right:18px;
+  top:-1px;
+  height:2px;
+  border-radius:999px;
+  background:linear-gradient(90deg,transparent,#8a6fea 22%,#43c7da 68%,transparent);
+  opacity:.46;
+}
+[data-analysis-page] .analysis-coming-soon .eyebrow{
+  margin-bottom:13px;
+  color:#9f88e8;
+}
+[data-analysis-page] .analysis-coming-soon h2{
+  margin:0 0 14px;
+  font-size:clamp(48px,5vw,66px);
+  line-height:.96;
+}
+[data-analysis-page] .analysis-coming-soon p{
+  max-width:720px;
+  margin:0;
+  color:#aebac7;
+  font-size:15px;
+  line-height:1.7;
+  text-wrap:pretty;
+}
+@media(max-width:700px){
+  [data-analysis-page] .analysis-coming-section{
+    padding:40px 0 52px;
+  }
+  [data-analysis-page] .analysis-coming-soon{
+    min-height:250px;
+    padding:34px 24px;
+    border-radius:16px;
+  }
+  [data-analysis-page] .analysis-coming-soon h2{
+    font-size:44px;
+  }
+  [data-analysis-page] .analysis-coming-soon p{
+    font-size:14px;
+    line-height:1.64;
+  }
+}
