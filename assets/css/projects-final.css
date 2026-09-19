@@ -1,12 +1,12 @@
 
 /* Proyectos · pulido editorial y sistema visual · 2026-09-18 */
 [data-projects-page] .projects-hero{padding:54px 0 36px}
-[data-projects-page] .projects-hero .container{gap:32px}
+[data-projects-page] .projects-hero .container{gap:18px}
 [data-projects-page] .projects-hero-grid{display:block}
 [data-projects-page] .projects-hero-grid>div{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(360px,.88fr);column-gap:58px;align-items:end}
 [data-projects-page] .projects-hero .eyebrow{grid-column:1/-1;margin-bottom:15px}
 [data-projects-page] .projects-hero h1{grid-column:1;margin:0;max-width:13.2ch;font-size:clamp(58px,5.8vw,78px);line-height:.95;text-wrap:balance}
-[data-projects-page] .projects-hero p{grid-column:2;margin:0 0 4px;max-width:610px;color:#c8d2de;font-size:16px;line-height:1.73}
+[data-projects-page] .projects-hero p{grid-column:2;align-self:start;margin:clamp(40px,4vw,54px) 0 4px;max-width:610px;color:#c8d2de;font-size:16px;line-height:1.73}
 [data-projects-page] .projects-framework{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;border:0;background:transparent}
 [data-projects-page] .projects-framework>div{--step-accent:#8a6fea;--step-rgb:138,111,234;position:relative;isolation:isolate;display:grid;grid-template-columns:68px 1fr;gap:16px;min-height:148px;padding:24px 24px 23px;border:1px solid rgba(var(--step-rgb),.24);border-radius:15px;background:radial-gradient(circle at 4% 0%,rgba(var(--step-rgb),.16),transparent 48%),linear-gradient(145deg,rgba(var(--step-rgb),.045),rgba(13,23,34,.82));box-shadow:0 16px 36px rgba(0,0,0,.12);overflow:hidden}
 [data-projects-page] .projects-framework>div:nth-child(2){--step-accent:#43c7da;--step-rgb:67,199,218}
