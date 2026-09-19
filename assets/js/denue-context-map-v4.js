@@ -407,7 +407,7 @@
       updateData();
     }catch(error){
       console.error('DENUE context map:',error);
-      stage.innerHTML='<div class="denue-v5-error">No fue posible cargar el mapa de Durango.</div>';
+      stage.innerHTML='<div class="denue-v6-error">No fue posible cargar el mapa de Durango.</div>';
     }
   }
 
