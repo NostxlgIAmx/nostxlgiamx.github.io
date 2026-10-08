@@ -1,0 +1,27 @@
+{
+  "totals": {
+    "p20": 1821273,
+    "p25": 1931226,
+    "delta": 109953,
+    "pct": 6.037150937833044,
+    "growth": 18,
+    "decline": 21
+  },
+  "municipalities": 39,
+  "joined": 39,
+  "missing": 0,
+  "duplicate_keys": 0,
+  "geometry_valid": true,
+  "coverage_valid": false,
+  "projection": "EPSG:6372",
+  "simplification_metres": 0,
+  "precision_measures": "Not supplied; no significance inference",
+  "source_sha256": {
+    "10mun.prj": "df540d82c2de443ed11b28d813dd5631d81b9d5b1c5615d65106a597874bfb31",
+    "10mun.cpg": "6338217cd6532629ecd86cfedf3231cae1a20b7bc0421f5297e4ab9416789462",
+    "10mun.shx": "1cfa5905ef91524e37fca8849a3a5da446711ad29951df4a259c425e2ff73e4f",
+    "10mun.dbf": "2222987062cdc359bad3f0b091f8aefb4f8c67ced342fad107bebe1a977ccff8",
+    "10mun_DGO_Poblacion_2020_2025.csv": "51a45e1c67b50abb930fe8eef04908a29b2e90b045cf156a9bc2d165e0dc1cde",
+    "10mun.shp": "8792a3f9c04999d1647ede8eb108f65bb92ef4f4a6ce69d9064d48589470a9f8"
+  }
+}
