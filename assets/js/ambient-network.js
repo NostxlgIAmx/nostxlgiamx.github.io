@@ -42,6 +42,95 @@
     const pointer={x:-9999,y:-9999,active:false,strength:0,target:0,kind:'',startX:0,startY:0,touchMoved:false};
     let touchReleaseTimer=0;
 
+    // Refuerzo temporal de la red al hacer clic: reutiliza el canvas existente.
+    const CLICK_LIFETIME = 2600;
+    const clickBursts = [];
+    function spawnClickBurst(x,y){
+      const mobile=mobileViewport.matches, count=mobile?8:13, spread=mobile?86:112;
+      const random=createRng((Math.round(x*113+y*71+performance.now())|0)^0x4b19a3);
+      const points=[];
+      for(let i=0;i<count;i++){
+        const angle=random()*Math.PI*2,dist=spread*(.12+.86*Math.sqrt(random()));
+        points.push({
+          x:clamp(x+Math.cos(angle)*dist,4,viewportWidth-4),
+          y:clamp(y+Math.sin(angle)*dist,4,viewportHeight-4),
+          vx:(random()-.5)*9,vy:(random()-.5)*9
+        });
+      }
+      clickBursts.push({x,y,created:performance.now(),points});
+      while(clickBursts.length>(mobile?3:4))clickBursts.shift();
+      if(reducedMotion.matches)draw(performance.now(),0);
+      else startAnimation();
+    }
+
+    function drawClickBursts(now){
+      for(let i=clickBursts.length-1;i>=0;i--){
+        if(now-clickBursts[i].created>=CLICK_LIFETIME)clickBursts.splice(i,1);
+      }
+      if(!clickBursts.length)return;
+
+      const active=[];
+      for(const burst of clickBursts){
+        const elapsed=Math.max(0,now-burst.created);
+        const presence=clamp((CLICK_LIFETIME-elapsed)/1900,0,1);
+        const flash=clamp(1-elapsed/700,0,1);
+        if(flash>.001){
+          const r=mobileViewport.matches?110:150;
+          const g=ctx.createRadialGradient(burst.x,burst.y,0,burst.x,burst.y,r);
+          g.addColorStop(0,`rgba(180,245,255,${.18*flash})`);
+          g.addColorStop(.25,`rgba(67,199,218,${.085*flash})`);
+          g.addColorStop(.65,`rgba(109,75,209,${.034*flash})`);
+          g.addColorStop(1,'rgba(67,199,218,0)');
+          ctx.fillStyle=g;
+          ctx.fillRect(burst.x-r,burst.y-r,r*2,r*2);
+        }
+        for(const p of burst.points){
+          active.push({
+            x:p.x+p.vx*elapsed/1000,
+            y:p.y+p.vy*elapsed/1000,
+            opacity:presence,
+            flash
+          });
+        }
+      }
+
+      const range=mobileViewport.matches?105:124,rangeSq=range*range;
+      ctx.save();
+      ctx.lineWidth=mobileViewport.matches?.7:.85;
+      for(let i=0;i<active.length;i++){
+        const point=active[i],candidates=[];
+        if(point.opacity<=0)continue;
+        for(let j=0;j<nodes.length;j++){
+          const n=nodes[j],dx=n.x-point.x,dy=n.y-point.y,d2=dx*dx+dy*dy;
+          if(d2>0&&d2<rangeSq)candidates.push({x:n.x,y:n.y,d2,opacity:1});
+        }
+        for(let j=i+1;j<active.length;j++){
+          const n=active[j],dx=n.x-point.x,dy=n.y-point.y,d2=dx*dx+dy*dy;
+          if(d2>0&&d2<rangeSq)candidates.push({x:n.x,y:n.y,d2,opacity:n.opacity});
+        }
+        candidates.sort((a,b)=>a.d2-b.d2);
+        for(let j=0;j<Math.min(candidates.length,5);j++){
+          const n=candidates[j],near=1-Math.sqrt(n.d2)/range;
+          const alpha=(.16+near*.47+point.flash*.13)*point.opacity*n.opacity;
+          ctx.strokeStyle=`rgba(208,244,255,${clamp(alpha,0,.75)})`;
+          ctx.beginPath();ctx.moveTo(point.x,point.y);ctx.lineTo(n.x,n.y);ctx.stroke();
+        }
+      }
+      ctx.restore();
+
+      ctx.save();
+      for(const point of active){
+        if(point.opacity<=0)continue;
+        const intensity=point.opacity*(.70+point.flash*.3);
+        ctx.fillStyle=`rgba(235,251,255,${clamp(intensity,0,1)})`;
+        ctx.beginPath();
+        ctx.arc(point.x,point.y,mobileViewport.matches?1.35:1.65,0,Math.PI*2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+
     function build(){
       const mobile=mobileViewport.matches;
       const area=Math.max(viewportWidth*worldHeight,1);
@@ -220,6 +309,7 @@
       update(dt,now);
       drawTouchHalo();
       drawBaseConnections();
+      drawClickBursts(now);
       drawNodes(drawPointerGrab());
     }
 
@@ -269,6 +359,21 @@
         if(pointer.target===0&&pointer.kind==='touch'){pointer.active=false;pointer.kind='';}
       },360);
     }
+
+
+    // Se activa sólo con clics sobre la parte no interactiva del hero.
+    // La red permanece detrás de la interfaz y nunca captura eventos.
+    document.addEventListener('click',(event)=>{
+      if(!document.body.classList.contains('home-page')||
+         !event.target?.closest?.('.hero')||
+         event.button!==0||event.detail===0||
+         reducedMotion.matches||selectionSuspended)return;
+      if(event.target.closest('a,button,input,textarea,select,option,label,summary,[role="button"],[role="link"],[contenteditable],.editorial-visual'))return;
+      const selection=window.getSelection();
+      if(selection&&!selection.isCollapsed)return;
+      if(event.clientX<0||event.clientY<0||event.clientX>viewportWidth||event.clientY>viewportHeight)return;
+      spawnClickBurst(event.clientX,event.clientY);
+    },{passive:true});
 
     window.addEventListener('pointerdown',beginTouch,{passive:true});
     window.addEventListener('pointermove',movePointer,{passive:true});
