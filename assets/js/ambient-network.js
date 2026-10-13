@@ -46,15 +46,15 @@
     const CLICK_LIFETIME = 2600;
     const clickBursts = [];
     function spawnClickBurst(x,y){
-      const mobile=mobileViewport.matches, count=mobile?8:13, spread=mobile?86:112;
+      const mobile=mobileViewport.matches, count=mobile?9:16, spread=mobile?94:124;
       const random=createRng((Math.round(x*113+y*71+performance.now())|0)^0x4b19a3);
       const points=[];
       for(let i=0;i<count;i++){
-        const angle=random()*Math.PI*2,dist=spread*(.12+.86*Math.sqrt(random()));
+        const angle=random()*Math.PI*2,dist=i===0?0:spread*(.12+.86*Math.sqrt(random()));
         points.push({
           x:clamp(x+Math.cos(angle)*dist,4,viewportWidth-4),
           y:clamp(y+Math.sin(angle)*dist,4,viewportHeight-4),
-          vx:(random()-.5)*9,vy:(random()-.5)*9
+          vx:(random()-.5)*9,vy:(random()-.5)*9,hub:i===0
         });
       }
       clickBursts.push({x,y,created:performance.now(),points});
@@ -77,8 +77,8 @@
         if(flash>.001){
           const r=mobileViewport.matches?110:150;
           const g=ctx.createRadialGradient(burst.x,burst.y,0,burst.x,burst.y,r);
-          g.addColorStop(0,`rgba(180,245,255,${.18*flash})`);
-          g.addColorStop(.25,`rgba(67,199,218,${.085*flash})`);
+          g.addColorStop(0,`rgba(180,245,255,${.28*flash})`);
+          g.addColorStop(.25,`rgba(67,199,218,${.12*flash})`);
           g.addColorStop(.65,`rgba(109,75,209,${.034*flash})`);
           g.addColorStop(1,'rgba(67,199,218,0)');
           ctx.fillStyle=g;
@@ -89,14 +89,15 @@
             x:p.x+p.vx*elapsed/1000,
             y:p.y+p.vy*elapsed/1000,
             opacity:presence,
-            flash
+            flash,
+            hub:p.hub
           });
         }
       }
 
       const range=mobileViewport.matches?105:124,rangeSq=range*range;
       ctx.save();
-      ctx.lineWidth=mobileViewport.matches?.7:.85;
+      ctx.lineWidth=mobileViewport.matches?.78:.95;
       for(let i=0;i<active.length;i++){
         const point=active[i],candidates=[];
         if(point.opacity<=0)continue;
@@ -109,9 +110,9 @@
           if(d2>0&&d2<rangeSq)candidates.push({x:n.x,y:n.y,d2,opacity:n.opacity});
         }
         candidates.sort((a,b)=>a.d2-b.d2);
-        for(let j=0;j<Math.min(candidates.length,5);j++){
+        for(let j=0;j<Math.min(candidates.length,point.hub?9:6);j++){
           const n=candidates[j],near=1-Math.sqrt(n.d2)/range;
-          const alpha=(.16+near*.47+point.flash*.13)*point.opacity*n.opacity;
+          const alpha=(.19+near*.48+point.flash*.17)*point.opacity*n.opacity;
           ctx.strokeStyle=`rgba(208,244,255,${clamp(alpha,0,.75)})`;
           ctx.beginPath();ctx.moveTo(point.x,point.y);ctx.lineTo(n.x,n.y);ctx.stroke();
         }
@@ -119,12 +120,14 @@
       ctx.restore();
 
       ctx.save();
+      ctx.shadowBlur=mobileViewport.matches?3:6;
+      ctx.shadowColor='rgba(160,235,255,.50)';
       for(const point of active){
         if(point.opacity<=0)continue;
         const intensity=point.opacity*(.70+point.flash*.3);
         ctx.fillStyle=`rgba(235,251,255,${clamp(intensity,0,1)})`;
         ctx.beginPath();
-        ctx.arc(point.x,point.y,mobileViewport.matches?1.35:1.65,0,Math.PI*2);
+        ctx.arc(point.x,point.y,point.hub?2.5:(mobileViewport.matches?1.45:1.7),0,Math.PI*2);
         ctx.fill();
       }
       ctx.restore();
