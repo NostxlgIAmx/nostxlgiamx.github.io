@@ -42,93 +42,59 @@
     const pointer={x:-9999,y:-9999,active:false,strength:0,target:0,kind:'',startX:0,startY:0,touchMoved:false};
     let touchReleaseTimer=0;
 
-    // Refuerzo temporal de la red al hacer clic: reutiliza el canvas existente.
-    const CLICK_LIFETIME = 2600;
-    const clickBursts = [];
-    function spawnClickBurst(x,y){
-      const mobile=mobileViewport.matches, count=mobile?9:16, spread=mobile?94:124;
-      const random=createRng((Math.round(x*113+y*71+performance.now())|0)^0x4b19a3);
-      const points=[];
-      for(let i=0;i<count;i++){
-        const angle=random()*Math.PI*2,dist=i===0?0:spread*(.12+.86*Math.sqrt(random()));
-        points.push({
-          x:clamp(x+Math.cos(angle)*dist,4,viewportWidth-4),
-          y:clamp(y+Math.sin(angle)*dist,4,viewportHeight-4),
-          vx:(random()-.5)*9,vy:(random()-.5)*9,hub:i===0
+    // Click-only behaviour: four persistent nodes, preserving the native network.
+    const NODES_PER_CLICK=4;
+    const maxClickNodes=()=>mobileViewport.matches?64:120;
+    function addClickNodes(x,y){
+      const mobile=mobileViewport.matches;
+      const rng=createRng((Math.round(performance.now()*1000)^Math.round(x*137+y*67))|0);
+      for(let i=0;i<NODES_PER_CLICK;i++){
+        const angle=rng()*Math.PI*2,offset=8+rng()*40;
+        nodes.push({
+          x:clamp(x+Math.cos(angle)*offset,3,viewportWidth-3),
+          y:clamp(y+Math.sin(angle)*offset,3,worldHeight-3),
+          vx:(rng()-.5)*(mobile?1.9:2.45)*MOTION_SPEED,
+          vy:(rng()-.5)*(mobile?1.65:2.05)*MOTION_SPEED,
+          r:(mobile?1.0:1.2)+rng()*(mobile?.50:.70),
+          phase:rng()*Math.PI*2,
+          drift:.16+rng()*.24,
+          fromClick:true
         });
       }
-      clickBursts.push({x,y,created:performance.now(),points});
-      while(clickBursts.length>(mobile?3:4))clickBursts.shift();
+      let excess=nodes.reduce((total,node)=>total+(node.fromClick?1:0),0)-maxClickNodes();
+      if(excess>0){
+        for(let i=0;i<nodes.length&&excess>0;){
+          if(nodes[i].fromClick){nodes.splice(i,1);excess--;}
+          else i++;
+        }
+      }
       if(reducedMotion.matches)draw(performance.now(),0);
       else startAnimation();
     }
-
-    function drawClickBursts(now){
-      for(let i=clickBursts.length-1;i>=0;i--){
-        if(now-clickBursts[i].created>=CLICK_LIFETIME)clickBursts.splice(i,1);
-      }
-      if(!clickBursts.length)return;
-
-      const active=[];
-      for(const burst of clickBursts){
-        const elapsed=Math.max(0,now-burst.created);
-        const presence=clamp((CLICK_LIFETIME-elapsed)/1900,0,1);
-        const flash=clamp(1-elapsed/700,0,1);
-        if(flash>.001){
-          const r=mobileViewport.matches?110:150;
-          const g=ctx.createRadialGradient(burst.x,burst.y,0,burst.x,burst.y,r);
-          g.addColorStop(0,`rgba(180,245,255,${.28*flash})`);
-          g.addColorStop(.25,`rgba(67,199,218,${.12*flash})`);
-          g.addColorStop(.65,`rgba(109,75,209,${.034*flash})`);
-          g.addColorStop(1,'rgba(67,199,218,0)');
-          ctx.fillStyle=g;
-          ctx.fillRect(burst.x-r,burst.y-r,r*2,r*2);
-        }
-        for(const p of burst.points){
-          active.push({
-            x:p.x+p.vx*elapsed/1000,
-            y:p.y+p.vy*elapsed/1000,
-            opacity:presence,
-            flash,
-            hub:p.hub
-          });
-        }
-      }
-
-      const range=mobileViewport.matches?105:124,rangeSq=range*range;
+    // Local connections become brighter as clicks accumulate, without a new halo.
+    function drawClickConnections(){
+      const added=nodes.filter(node=>node.fromClick);
+      if(!added.length)return;
+      const range=mobileViewport.matches?126:156,squared=range*range;
       ctx.save();
-      ctx.lineWidth=mobileViewport.matches?.78:.95;
-      for(let i=0;i<active.length;i++){
-        const point=active[i],candidates=[];
-        if(point.opacity<=0)continue;
-        for(let j=0;j<nodes.length;j++){
-          const n=nodes[j],dx=n.x-point.x,dy=n.y-point.y,d2=dx*dx+dy*dy;
-          if(d2>0&&d2<rangeSq)candidates.push({x:n.x,y:n.y,d2,opacity:1});
+      ctx.lineWidth=mobileViewport.matches?.6:.76;
+      for(const node of added){
+        const nearby=[];
+        for(const other of nodes){
+          if(node===other)continue;
+          const dx=node.x-other.x,dy=node.y-other.y,d2=dx*dx+dy*dy;
+          if(d2<squared&&d2>1)nearby.push({other,d2});
         }
-        for(let j=i+1;j<active.length;j++){
-          const n=active[j],dx=n.x-point.x,dy=n.y-point.y,d2=dx*dx+dy*dy;
-          if(d2>0&&d2<rangeSq)candidates.push({x:n.x,y:n.y,d2,opacity:n.opacity});
+        nearby.sort((a,b)=>a.d2-b.d2);
+        for(let i=0;i<Math.min(6,nearby.length);i++){
+          const {other,d2}=nearby[i];
+          const strength=1-Math.sqrt(d2)/range;
+          ctx.strokeStyle=`rgba(240,251,255,${.06+strength*.24})`;
+          ctx.beginPath();
+          ctx.moveTo(node.x,node.y);
+          ctx.lineTo(other.x,other.y);
+          ctx.stroke();
         }
-        candidates.sort((a,b)=>a.d2-b.d2);
-        for(let j=0;j<Math.min(candidates.length,point.hub?9:6);j++){
-          const n=candidates[j],near=1-Math.sqrt(n.d2)/range;
-          const alpha=(.19+near*.48+point.flash*.17)*point.opacity*n.opacity;
-          ctx.strokeStyle=`rgba(208,244,255,${clamp(alpha,0,.75)})`;
-          ctx.beginPath();ctx.moveTo(point.x,point.y);ctx.lineTo(n.x,n.y);ctx.stroke();
-        }
-      }
-      ctx.restore();
-
-      ctx.save();
-      ctx.shadowBlur=mobileViewport.matches?3:6;
-      ctx.shadowColor='rgba(160,235,255,.50)';
-      for(const point of active){
-        if(point.opacity<=0)continue;
-        const intensity=point.opacity*(.70+point.flash*.3);
-        ctx.fillStyle=`rgba(235,251,255,${clamp(intensity,0,1)})`;
-        ctx.beginPath();
-        ctx.arc(point.x,point.y,point.hub?2.5:(mobileViewport.matches?1.45:1.7),0,Math.PI*2);
-        ctx.fill();
       }
       ctx.restore();
     }
@@ -146,6 +112,7 @@
       for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)cells.push([c,r]);
       for(let i=cells.length-1;i>0;i--){const j=Math.floor(q()*(i+1));[cells[i],cells[j]]=[cells[j],cells[i]];}
       const cw=viewportWidth/cols,ch=worldHeight/rows;
+      const retained=nodes.filter(node=>node.fromClick);
       nodes=[];
       for(let i=0;i<count;i++){
         const [c,r]=cells[i];
@@ -158,6 +125,11 @@
           phase:q()*Math.PI*2,
           drift:.16+q()*.24
         });
+      }
+      for(const node of retained){
+        node.x=clamp(node.x,3,viewportWidth-3);
+        node.y=clamp(node.y,3,worldHeight-3);
+        nodes.push(node);
       }
     }
 
@@ -312,7 +284,7 @@
       update(dt,now);
       drawTouchHalo();
       drawBaseConnections();
-      drawClickBursts(now);
+      drawClickConnections();
       drawNodes(drawPointerGrab());
     }
 
@@ -364,18 +336,16 @@
     }
 
 
-    // Se activa sólo con clics sobre la parte no interactiva del hero.
-    // La red permanece detrás de la interfaz y nunca captura eventos.
-    document.addEventListener('click',(event)=>{
+    document.addEventListener('click',event=>{
       if(!document.body.classList.contains('home-page')||
-         !event.target?.closest?.('.hero')||
          event.button!==0||event.detail===0||
-         reducedMotion.matches||selectionSuspended)return;
-      if(event.target.closest('a,button,input,textarea,select,option,label,summary,[role="button"],[role="link"],[contenteditable],.editorial-visual'))return;
-      const selection=window.getSelection();
-      if(selection&&!selection.isCollapsed)return;
+         selectionSuspended||reducedMotion.matches||
+         !event.target?.closest?.('.hero')||
+         event.target.closest('a,button,input,textarea,select,option,label,summary,[role="button"],[role="link"],[contenteditable],.editorial-visual'))return;
+      if(window.getSelection()?.isCollapsed===false)return;
+      if(event.pointerType==='touch'&&pointer.touchMoved)return;
       if(event.clientX<0||event.clientY<0||event.clientX>viewportWidth||event.clientY>viewportHeight)return;
-      spawnClickBurst(event.clientX,event.clientY);
+      addClickNodes(event.clientX,event.clientY);
     },{passive:true});
 
     window.addEventListener('pointerdown',beginTouch,{passive:true});
