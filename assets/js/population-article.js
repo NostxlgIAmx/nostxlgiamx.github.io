@@ -181,7 +181,7 @@
       '<span>Escala simétrica de −'+percent.format(scale)+' % a +'+percent.format(scale)+' %; la línea central representa 0 %.</span></figcaption>'+
       comparisonBar(a,'A',scale)+comparisonBar(b,'B',scale)+'</figure>'+
       '<p class="comparison-conclusion">La variación estimada de <strong>'+escape(a.name)+'</strong> es '+percent.format(diff)+
-      ' puntos porcentuales '+direction+' a la de <strong>'+escape(b.name)+'</strong>. Esta diferencia descriptiva no implica significancia estadística.</p>';
+      ' puntos porcentuales '+direction+' a la de <strong>'+escape(b.name)+'</strong>. Esta diferencia descriptiva no implica significancia estadística. La diferencia se calcula antes de redondear los porcentajes.</p>';
   }
 
   function render(writeUrl=true){
