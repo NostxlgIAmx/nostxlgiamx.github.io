@@ -47,14 +47,7 @@ async function init(){try{
      'aria-label':`Seleccionar ${m.name}`});
    p.appendChild(svg('title',{},m.name));
    const selectMunicipality=()=>{activeMun=activeMun===m.code?'':m.code;munSel.value=activeMun;update();};
-   let suppressSyntheticKeyboardClick=false;
-   p.addEventListener('click',event=>{
-     if(suppressSyntheticKeyboardClick && event.detail===0){suppressSyntheticKeyboardClick=false;return;}
-     selectMunicipality();
-   });
-   p.addEventListener('keyup',event=>{
-     if(event.key==='Enter'||event.key===' ')setTimeout(()=>{suppressSyntheticKeyboardClick=false;},0);
-   });
+   p.addEventListener('click',selectMunicipality);
    p.addEventListener('focus',()=>{
      gM.querySelectorAll('.denue-v5-mun').forEach(node=>node.setAttribute('tabindex',node===p?'0':'-1'));
    });
