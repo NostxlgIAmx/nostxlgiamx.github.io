@@ -151,3 +151,6 @@
   #municipality-detail{scroll-margin-top:95px}
   .map-hover{max-width:calc(100% - 16px);overflow-wrap:anywhere}
 }
+
+.map-control-hint{font-size:11px;color:var(--muted);text-align:center;line-height:1.5;margin:-4px 12px 12px}
+@media(max-width:760px){.map-control-hint{font-size:12px;padding-inline:12px;margin-bottom:14px}}
