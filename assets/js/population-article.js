@@ -282,6 +282,8 @@
     };
     svg.addEventListener('pointerup',endPointer);
     svg.addEventListener('pointercancel',endPointer);
+    window.addEventListener('pointerup',endPointer);
+    window.addEventListener('pointercancel',endPointer);
     svg.addEventListener('lostpointercapture',event=>{
       if(!activePointers.has(event.pointerId))return;
       if(drag && drag.id===event.pointerId && drag.moved)suppressNextClick();
