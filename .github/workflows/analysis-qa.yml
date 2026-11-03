@@ -1,26 +1,31 @@
-name: Population map and comparison QA
+name: NostxlgIA site-wide and municipal QA
 on:
   push:
     branches:
       - main
-      - refactor/poblacion-comparacion-qa-20261103
+      - improve/auditoria-justificada-2026-11-03
     paths:
-      - 'analisis/**'
-      - 'assets/css/editorial.css'
-      - 'assets/js/population-article.js'
-      - 'assets/images/analisis/**'
-      - 'assets/data/analisis/**'
-      - 'content/analisis/**'
-      - 'scripts/build_analysis.py'
-      - 'scripts/tests/**'
-      - '.github/workflows/analysis-qa.yml'
+      - '**/*.html'
+      - 'assets/css/**'
+      - 'assets/js/**'
+      - 'assets/images/**'
+      - 'assets/data/**'
+      - 'scripts/**'
+      - 'content/**'
+      - 'robots.txt'
+      - 'sitemap.xml'
+      - '.github/workflows/**'
   pull_request:
     paths:
-      - 'analisis/**'
-      - 'assets/css/editorial.css'
-      - 'assets/js/population-article.js'
-      - 'content/analisis/**'
-      - 'scripts/tests/**'
+      - '**/*.html'
+      - 'assets/css/**'
+      - 'assets/js/**'
+      - 'assets/data/**'
+      - 'scripts/**'
+      - 'content/**'
+      - 'robots.txt'
+      - 'sitemap.xml'
+      - '.github/workflows/**'
   workflow_dispatch:
 
 permissions:
@@ -48,6 +53,9 @@ jobs:
           node --check assets/js/population-article.js
           node --check scripts/tests/analysis.cjs
           node --check scripts/tests/population-visual.cjs
+          node --check scripts/tests/site-wide.cjs
+          node --check assets/js/data-library-v2.js
+          node --check assets/js/denue-context-map-v4.js
       - name: Verify generated article matches editorial source
         run: |
           python scripts/build_analysis.py
@@ -56,6 +64,8 @@ jobs:
         run: node scripts/tests/analysis.cjs
       - name: Visual and responsive regression
         run: node scripts/tests/population-visual.cjs
+      - name: Whole-site browser and content audit
+        run: node scripts/tests/site-wide.cjs
       - name: Preserve exact QA source for reproducibility
         if: always()
         uses: actions/upload-artifact@v4
@@ -68,6 +78,13 @@ jobs:
             content/analisis/
             index.html
             404.html
+            datos/
+            servicios/
+            proyectos/
+            contacto/
+            privacidad/
+            robots.txt
+            sitemap.xml
           retention-days: 3
           if-no-files-found: error
       - name: Preserve browser screenshots
