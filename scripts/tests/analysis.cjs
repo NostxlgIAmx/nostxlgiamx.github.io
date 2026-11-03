@@ -17,7 +17,8 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  page.on('pageerror',e=>errors.push(e.message));
  page.on('response',r=>{if(r.url().startsWith('http://127.0.0.1:8018')&&r.status()>=400)failed.push(r.url());});
  const base='http://127.0.0.1:8018';
- await page.goto(base+'/analisis/',{waitUntil:'networkidle'});
+ await page.goto(base+'/analisis/?utm_source=external-test&fbclid=testing',{waitUntil:'networkidle'});
+ assert.equal(new URL(page.url()).search,'','Tracking parameters must be removed from visible URL');
  await page.getByRole('link',{name:'Leer investigación →'}).click();
  await page.waitForLoadState('networkidle');
  assert.equal(await page.locator('.municipality').count(),39);
@@ -49,8 +50,10 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  await durango.press('ArrowRight');await page.keyboard.press('Enter');
  assert.notEqual(await page.locator('#municipality-detail h3').textContent(),'Durango');
  await page.getByRole('button',{name:'Vista estatal'}).click();
- // Click all geographic polygons at an interior SVG point, using true mouse input.
+ // Click geographic polygons with real pointer input, resetting the viewport for each polygon.
  for(const r of rows){
+   const reset=page.getByRole('button',{name:'Vista estatal'});
+   if(await reset.isEnabled())await reset.click();
    const p=page.locator(`.municipality[data-id="${r.id}"]`);
    await p.scrollIntoViewIfNeeded();
    const spot=await p.evaluate(el=>{
@@ -66,7 +69,7 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
    await page.mouse.click(spot.x,spot.y);
    assert.equal(await page.locator('#municipality-detail h3').textContent(),r.name);
  }
- await page.getByRole('button',{name:'Ver Topia en el mapa',exact:true}).click();
+ await page.getByRole('button',{name:'Seleccionar Topia',exact:true}).click();
  assert.equal(await page.locator('#municipality-detail h3').textContent(),'Topia');
  await page.getByText('Sobre la precisión de 2025',{exact:true}).click();
  assert.equal(await page.locator('#precision').getAttribute('open'),'');
@@ -95,8 +98,25 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  assert.equal(JSON.parse(await page.locator('script[type="application/ld+json"]').textContent())['@type'],'Article');
  const nojs=await browser.newPage({javaScriptEnabled:false});
  await nojs.goto(base+'/analisis/poblacion-durango/');
- assert.equal(await nojs.locator('tbody tr').count(),39);assert.equal(await nojs.locator('.municipality').count(),39);
+ assert.equal(await nojs.locator('tbody tr').count(),39);assert.equal(await nojs.locator('.map-fallback').count(),1);assert.equal(await nojs.locator('.map-fallback').isVisible(),true);
+ await page.goto(base+'/analisis/poblacion-durango/?municipio=10005&utm_source=external-test#precision',{waitUntil:'networkidle'});
+ assert.equal(new URL(page.url()).searchParams.has('utm_source'),false);
+ assert.equal(new URL(page.url()).searchParams.get('municipio'),'10005');
+ assert.equal(new URL(page.url()).hash,'#precision');
+ assert.equal(await page.locator('#municipality-detail h3').textContent(),'Durango');
+ const selectedMap=page.locator('.municipality[data-id="10005"]');
+ const hit=await selectedMap.evaluate(el=>{
+   const box=el.getBBox(), matrix=el.getScreenCTM();
+   for(let ix=1;ix<30;ix++)for(let iy=1;iy<30;iy++){
+     const point=new DOMPoint(box.x+box.width*ix/30,box.y+box.height*iy/30);
+     if(el.isPointInFill(point)){const out=point.matrixTransform(matrix);
+       if(document.elementFromPoint(out.x,out.y)===el)return {x:out.x,y:out.y};}
+   }
+   throw new Error('Selected polygon has no visible hit target');
+ });
+ await page.mouse.click(hit.x,hit.y);
+ assert.equal(await page.locator('#municipality-detail h3').textContent(),'El balance estatal');
  assert.deepEqual(errors,[]);assert.deepEqual(failed,[]);
- console.log(JSON.stringify({status:'PASS',municipalities:39,searches:39,polygonClicks:39,widths:[320,390,768,1024,1440],checks:['data','search accents','empty search','keyboard','comparison','URL state reload','reset','ranking links','precision link','table','mobile navigation','mobile comparison','local targets','metadata','no-JavaScript'],jsErrors:errors,localHttpErrors:failed},null,2));
+ console.log(JSON.stringify({status:'PASS',municipalities:39,searches:39,polygonClicks:39,widths:[320,390,768,1024,1440],checks:['data','search accents','empty search','keyboard','comparison','URL state reload','reset','ranking links','precision link','table','mobile navigation','mobile comparison','local targets','metadata','no-JavaScript','tracking cleanup','map click after automatic zoom'],jsErrors:errors,localHttpErrors:failed},null,2));
  }finally{if(browser)await browser.close();server.kill();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
