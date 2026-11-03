@@ -27,7 +27,7 @@
 
   ensureScript(`selection-rainbow.js?v=${VERSION}`, 'selection-rainbow');
   ensureScript(`cursor-ambient.js?v=${VERSION}`, 'cursor-ambient');
-  ensureScript(`ambient-network.js?v=${VERSION}`, 'ambient-network');
+  if (!document.body?.classList.contains('editorial-page')) ensureScript(`ambient-network.js?v=${VERSION}`, 'ambient-network');
   ensureScript(`card-depth.js?v=${VERSION}`, 'card-depth');
 
   const initContentConsistency = () => {
