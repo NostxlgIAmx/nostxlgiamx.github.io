@@ -186,7 +186,6 @@
       });
     };
     const run = () => {
-      setup(document.querySelector('[data-viz="denue-context"]'), '.denue-v5-mun', 'is-active');
       setup(document.querySelector('.ntx-el-svg'), '.ntx-el-section', 'is-selected');
     };
     run();
