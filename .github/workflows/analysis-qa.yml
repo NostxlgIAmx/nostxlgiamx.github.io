@@ -56,6 +56,20 @@ jobs:
         run: node scripts/tests/analysis.cjs
       - name: Visual and responsive regression
         run: node scripts/tests/population-visual.cjs
+      - name: Preserve exact QA source for reproducibility
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: population-qa-source
+          path: |
+            analisis/
+            assets/
+            scripts/
+            content/analisis/
+            index.html
+            404.html
+          retention-days: 3
+          if-no-files-found: error
       - name: Preserve browser screenshots
         if: always()
         uses: actions/upload-artifact@v4
