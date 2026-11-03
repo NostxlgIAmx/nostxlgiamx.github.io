@@ -322,3 +322,9 @@
     display:none;
   }
 }
+
+/* Una sola columna real en móvil: evita grid-column:auto sobre 12 pistas mínimas. */
+@media(max-width:860px){
+  [data-data-library] .source-viz-grid{grid-template-columns:minmax(0,1fr)}
+  [data-data-library] .source-viz-grid>.source-viz-card:has([data-viz]){grid-column:1/-1}
+}
