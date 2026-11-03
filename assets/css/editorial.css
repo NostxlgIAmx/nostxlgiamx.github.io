@@ -162,3 +162,7 @@
 .map-stage #population-map{overflow:hidden}
 .map-stage.is-map-ready .map-fallback{visibility:hidden;pointer-events:none}
 .map-layout > .municipality-panel{position:relative;z-index:1}
+
+/* La búsqueda y la leyenda deben quedar por debajo de la cabecera fija al seleccionar. */
+.map-toolbar{scroll-margin-top:105px}
+@media(max-width:760px){.map-toolbar{scroll-margin-top:90px}}
