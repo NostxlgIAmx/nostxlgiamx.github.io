@@ -10,7 +10,11 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  const server=spawn('python',['-u','-m','http.server','8018','--directory',root]);
  let browser;
  try {
- await new Promise(resolve=>server.stdout.once('data',resolve));
+ for(let attempt=0;attempt<100;attempt++){
+   try{const r=await fetch('http://127.0.0.1:8018/');if(r.ok)break;}catch{}
+   if(attempt===99)throw new Error('Local server did not start');
+   await new Promise(resolve=>setTimeout(resolve,150));
+ }
  browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH,headless:true,args:['--no-sandbox','--disable-gpu','--disable-dev-shm-usage']});
  const page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
  const errors=[], failed=[];
@@ -22,6 +26,7 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  await page.getByRole('link',{name:'Leer investigación →'}).click();
  await page.waitForLoadState('networkidle');
  assert.equal(await page.locator('.municipality').count(),39);
+ assert.equal(await page.locator('#map-emphasis').count(),1,'Existe una capa exclusiva para seleccionar municipios');
  assert.equal(await page.locator('#population-map').getAttribute('hidden'),null,'SVG no debe conservar atributo hidden');
  assert.equal(await page.locator('#population-map').isVisible(),true,'El mapa SVG debe ser visible, no solo existir');
  assert.equal(await page.locator('.municipality').first().isVisible(),true,'Los polígonos deben estar dibujados');
@@ -82,7 +87,13 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  assert.equal(await page.locator('#municipality-detail h3').textContent(),'Gómez Palacio');
  await page.locator('#compare-municipality').selectOption('10005');
  assert.match(await page.locator('#comparison-detail').innerText(),/78,451/);
- assert.match(await page.locator('#comparison-detail').innerText(),/2\.81 puntos porcentuales por debajo/);
+ assert.match(await page.locator('#comparison-detail').innerText(),/2\.81 puntos porcentuales inferior/);
+ assert.equal(await page.locator('#comparison-detail .comparison-card').count(),2,'Cada municipio dispone de tarjeta propia');
+ assert.equal(await page.locator('#map-emphasis .map-letter-marker').count(),2,'Ambos municipios se marcan con A y B');
+ const layoutBox=await page.locator('.map-layout').boundingBox();
+ const comparisonBox=await page.locator('#comparison-detail').boundingBox();
+ assert.ok(comparisonBox.y>=layoutBox.y+layoutBox.height-2,'El comparador debe mostrarse debajo del mapa');
+ assert.ok(layoutBox.height<900,'El comparador no debe aumentar artificialmente la columna del mapa');
  assert.equal(await page.locator('.is-comparison').getAttribute('data-id'),'10005');
  await page.reload({waitUntil:'networkidle'});assert.equal(await page.locator('#compare-municipality').inputValue(),'10005');
  assert.equal(await page.locator('#municipality-detail h3').textContent(),'Gómez Palacio');
