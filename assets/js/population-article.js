@@ -31,6 +31,7 @@
   const zoomIn = document.getElementById('zoom-in');
   const zoomOut = document.getElementById('zoom-out');
   const zoomReset = document.getElementById('zoom-reset');
+  const resetButton = document.getElementById('reset-map');
   const initialDetail = detail.innerHTML;
   const params = new URLSearchParams(location.search);
   let selected = byId.has(params.get('municipio')) ? params.get('municipio') : null;
@@ -52,7 +53,7 @@
     url.searchParams.delete('comparar');
     if(selected) url.searchParams.set('municipio',selected);
     if(compared) url.searchParams.set('comparar',compared);
-    history.replaceState(null,'',url);
+    if(url.href !== location.href) history.pushState({populationArticle:true},'',url);
   }
   function drawViewport(){
     if(!loaded)return;
@@ -64,6 +65,7 @@
     zoomOut.disabled = zoom<=1.01;
     zoomIn.disabled = zoom>=5;
     zoomReset.disabled = zoom<=1.01;
+    resetButton.disabled = !selected && !compared && zoom<=1.01;
   }
   function setZoom(value,point){
     if(!loaded)return;
@@ -132,6 +134,7 @@
         '<div class="comparison-meters" aria-label="Comparación de variaciones porcentuales con eje cero">'+comparisonMeter(row,row.name,max)+comparisonMeter(other,other.name,max)+'</div>'+
         '<p class="compare-gap">'+escape(row.name)+': '+percent.format(Math.abs(row.pct-other.pct))+' puntos porcentuales '+(row.pct>=other.pct?'por encima':'por debajo')+' de '+escape(other.name)+'.</p></div>';
     }else comparisonDetail.innerHTML='';
+    resetButton.disabled = !row && !other && zoom<=1.01;
     if(writeUrl)updateUrl();
   }
   function showDetail(){
@@ -269,13 +272,14 @@
   document.addEventListener('click',event=>{if(!event.target.closest('.search-wrap'))hideResults();});
   compare.addEventListener('change',()=>{compared=selected&&byId.has(compare.value)&&selected!==compare.value?compare.value:null;render();});
   swap.addEventListener('click',()=>{if(!selected||!compared)return;const old=selected;selected=compared;compared=old;render();focusMunicipality(selected);});
-  document.getElementById('reset-map').addEventListener('click',()=>{choose(null);hover.classList.remove('visible');});
+  resetButton.addEventListener('click',()=>{choose(null);hover.classList.remove('visible');});
   zoomIn.addEventListener('click',()=>setZoom(zoom*1.5));
   zoomOut.addEventListener('click',()=>setZoom(zoom/1.5));
   zoomReset.addEventListener('click',resetViewport);
-  document.querySelectorAll('[data-select-municipality]').forEach(button=>button.addEventListener('click',()=>{
+  document.querySelectorAll('[data-select-municipality]').forEach(button=>button.addEventListener('click',event=>{
     choose(button.dataset.selectMunicipality,{showDetail:false});
     (mobile.matches?detail:document.getElementById('mapa')).scrollIntoView({behavior:reduceMotion.matches?'instant':'smooth',block:'start'});
+    if(event.detail===0){detail.setAttribute('tabindex','-1');detail.focus({preventScroll:true});}
   }));
   document.querySelectorAll('a[href="#precision"]').forEach(link=>link.addEventListener('click',()=>{
     document.getElementById('precision').open=true;
@@ -299,6 +303,14 @@
       field.remove();
       status.textContent=copied?'Enlace copiado.':'No se pudo copiar automáticamente. Enlace: '+url.href;
     }
+  });
+  window.addEventListener('popstate',()=>{
+    const query=new URLSearchParams(location.search);
+    selected=byId.has(query.get('municipio'))?query.get('municipio'):null;
+    compared=selected&&byId.has(query.get('comparar'))&&query.get('comparar')!==selected?query.get('comparar'):null;
+    hideResults();render(false);
+    if(selected)focusMunicipality(selected);
+    else resetViewport();
   });
   render(false);
   loadStatus.hidden=false;
