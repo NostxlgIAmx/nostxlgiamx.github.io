@@ -31,8 +31,11 @@ async function verifyUniqueLandmark(page,name){
   assert.equal(await page.locator('main#contenido').count(),1,'Falta main#contenido: '+name);
   const skip=page.locator('.skip-link[href="#contenido"]');
   assert.equal(await skip.count(),1,'Falta salto al contenido: '+name);
-  await skip.focus();
-  assert.equal(await skip.isVisible(),true,'El salto no se hace visible al enfocarlo: '+name);
+  await page.keyboard.press('Tab');
+  const focused=await skip.evaluate(el=>document.activeElement===el);
+  assert.equal(focused,true,'El enlace de salto no recibe el primer foco: '+name);
+  const bounds=await skip.boundingBox();
+  assert.ok(bounds && bounds.y>=0 && bounds.y<85,'El salto queda fuera de pantalla al recibir foco: '+name);
 }
 (async()=>{
   const server=spawn('python3',['-u','-m','http.server','8021','--bind','127.0.0.1','--directory',root]);
