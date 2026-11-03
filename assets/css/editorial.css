@@ -154,3 +154,11 @@
 
 .map-control-hint{font-size:11px;color:var(--muted);text-align:center;line-height:1.5;margin:-4px 12px 12px}
 @media(max-width:760px){.map-control-hint{font-size:12px;padding-inline:12px;margin-bottom:14px}}
+
+
+/* El viewport SVG debe recortar el mapa ampliado dentro de su propia columna. */
+.map-layout > .map-canvas{overflow:hidden;min-width:0}
+.map-stage{overflow:hidden;isolation:isolate;max-width:100%}
+.map-stage #population-map{overflow:hidden}
+.map-stage.is-map-ready .map-fallback{visibility:hidden;pointer-events:none}
+.map-layout > .municipality-panel{position:relative;z-index:1}
