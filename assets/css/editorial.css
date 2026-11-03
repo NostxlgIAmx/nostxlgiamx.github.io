@@ -135,3 +135,10 @@
   .source-links a{display:block;margin:0 0 12px}
 }
 @media print{.map-controls,.map-load-status,.swap-button{display:none!important}}
+
+#reset-map:disabled{opacity:.45;cursor:not-allowed}
+#reset-map:disabled:hover{color:#cbd6e6;border-color:#35485f}
+@media(max-width:760px){
+  .rank-no,.rank-name small,.table-scroll th,.story-byline,.catalog-meta{font-size:12px}
+  .search-wrap label,.compare-control label{font-size:13px}
+}
