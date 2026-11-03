@@ -99,6 +99,10 @@ async function verifyUniqueLandmark(page,name){
           assert.equal(await focused.count(),1,'Flechas del mapa no mueven el foco');
           await page.keyboard.press('Enter');
           assert.equal(await focused.getAttribute('aria-pressed'),'true','Enter no selecciona municipio DENUE');
+          await page.keyboard.press('Space');
+          assert.equal(await focused.getAttribute('aria-pressed'),'false','Espacio no deselecciona exactamente una vez');
+          await page.keyboard.press('Space');
+          assert.equal(await focused.getAttribute('aria-pressed'),'true','Espacio no selecciona exactamente una vez');
           assert.equal(errors.length,0,'Error JS en Datos: '+errors.join('; '));
         }
         if(route.name==='contacto'){
