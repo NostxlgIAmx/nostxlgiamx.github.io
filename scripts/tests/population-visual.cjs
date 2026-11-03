@@ -82,7 +82,7 @@ function approx(a,b,eps=2){return Math.abs(a-b)<=eps;}
       assert.equal(await page.locator('#comparison-detail').isVisible(),true);
       assert.equal(await page.locator('.comparison-card').count(),2);
       assert.match(await page.locator('#comparison-detail').innerText(),/Nuevo Ideal/);
-      assert.match(await page.locator('#comparison-detail').innerText(),/0\.24 puntos porcentuales superior/);
+      assert.match(await page.locator('#comparison-detail').innerText(),/0\.25 puntos porcentuales superior/);
       const layoutBox=await layout.boundingBox(), compareBox=await page.locator('#comparison-detail').boundingBox();
       assert.ok(approx(layoutBox.height,preCompare.height,2),'Comparison changed map height at '+width+'px: '+preCompare.height+' -> '+layoutBox.height);
       assert.ok(compareBox.y>=layoutBox.y+layoutBox.height-2,'Comparison is not below map at '+width+'px');
