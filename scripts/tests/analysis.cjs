@@ -26,10 +26,6 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  assert.equal(await page.locator('#population-map').isVisible(),true,'El mapa SVG debe ser visible, no solo existir');
  assert.equal(await page.locator('.municipality').first().isVisible(),true,'Los polígonos deben estar dibujados');
  assert.equal(await page.locator('.map-fallback').isVisible(),false,'El respaldo no debe duplicar el mapa ya renderizado');
- assert.equal(await page.locator('#map-stage').evaluate(el=>el.classList.contains('is-map-ready')),true,'El mapa debe confirmar su estado visible');
- assert.equal(await page.locator('#map-stage').evaluate(el=>getComputedStyle(el).overflowX),'hidden','El escenario debe recortar el mapa');
- assert.equal(await page.locator('#population-map').evaluate(el=>getComputedStyle(el).overflowX),'hidden','El SVG debe recortar los polígonos ampliados');
- assert.equal(await page.locator('.map-fallback').evaluate(img=>img.complete&&img.naturalWidth>0),true,'La imagen de respaldo debe cargar');
  const search=page.locator('#municipality-search');
  for(const r of rows){
    await search.fill(r.name.normalize('NFD').replace(/[\u0300-\u036f]/g,''));
@@ -43,13 +39,42 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  // Regression: la selección no puede sobreponer polígonos al panel lateral.
  await search.fill('guanacevi');await search.press('Enter');
  assert.equal(await page.locator('#municipality-detail h3').textContent(),'Guanaceví');
- assert.equal(await page.locator('#population-map').evaluate(el=>el.viewBox.baseVal.width>=670/1.55-0.01),true,'La selección no debe ampliar excesivamente');
- const side=await page.locator('.municipality-panel').boundingBox();
- const covering=await page.evaluate(([x,y])=>{
-   const node=document.elementFromPoint(x,y);
-   return Boolean(node?.closest('.municipality'));
- },[side.x+30,side.y+140]);
- assert.equal(covering,false,'Un municipio no puede cubrir el panel de indicadores');
+ const camera=page.locator('#map-camera');
+ const panel=page.locator('.municipality-panel');
+ // A diagnostic fill makes even a non-interactive polygon detectable in the painted pixels.
+ const markPaths='.municipality { fill:#00ff00 !important; filter:none !important }';
+ for(const width of [320,390,768,1024,1440]){
+   await page.setViewportSize({width,height:900});
+   assert.equal(await camera.getAttribute('viewBox'),'0 0 670 680','Selection preserves the statewide view');
+   for(let step=0;step<4;step++)await page.locator('#zoom-in').click();
+   assert.equal(await camera.evaluate(el=>el.viewBox.baseVal.width),134,'Manual zoom reaches 5×');
+   for(const region of [panel,page.locator('#zoom-in'),page.locator('#zoom-reset')]){
+     await region.scrollIntoViewIfNeeded();
+     const box=await region.boundingBox();
+     // Exclude fractional border pixels shared with the adjacent map.
+     const x=Math.ceil(Math.max(0,box.x))+2, y=Math.ceil(Math.max(0,box.y))+2;
+     const clip={x,y,width:Math.floor(Math.min(width,box.x+box.width))-x-2,
+       height:Math.floor(Math.min(900,box.y+box.height))-y-2};
+     const shot=await page.screenshot({clip,style:markPaths,animations:'disabled'});
+     const leaked=await page.evaluate(async encoded=>{
+       const img=new Image();
+       img.src='data:image/png;base64,'+encoded;
+       await img.decode();
+       const canvas=document.createElement('canvas');
+       canvas.width=img.width;canvas.height=img.height;
+       const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);
+       const pixels=ctx.getImageData(0,0,img.width,img.height).data;
+       for(let i=0;i<pixels.length;i+=4){
+         if(pixels[i]<20 && pixels[i+1]>235 && pixels[i+2]<20)return true;
+       }
+       return false;
+     },shot.toString('base64'));
+     assert.equal(leaked,false,'Map paints over '+await region.getAttribute('class')+' at '+width+' px');
+   }
+   await page.locator('#zoom-out').click();
+   await page.locator('#zoom-reset').click();
+   assert.equal(await page.locator('#municipality-detail h3').textContent(),'Guanaceví');
+ }
  await page.getByRole('button',{name:'Vista estatal'}).click();
  await search.fill('noexiste');assert.equal(await page.locator('#search-results').innerText(),'No se encontraron municipios.');
  await search.press('Escape');assert.equal(await search.getAttribute('aria-expanded'),'false');
@@ -109,6 +134,9 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  assert.equal(await page.locator('#municipality-detail h3').textContent(),'General Simón Bolívar');
  await page.locator('#compare-municipality').selectOption('10030');
  assert.match(await page.locator('#comparison-detail').innerText(),/San Pedro del Gallo/);
+ await page.locator('#swap-municipalities').click();
+ assert.equal(await page.locator('#municipality-detail h3').textContent(),'San Pedro del Gallo');
+ assert.match(await page.locator('#comparison-detail').innerText(),/General Simón Bolívar/);
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
  // Verify local targets, metadata and useful no-JavaScript output.
  const links=await page.locator('a[href],link[href],script[src],img[src]').evaluateAll(es=>es.map(e=>e.href||e.src).filter(Boolean));
@@ -124,6 +152,7 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  assert.equal(new URL(page.url()).hash,'#precision');
  assert.equal(await page.locator('#municipality-detail h3').textContent(),'Durango');
  const selectedMap=page.locator('.municipality[data-id="10005"]');
+ await page.locator('#map-stage').scrollIntoViewIfNeeded();
  const hit=await selectedMap.evaluate(el=>{
    const box=el.getBBox(), matrix=el.getScreenCTM();
    for(let ix=1;ix<30;ix++)for(let iy=1;iy<30;iy++){
@@ -135,7 +164,36 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  });
  await page.mouse.click(hit.x,hit.y);
  assert.equal(await page.locator('#municipality-detail h3').textContent(),'El balance estatal');
+ const phone=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMotion:'reduce'});
+ await phone.goto(base+'/analisis/poblacion-durango/');
+ const phoneStage=phone.locator('#map-stage');
+ await phone.locator('.municipality').first().waitFor();
+ await phoneStage.scrollIntoViewIfNeeded();
+ const area=await phoneStage.boundingBox();
+ const client=await phone.context().newCDPSession(phone);
+ const pinch=(type,spread)=>client.send('Input.dispatchTouchEvent',{type,touchPoints:
+   spread.map((offset,index)=>({x:area.x+area.width/2+offset,y:area.y+area.height/2,id:index+1}))});
+ await pinch('touchStart',[-20,20]);await pinch('touchMove',[-40,40]);await pinch('touchEnd',[]);
+ await phone.waitForFunction(()=>document.querySelector('#map-camera').viewBox.baseVal.width<670);
+ await phone.locator('#zoom-reset').tap();
+ await phone.waitForFunction(()=>document.querySelector('#map-camera').viewBox.baseVal.width===670);
+ for(const id of ['10009','10030','10002']){
+   await phoneStage.evaluate(el=>el.scrollIntoView({block:'center',behavior:'instant'}));
+   const spot=await phone.waitForFunction(id=>{
+     const path=document.querySelector('.municipality[data-id="'+id+'"]'), box=path.getBBox();
+     // Prefer an interior point near the centre of each small polygon.
+     for(const x of [.5,.4,.6,.3,.7,.2,.8])for(const y of [.5,.4,.6,.3,.7,.2,.8]){
+       const pt=new DOMPoint(box.x+x*box.width,box.y+y*box.height);
+       if(!path.isPointInFill(pt))continue;
+       const pos=pt.matrixTransform(path.getScreenCTM());
+       if(document.elementFromPoint(pos.x,pos.y)===path)return [pos.x,pos.y];
+     }
+   },id);
+   await phone.touchscreen.tap(...await spot.jsonValue());
+   await phone.waitForFunction(id=>new URL(location).searchParams.get('municipio')===id,id);
+ }
+ await phone.close();
  assert.deepEqual(errors,[]);assert.deepEqual(failed,[]);
- console.log(JSON.stringify({status:'PASS',municipalities:39,searches:39,polygonClicks:39,widths:[320,390,768,1024,1440],checks:['data','search accents','empty search','keyboard','comparison','URL state reload','reset','ranking links','precision link','table','mobile navigation','mobile comparison','local targets','metadata','no-JavaScript','tracking cleanup','map click after automatic zoom'],jsErrors:errors,localHttpErrors:failed},null,2));
+ console.log(JSON.stringify({status:'PASS',municipalities:39,searches:39,polygonClicks:39,widths:[320,390,768,1024,1440],checks:['Guanaceví and 5× pixel checks','swap','data','search accents','empty search','keyboard','comparison','URL state reload','reset','ranking links','precision link','table','mobile navigation','mobile comparison','local targets','metadata','no-JavaScript','tracking cleanup','map click after deep link'],jsErrors:errors,localHttpErrors:failed},null,2));
  }finally{if(browser)await browser.close();server.kill();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

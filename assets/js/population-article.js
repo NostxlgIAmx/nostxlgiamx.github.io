@@ -27,7 +27,7 @@
   const svg = document.getElementById('population-map');
   const stage = document.getElementById('map-stage');
   const layer = document.getElementById('municipality-layer');
-  const fallback = stage.querySelector('.map-fallback');
+  const camera = document.getElementById('map-camera');
   const loadStatus = document.getElementById('map-load-status');
   const zoomIn = document.getElementById('zoom-in');
   const zoomOut = document.getElementById('zoom-out');
@@ -62,7 +62,7 @@
     const width = 670/zoom, height = 680/zoom;
     center.x = Math.max(width/2, Math.min(670-width/2,center.x));
     center.y = Math.max(height/2, Math.min(680-height/2,center.y));
-    svg.setAttribute('viewBox',[center.x-width/2,center.y-height/2,width,height].join(' '));
+    camera.setAttribute('viewBox',[center.x-width/2,center.y-height/2,width,height].join(' '));
     hover.classList.remove('visible');
     svg.classList.toggle('is-zoomed',zoom>1.02);
     zoomOut.disabled = zoom<=1.01;
@@ -88,15 +88,13 @@
     if(!path)return;
     const box = path.getBBox();
     center = {x:box.x+box.width/2,y:box.y+box.height/2};
-    // Un clic identifica al municipio sin perder el contexto del resto del estado.
-    // Los botones permiten ampliar más, hasta el límite manual de 5×.
-    zoom = Math.max(1.1,Math.min(1.55,670/(Math.max(box.width,1)*2.4),680/(Math.max(box.height,1)*2.4)));
+    // La selección conserva el nivel de zoom elegido por el lector.
     drawViewport();
   }
   function pointFromClient(clientX,clientY){
     const point = svg.createSVGPoint();
     point.x=clientX;point.y=clientY;
-    const matrix=svg.getScreenCTM();
+    const matrix=camera.getScreenCTM();
     return matrix ? point.matrixTransform(matrix.inverse()) : {x:335,y:340};
   }
   function comparisonMeter(row,label,scale){
@@ -225,7 +223,8 @@
       suppressClick=false;
     },true);
     svg.addEventListener('pointerdown',event=>{
-      if(event.button!==0 || zoom<=1.01)return;
+      if(event.button!==0 || (zoom<=1.01 && event.pointerType!=='touch'))return;
+      suppressClick=false;
       activePointers.set(event.pointerId,mapPointer(event));
       if(activePointers.size===2){
         const points=[...activePointers.values()];
@@ -255,14 +254,14 @@
         hover.classList.remove('visible');
         return;
       }
-      if(!drag || drag.id!==event.pointerId)return;
+      if(!drag || drag.id!==event.pointerId || zoom<=1.01)return;
       const dx=event.clientX-drag.x,dy=event.clientY-drag.y;
       if(!drag.moved && Math.hypot(dx,dy)>7){
         drag.moved=true;
         try{svg.setPointerCapture(event.pointerId);}catch{}
       }
       if(!drag.moved)return;
-      const matrix=svg.getScreenCTM();
+      const matrix=camera.getScreenCTM();
       const width=svg.getBoundingClientRect().width;
       const units=matrix?1/Math.max(0.001,Math.hypot(matrix.a,matrix.b)):670/Math.max(1,width*zoom);
       center={x:drag.cx-dx*units,y:drag.cy-dy*units};
@@ -288,7 +287,7 @@
     window.addEventListener('pointerup',endPointer);
     window.addEventListener('pointercancel',endPointer);
     svg.addEventListener('lostpointercapture',event=>{
-      if(!activePointers.has(event.pointerId))return;
+      if(event.target!==svg || !activePointers.has(event.pointerId))return;
       if(drag && drag.id===event.pointerId && drag.moved)suppressNextClick();
       activePointers.delete(event.pointerId);
       if(drag && drag.id===event.pointerId)drag=null;
@@ -300,30 +299,11 @@
       const point=pointFromClient(event.clientX,event.clientY);
       setZoom(zoom*(event.deltaY<0?1.2:1/1.2),point);
     },{passive:false});
-    // SVGElement no implementa HTMLElement.hidden de forma fiable:
-    // la asignación .hidden=false puede dejar el atributo intacto y el mapa invisible.
-    svg.removeAttribute('hidden');
-    // Conservar el respaldo detrás del mapa para evitar un panel vacío
-    // si alguna regla de presentación impide pintar el SVG.
     loaded=true;
     resetViewport();
     if(selected)focusMunicipality(selected);
     render(false);
-    // Mostrar el respaldo únicamente hasta confirmar que hay un SVG renderizable.
-    requestAnimationFrame(()=>{
-      const bounds=svg.getBoundingClientRect();
-      const first=layer.querySelector('.municipality');
-      if(bounds.width>0 && bounds.height>0 &&
-         getComputedStyle(svg).display!=='none' &&
-         getComputedStyle(svg).visibility!=='hidden' &&
-         first && first.getClientRects().length){
-        stage.classList.add('is-map-ready');
-        loadStatus.hidden=true;
-      }else{
-        loadStatus.hidden=false;
-        loadStatus.textContent='El mapa interactivo no se pudo visualizar. Se mantiene el mapa de respaldo.';
-      }
-    });
+    loadStatus.hidden=true;
   }
   function showResults(){
     const query=normalize(search.value);
@@ -418,7 +398,7 @@
     const timeout=setTimeout(()=>controller.abort(),10000);
     let response;
     try{
-      response=await fetch('/assets/images/analisis/durango-municipios-interactive.svg?v=20261102',{cache:'force-cache',signal:controller.signal});
+      response=await fetch(layer.querySelector('image').getAttribute('href'),{cache:'force-cache',signal:controller.signal});
     }finally{clearTimeout(timeout);}
     if(!response.ok)throw Error('HTTP '+response.status);
     const documentSvg=new DOMParser().parseFromString(await response.text(),'image/svg+xml');

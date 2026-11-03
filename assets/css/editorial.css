@@ -39,7 +39,7 @@
 .map-layout{display:grid;grid-template-columns:minmax(0,1fr) 310px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#0d1521}
 .map-canvas{position:relative;min-width:0;min-height:650px;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 50%,#142033 0,transparent 70%)}
 .map-topline,.map-bottomline{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;color:#9faec1;font-size:11px;letter-spacing:.04em}.map-topline{padding-bottom:0}.map-topline button{background:none;border:1px solid #35485f;border-radius:4px;color:#cbd6e6;font-size:12px;padding:6px 12px;cursor:pointer}.map-topline button:hover{border-color:var(--gold);color:var(--gold)}
-#population-map{display:block;width:100%;height:600px;margin:auto;overflow:visible}
+#population-map{display:block;width:100%;height:600px;margin:auto;overflow:hidden}
 .municipality{stroke:#142236;stroke-width:1;vector-effect:non-scaling-stroke;cursor:pointer;transition:filter .12s;outline:none!important}
 .municipality:hover,.municipality:focus-visible{filter:brightness(1.3);stroke:#fff;stroke-width:2}
 .municipality[aria-pressed=true]{stroke:#fff;stroke-width:2.5;filter:brightness(1.12)}
@@ -66,9 +66,7 @@
 
 /* Artículo de población: cartografía externa, controles y lectura en móvil. */
 .map-stage{position:relative;width:100%;height:560px;min-height:0;display:flex;align-items:center;justify-content:center}
-.map-stage .map-fallback{display:block;width:100%;height:100%;object-fit:contain}
 .map-stage #population-map{position:absolute;inset:0;width:100%;height:100%;margin:0;max-height:none}
-.map-stage #population-map[hidden]{display:none!important}
 #population-map{touch-action:pan-y}
 #population-map.is-zoomed{touch-action:none;cursor:grab}
 #population-map.is-zoomed:active{cursor:grabbing}
@@ -116,7 +114,6 @@
 }
 @media(max-width:760px){
   .map-stage{height:auto;aspect-ratio:670/680;max-height:560px}
-  .map-stage .map-fallback{position:absolute;inset:0}
   .map-stage #population-map{height:100%;aspect-ratio:670/680}
   .map-controls{padding:5px 12px 14px}
   .map-controls button{min-width:44px;min-height:44px}
@@ -159,8 +156,6 @@
 /* El viewport SVG debe recortar el mapa ampliado dentro de su propia columna. */
 .map-layout > .map-canvas{overflow:hidden;min-width:0}
 .map-stage{overflow:hidden;isolation:isolate;max-width:100%}
-.map-stage #population-map{overflow:hidden}
-.map-stage.is-map-ready .map-fallback{visibility:hidden;pointer-events:none}
 .map-layout > .municipality-panel{position:relative;z-index:1}
 
 /* La búsqueda y la leyenda deben quedar por debajo de la cabecera fija al seleccionar. */
