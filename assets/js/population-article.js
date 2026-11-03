@@ -298,7 +298,13 @@
       const point=pointFromClient(event.clientX,event.clientY);
       setZoom(zoom*(event.deltaY<0?1.2:1/1.2),point);
     },{passive:false});
-    svg.hidden=false;fallback.hidden=true;loaded=true;resetViewport();
+    // SVGElement no implementa HTMLElement.hidden de forma fiable:
+    // la asignación .hidden=false puede dejar el atributo intacto y el mapa invisible.
+    svg.removeAttribute('hidden');
+    // Conservar el respaldo detrás del mapa para evitar un panel vacío
+    // si alguna regla de presentación impide pintar el SVG.
+    loaded=true;
+    resetViewport();
     if(selected)focusMunicipality(selected);
     render(false);
     loadStatus.hidden=true;
