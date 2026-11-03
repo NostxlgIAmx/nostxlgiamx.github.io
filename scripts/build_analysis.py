@@ -31,9 +31,9 @@ def page(title,description,path,body,image,schema,scripts=(),image_alt=""):
 <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/css/styles.css"><link rel="stylesheet" href="/assets/css/site-polish.css" data-site-polish><link rel="stylesheet" href="/assets/css/editorial.css?v=20261102-map2">
+<link rel="stylesheet" href="/assets/css/styles.css"><link rel="stylesheet" href="/assets/css/site-polish.css" data-site-polish><link rel="stylesheet" href="/assets/css/editorial.css?v=20261103-clip4">
 <script type="application/ld+json">{json.dumps(schema,ensure_ascii=False).replace('</','<\\/')}</script>
-</head><body class="editorial-page"><a class="skip-link" href="#contenido">Saltar al contenido</a>{header}<main id="contenido">{body}</main>{footer}<script src="/assets/js/main.js?v=20261102"></script>{''.join(f'<script src="/assets/js/{s}?v=20261103-map3"></script>' for s in scripts)}</body></html>'''
+</head><body class="editorial-page"><a class="skip-link" href="#contenido">Saltar al contenido</a>{header}<main id="contenido">{body}</main>{footer}<script src="/assets/js/main.js?v=20261102"></script>{''.join(f'<script src="/assets/js/{s}?v=20261103-clip4"></script>' for s in scripts)}</body></html>'''
 
 def n(x):return f'{x:,}'
 def signed(x):return ('−' if x<0 else '+')+n(abs(x))
