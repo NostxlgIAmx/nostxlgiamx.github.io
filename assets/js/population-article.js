@@ -63,6 +63,7 @@
     center.x = Math.max(width/2, Math.min(670-width/2,center.x));
     center.y = Math.max(height/2, Math.min(680-height/2,center.y));
     svg.setAttribute('viewBox',[center.x-width/2,center.y-height/2,width,height].join(' '));
+    hover.classList.remove('visible');
     svg.classList.toggle('is-zoomed',zoom>1.02);
     zoomOut.disabled = zoom<=1.01;
     zoomIn.disabled = zoom>=5;
@@ -364,7 +365,7 @@
   window.addEventListener('hashchange',()=>{if(location.hash==='#precision')document.getElementById('precision').open=true;});
   document.getElementById('share-article').addEventListener('click',async()=>{
     const url=new URL(document.querySelector('link[rel="canonical"]').href);
-    if(selected)url.searchParams.set('municipio',selected);
+    if(selected){url.searchParams.set('municipio',selected);url.hash='mapa';}
     if(compared)url.searchParams.set('comparar',compared);
     const status=document.getElementById('share-status');
     try{
