@@ -88,7 +88,9 @@
     if(!path)return;
     const box = path.getBBox();
     center = {x:box.x+box.width/2,y:box.y+box.height/2};
-    zoom = Math.max(1.1,Math.min(5,670/(Math.max(box.width,1)*2.4),680/(Math.max(box.height,1)*2.4)));
+    // Un clic identifica al municipio sin perder el contexto del resto del estado.
+    // Los botones permiten ampliar más, hasta el límite manual de 5×.
+    zoom = Math.max(1.1,Math.min(1.55,670/(Math.max(box.width,1)*2.4),680/(Math.max(box.height,1)*2.4)));
     drawViewport();
   }
   function pointFromClient(clientX,clientY){
@@ -307,7 +309,21 @@
     resetViewport();
     if(selected)focusMunicipality(selected);
     render(false);
-    loadStatus.hidden=true;
+    // Mostrar el respaldo únicamente hasta confirmar que hay un SVG renderizable.
+    requestAnimationFrame(()=>{
+      const bounds=svg.getBoundingClientRect();
+      const first=layer.querySelector('.municipality');
+      if(bounds.width>0 && bounds.height>0 &&
+         getComputedStyle(svg).display!=='none' &&
+         getComputedStyle(svg).visibility!=='hidden' &&
+         first && first.getClientRects().length){
+        stage.classList.add('is-map-ready');
+        loadStatus.hidden=true;
+      }else{
+        loadStatus.hidden=false;
+        loadStatus.textContent='El mapa interactivo no se pudo visualizar. Se mantiene el mapa de respaldo.';
+      }
+    });
   }
   function showResults(){
     const query=normalize(search.value);
