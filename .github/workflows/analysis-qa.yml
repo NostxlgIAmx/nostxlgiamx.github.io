@@ -48,6 +48,10 @@ jobs:
           node --check assets/js/population-article.js
           node --check scripts/tests/analysis.cjs
           node --check scripts/tests/population-visual.cjs
+      - name: Verify generated article matches editorial source
+        run: |
+          python scripts/build_analysis.py
+          git diff --exit-code -- analisis/index.html analisis/poblacion-durango/index.html
       - name: Functional and numeric regression
         run: node scripts/tests/analysis.cjs
       - name: Visual and responsive regression
