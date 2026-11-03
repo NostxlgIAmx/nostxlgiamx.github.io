@@ -1,0 +1,62 @@
+name: Population map and comparison QA
+on:
+  push:
+    branches:
+      - main
+      - refactor/poblacion-comparacion-qa-20261103
+    paths:
+      - 'analisis/**'
+      - 'assets/css/editorial.css'
+      - 'assets/js/population-article.js'
+      - 'assets/images/analisis/**'
+      - 'assets/data/analisis/**'
+      - 'content/analisis/**'
+      - 'scripts/build_analysis.py'
+      - 'scripts/tests/**'
+      - '.github/workflows/analysis-qa.yml'
+  pull_request:
+    paths:
+      - 'analisis/**'
+      - 'assets/css/editorial.css'
+      - 'assets/js/population-article.js'
+      - 'content/analisis/**'
+      - 'scripts/tests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  municipal-article:
+    name: Browser and visual regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install browser automation
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Validate JavaScript syntax
+        run: |
+          node --check assets/js/population-article.js
+          node --check scripts/tests/analysis.cjs
+          node --check scripts/tests/population-visual.cjs
+      - name: Functional and numeric regression
+        run: node scripts/tests/analysis.cjs
+      - name: Visual and responsive regression
+        run: node scripts/tests/population-visual.cjs
+      - name: Preserve browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: population-qa-screenshots
+          path: qa-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
