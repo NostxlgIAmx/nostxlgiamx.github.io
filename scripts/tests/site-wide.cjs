@@ -78,8 +78,12 @@ async function verifyUniqueLandmark(page,name){
           assert.ok(arrows.every(s=>s==='↓'),'Las anclas de Servicios usan una dirección incorrecta');
         }
         if(route.name==='proyectos'){
-          for(const id of ['territorio','comercial','evaluacion','electoral'])
-            assert.equal(await page.locator('article.project-feature#'+id).count(),1,'Ancla inexistente '+id);
+          for(const id of ['territorio','comercial','evaluacion','electoral']){
+            const target=page.locator('article.project-feature#'+id);
+            assert.equal(await target.count(),1,'Ancla inexistente '+id);
+            assert.ok(await target.evaluate(el=>parseFloat(getComputedStyle(el).scrollMarginTop)>=90),
+              'El enlace profundo quedaría oculto bajo el header: '+id);
+          }
         }
         if(route.name==='datos'){
           assert.equal(await page.locator('a[download]').count(),9,'Número inesperado de descargas');
