@@ -120,7 +120,7 @@
       const center=()=>{const selected=svg.querySelector('.denue-v5-mun.is-selected');if(selected&&levels[index]>1){try{const b=selected.getBBox();return [b.x+b.width/2,b.y+b.height/2];}catch{}}return[bx+bw/2,by+bh/2];};
       const apply=()=>{const z=levels[index],[cx,cy]=center(),w=bw/z,h=bh/z;svg.setAttribute('viewBox',`${cx-w/2} ${cy-h/2} ${w} ${h}`);label.textContent=`${z.toFixed(1)}×`;out.disabled=index===0;inside.disabled=index===levels.length-1;};
       out.addEventListener('click',()=>{if(index>0){index-=1;apply();}});inside.addEventListener('click',()=>{if(index<levels.length-1){index+=1;apply();}});reset.addEventListener('click',()=>{index=0;apply();});stage.addEventListener('change',()=>{if(index>0)requestAnimationFrame(apply);});stage.addEventListener('click',(e)=>{if(index>0&&e.target instanceof Element&&e.target.closest('.denue-v5-mun'))requestAnimationFrame(apply);});
-      const note=stage.querySelector('.denue-v5-note');if(note)note.textContent='Selecciona municipio o sector para explorar la concentración. Zoom limitado de 1.0× a 1.6×; la vista base conserva el contexto estatal completo.';apply();return true;};
+      const note=stage.querySelector('.denue-v5-note');if(note)note.textContent='Selecciona municipio o sector para explorar la concentración. Zoom limitado de 1.0× a 1.6×; la vista base conserva el contexto estatal completo. Con el teclado, utiliza las flechas para recorrer municipios y Enter o Espacio para seleccionar.';apply();return true;};
     if(attach())return;const observer=new MutationObserver(()=>{if(attach())observer.disconnect();});observer.observe(stage,{childList:true,subtree:true});setTimeout(()=>observer.disconnect(),12000);
   }
 
