@@ -351,3 +351,8 @@
     grid-column:1;
   }
 }
+
+/* Información breve de privacidad vinculada al formulario. */
+[data-contact-page] .privacy-disclosure{grid-column:1/-1;font-size:12px;line-height:1.65;color:#b1c0ce;margin:0}
+[data-contact-page] .privacy-disclosure a{color:#86dce9;text-decoration:underline;text-underline-offset:3px}
+[data-contact-page] .privacy-disclosure a:focus-visible{outline:2px solid #f4c67a;outline-offset:4px}
