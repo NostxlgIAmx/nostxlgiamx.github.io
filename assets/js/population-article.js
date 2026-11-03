@@ -145,7 +145,7 @@
   }
   function showDetail(){
     if(selected){
-      (mobile.matches ? detail : document.querySelector('.map-layout')).scrollIntoView({behavior:reduceMotion.matches?'instant':'smooth',block:mobile.matches?'start':'nearest'});
+      (mobile.matches ? detail : document.querySelector('.map-toolbar')).scrollIntoView({behavior:reduceMotion.matches?'instant':'smooth',block:'start'});
     }
   }
   function choose(id,options={}){
@@ -377,7 +377,7 @@
   zoomReset.addEventListener('click',resetViewport);
   document.querySelectorAll('[data-select-municipality]').forEach(button=>button.addEventListener('click',event=>{
     choose(button.dataset.selectMunicipality,{showDetail:false});
-    (mobile.matches?detail:document.querySelector('.map-layout')).scrollIntoView({behavior:reduceMotion.matches?'instant':'smooth',block:'start'});
+    (mobile.matches?detail:document.querySelector('.map-toolbar')).scrollIntoView({behavior:reduceMotion.matches?'instant':'smooth',block:'start'});
     if(event.detail===0){detail.setAttribute('tabindex','-1');detail.focus({preventScroll:true});}
   }));
   document.querySelectorAll('a[href="#precision"]').forEach(link=>link.addEventListener('click',()=>{
