@@ -20,7 +20,7 @@ const style=document.createElement('style');style.dataset.denueMapV5='true';styl
 .denue-v5-map{position:relative;height:224px;border:1px solid #293a4f;border-radius:9px;background:radial-gradient(circle at 45% 52%,rgba(67,199,218,.055),transparent 45%),#09121c;overflow:hidden}
 .denue-v5-map svg{display:block;width:100%;height:100%}.denue-v5-mun{fill:rgba(38,57,77,.34);stroke:rgba(126,151,175,.58);stroke-width:.85;transition:.15s ease}
 .denue-v5-state{fill:none;stroke:#a4b3c2;stroke-width:1.55;opacity:.9;pointer-events:none}.denue-v5-map svg.has-selection .denue-v5-mun{fill:rgba(28,43,59,.20);stroke:rgba(102,125,148,.34)}
-.denue-v5-map svg.has-selection .denue-v5-mun.is-selected{fill:rgba(216,180,102,.24);stroke:#d8b466;stroke-width:2.1}
+.denue-v5-map .denue-v5-mun:focus-visible{stroke:#fff!important;stroke-width:3!important;filter:drop-shadow(0 0 4px #fff8)} .denue-v5-map svg.has-selection .denue-v5-mun.is-selected{fill:rgba(216,180,102,.24);stroke:#d8b466;stroke-width:2.1}
 .denue-v5-cell{fill:#43c7da;stroke:#071018;stroke-width:.65;opacity:.55}.denue-v5-map svg.has-selection .denue-v5-cell.is-out{opacity:.07}.denue-v5-map svg.has-selection .denue-v5-cell.is-in{opacity:.84}
 .denue-v5-label{fill:#9cadbd;font:800 8px/1 Inter,system-ui,sans-serif;letter-spacing:.1em}.denue-v5-key{position:absolute;right:8px;bottom:7px;padding:4px 6px;border:1px solid rgba(110,132,154,.28);border-radius:999px;background:rgba(7,13,21,.78);color:#91a2b4;font-size:7px}
 .denue-v5-note{margin:0;color:#8293a6;font-size:7.8px;line-height:1.35}.denue-v5-error{display:grid;place-items:center;min-height:260px;padding:20px;color:#c7d2df;font-size:11px;text-align:center;border:1px solid #293a4f;border-radius:9px;background:#09121c}
@@ -36,9 +36,32 @@ async function init(){try{
  const [cells,stats]=await Promise.all([load('denue_densidad_georreferenciada_durango_2026.csv'),load('denue_municipios_concentracion_durango_2026.csv')]);
  const statsByName=new Map(stats.map(r=>[norm(r.municipio),{unidades:+r.unidades,participacion:+r.participacion}]));
  const muns=MAP.municipalities.map(([code,name,d])=>({code,name,d,stats:statsByName.get(norm(name))}));
- stage.innerHTML=`<div class="denue-v5"><div class="denue-v5-top"><label><span>Municipio</span><select data-mun><option value="">Todo Durango</option>${muns.map(m=>`<option value="${m.code}">${m.name}</option>`).join('')}</select></label><label><span>Sector</span><select data-sector>${sectors.map(([k,n])=>`<option value="${k}">${n}</option>`).join('')}</select></label></div><div class="denue-v5-summary"><div><span>Estado de Durango</span><small>39 municipios · DENUE 05/2026</small></div><strong>75,110 unidades</strong></div><div class="denue-v5-map"><svg viewBox="0 0 460 350" role="img" aria-label="Estado de Durango con división municipal y concentración de establecimientos"><g data-muns></g><g data-cells></g><path d="${MAP.state}" class="denue-v5-state" vector-effect="non-scaling-stroke"/><text x="15" y="25" class="denue-v5-label">DURANGO · 39 MUNICIPIOS</text></svg><div class="denue-v5-key">Concentración de establecimientos</div></div><p class="denue-v5-note">Selecciona un municipio en la lista o directamente en el mapa. La división municipal está simplificada y no se habilita zoom.</p></div>`;
+ const orderedMuns=[...muns].sort((a,b)=>a.name.localeCompare(b.name,'es-MX',{sensitivity:'base'}));
+ stage.innerHTML=`<div class="denue-v5"><div class="denue-v5-top"><label><span>Municipio</span><select data-mun><option value="">Todo Durango</option>${orderedMuns.map(m=>`<option value="${m.code}">${m.name}</option>`).join('')}</select></label><label><span>Sector</span><select data-sector>${sectors.map(([k,n])=>`<option value="${k}">${n}</option>`).join('')}</select></label></div><div class="denue-v5-summary"><div><span>Estado de Durango</span><small>39 municipios · DENUE 05/2026</small></div><strong>75,110 unidades</strong></div><div class="denue-v5-map"><svg viewBox="0 0 460 350" role="img" aria-label="Estado de Durango con división municipal y concentración de establecimientos"><g data-muns></g><g data-cells></g><path d="${MAP.state}" class="denue-v5-state" vector-effect="non-scaling-stroke"/><text x="15" y="25" class="denue-v5-label">DURANGO · 39 MUNICIPIOS</text></svg><div class="denue-v5-key">Concentración de establecimientos</div></div><p class="denue-v5-note">Selecciona un municipio en la lista o directamente en el mapa. La división municipal está simplificada y se permite un zoom limitado de 1.0× a 1.6×. Con el teclado, las flechas cambian el foco y Enter o Espacio seleccionan.</p></div>`;
  const svgEl=stage.querySelector('svg'),gM=stage.querySelector('[data-muns]'),gC=stage.querySelector('[data-cells]'),munSel=stage.querySelector('[data-mun]'),secSel=stage.querySelector('[data-sector]'),summary=stage.querySelector('.denue-v5-summary');
- muns.forEach(m=>{const p=svg('path',{d:m.d,class:'denue-v5-mun','data-code':m.code,'vector-effect':'non-scaling-stroke','fill-rule':'evenodd',role:'button','aria-label':`Seleccionar ${m.name}`});p.appendChild(svg('title',{},m.name));p.addEventListener('click',()=>{activeMun=activeMun===m.code?'':m.code;munSel.value=activeMun;update();});gM.appendChild(p);});
+ // Una sola parada de tabulación en el mapa; flechas para cambiar el foco entre municipios.
+ muns.forEach(m=>{
+   const p=svg('path',{d:m.d,class:'denue-v5-mun','data-code':m.code,
+     'vector-effect':'non-scaling-stroke','fill-rule':'evenodd',role:'button',
+     tabindex:m.code===orderedMuns[0].code?'0':'-1',
+     'aria-label':`Seleccionar ${m.name}`});
+   p.appendChild(svg('title',{},m.name));
+   const selectMunicipality=()=>{activeMun=activeMun===m.code?'':m.code;munSel.value=activeMun;update();};
+   p.addEventListener('click',selectMunicipality);
+   p.addEventListener('focus',()=>{
+     gM.querySelectorAll('.denue-v5-mun').forEach(node=>node.setAttribute('tabindex',node===p?'0':'-1'));
+   });
+   p.addEventListener('keydown',event=>{
+     if(event.key==='Enter'||event.key===' '){event.preventDefault();selectMunicipality();return;}
+     if(!['ArrowRight','ArrowDown','ArrowLeft','ArrowUp','Home','End'].includes(event.key))return;
+     event.preventDefault();
+     const current=orderedMuns.findIndex(item=>item.code===m.code);
+     const next=event.key==='Home'?0:event.key==='End'?orderedMuns.length-1:
+       (current+(event.key==='ArrowRight'||event.key==='ArrowDown'?1:-1)+orderedMuns.length)%orderedMuns.length;
+     gM.querySelector('[data-code="'+orderedMuns[next].code+'"]')?.focus();
+   });
+   gM.appendChild(p);
+ });
  let activeMun='',activeSector='';
  function update(){
   svgEl.classList.toggle('has-selection',!!activeMun);

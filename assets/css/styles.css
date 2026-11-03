@@ -25,6 +25,10 @@ button,input,textarea,select{font:inherit}
 button{color:inherit}
 ::selection{background:rgba(109,75,209,.55);color:#fff}
 .container{width:min(var(--content),calc(100% - 48px));margin-inline:auto}
+.skip-link{position:fixed;top:-90px;left:16px;z-index:250;padding:11px 16px;border-radius:6px;background:var(--gold);color:#08111d;font-weight:700;text-decoration:none}
+.skip-link:focus-visible{top:12px;outline:3px solid #fff;outline-offset:3px}
+.projects-list .project-feature[id]{scroll-margin-top:112px}
+.home-project-grid .project-card h3 a:hover,.home-project-grid .project-card h3 a:focus-visible{color:var(--cyan);text-decoration:underline;text-underline-offset:4px}
 .site-header{position:sticky;top:0;z-index:50;background:rgba(9,15,24,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--line-soft)}
 .header-inner{min-height:86px;display:flex;align-items:center;justify-content:space-between;gap:32px}
 .brand{display:inline-flex;flex-direction:column;gap:2px;flex-shrink:0}
@@ -128,7 +132,7 @@ h1,h2,h3,p{margin-top:0}
 .territory-header{position:absolute;z-index:25;left:24px;right:24px;top:18px;display:flex;justify-content:space-between;align-items:center;gap:16px}
 .visual-kicker{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#c4cedb}
 .territory-toolbar{display:flex;align-items:center;gap:9px}
-.territory-control{appearance:none;border:1px solid rgba(148,163,184,.22);background:rgba(7,12,19,.62);color:#c8d3df;border-radius:999px;font:700 9px/1 Inter,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;min-width:32px;height:30px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
+.territory-control{appearance:none;border:1px solid rgba(148,163,184,.22);background:rgba(7,12,19,.62);color:#c8d3df;border-radius:999px;font:700 9px/1 Inter,system-ui,sans-serif;letter-spacing:.12em;text-transform:uppercase;min-width:44px;height:44px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
 .territory-control:hover,.territory-control:focus-visible{background:rgba(15,24,36,.94);border-color:rgba(67,199,218,.48);color:#fff;outline:0;transform:translateY(-1px)}
 .territory-control[disabled]{opacity:.42;cursor:default;pointer-events:none}
 .territory-control-wide{min-width:74px}
