@@ -2,17 +2,19 @@
   {
     "slug": "poblacion-durango",
     "title": "¿En qué municipios creció y disminuyó la población?",
-    "description": "Durango sumó 109,953 residentes entre 2020 y 2025, pero 21 de sus 39 municipios registraron disminuciones. Un análisis con mapa y cifras municipales comparables.",
+    "description": "Entre 2020 y 2025, el saldo comparable de Durango aumentó en 109,953 residentes; 21 municipios muestran una cifra estimada inferior. Mapa y comparación municipal.",
     "category": "Población y territorio",
     "date": "2026-10-08",
     "dateLabel": "8 de octubre de 2026",
     "readingTime": "6 min de lectura",
     "image": "poblacion-durango-social.png",
-    "thumbnail": "durango-map.svg",
+    "thumbnail": "durango-municipios-interactive.svg",
     "scripts": [
       "population-article.js"
     ],
-    "imageAlt": "Durango 2020–2025. Mapa de variación poblacional: 18 municipios con aumento y 21 con disminución.",
-    "thumbnailCaption": "Durango · 39 municipios · 2020–2025"
+    "imageAlt": "Durango 2020–2025. Mapa de variaciones porcentuales estimadas en 39 municipios.",
+    "thumbnailCaption": "Durango · 39 municipios · 2020–2025",
+    "seoTitle": "¿En qué municipios creció y disminuyó la población de Durango?",
+    "modified": "2026-11-02"
   }
 ]
