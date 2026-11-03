@@ -52,7 +52,7 @@ async function init(){try{
      gM.querySelectorAll('.denue-v5-mun').forEach(node=>node.setAttribute('tabindex',node===p?'0':'-1'));
    });
    p.addEventListener('keydown',event=>{
-     if(event.key==='Enter'||event.key===' '){event.preventDefault();suppressSyntheticKeyboardClick=true;selectMunicipality();return;}
+     if(event.key==='Enter'||event.key===' '){event.preventDefault();selectMunicipality();return;}
      if(!['ArrowRight','ArrowDown','ArrowLeft','ArrowUp','Home','End'].includes(event.key))return;
      event.preventDefault();
      const current=orderedMuns.findIndex(item=>item.code===m.code);
