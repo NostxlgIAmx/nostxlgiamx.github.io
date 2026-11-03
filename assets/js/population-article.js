@@ -5,6 +5,7 @@
   if (!payload) return;
   const {municipalities: rows, totals} = JSON.parse(payload.textContent);
   const byId = new Map(rows.map(row => [row.id, row]));
+  const censal2025 = new Set(['10002','10003','10010','10014','10019','10025','10029','10030']);
   const number = new Intl.NumberFormat('es-MX');
   const percent = new Intl.NumberFormat('es-MX', {minimumFractionDigits:2, maximumFractionDigits:2});
   const fmt = value => number.format(value);
@@ -122,7 +123,8 @@
         '<div class="detail-change '+tone(row.delta)+'">'+pct(row.pct)+'</div>'+
         '<p class="detail-delta">'+fmt(Math.abs(row.delta))+' residentes '+(row.delta<0?'menos':'más')+' (diferencia entre fuentes)</p>'+
         '<dl class="population-values"><div><dt>2020 · censo</dt><dd>'+fmt(row.p20)+'</dd></div><div><dt>2025 · estimación</dt><dd>'+fmt(row.p25)+'</dd></div></dl>'+
-        '<p class="detail-context">'+percent.format(100*row.p25/totals.p25)+' % de residentes comparados del estado.<br>Posición '+higher+' de 39 en variación porcentual, de mayor a menor.</p>';
+        '<p class="detail-context">'+percent.format(100*row.p25/totals.p25)+' % de residentes comparados del estado.<br>Posición '+higher+' de 39 en variación porcentual, de mayor a menor.</p>'+
+        '<p class="detail-method-note">EIC 2025: '+(censal2025.has(row.id)?'levantamiento censal':'estimación a partir de muestra')+'.</p>';
       search.value=row.name;
     }
     if(row&&other){
