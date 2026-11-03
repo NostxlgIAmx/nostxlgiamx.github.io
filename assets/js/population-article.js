@@ -299,6 +299,7 @@
     }
   });
   render(false);
+  loadStatus.hidden=false;
   try{
     const response=await fetch('/assets/images/analisis/durango-municipios-interactive.svg?v=20261102',{cache:'force-cache'});
     if(!response.ok)throw Error('HTTP '+response.status);
