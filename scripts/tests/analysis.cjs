@@ -25,7 +25,10 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  assert.equal(await page.locator('#population-map').getAttribute('hidden'),null,'SVG no debe conservar atributo hidden');
  assert.equal(await page.locator('#population-map').isVisible(),true,'El mapa SVG debe ser visible, no solo existir');
  assert.equal(await page.locator('.municipality').first().isVisible(),true,'Los polígonos deben estar dibujados');
- assert.equal(await page.locator('.map-fallback').isVisible(),true,'El respaldo del mapa debe permanecer disponible');
+ assert.equal(await page.locator('.map-fallback').isVisible(),false,'El respaldo no debe duplicar el mapa ya renderizado');
+ assert.equal(await page.locator('#map-stage').evaluate(el=>el.classList.contains('is-map-ready')),true,'El mapa debe confirmar su estado visible');
+ assert.equal(await page.locator('#map-stage').evaluate(el=>getComputedStyle(el).overflowX),'hidden','El escenario debe recortar el mapa');
+ assert.equal(await page.locator('#population-map').evaluate(el=>getComputedStyle(el).overflowX),'hidden','El SVG debe recortar los polígonos ampliados');
  assert.equal(await page.locator('.map-fallback').evaluate(img=>img.complete&&img.naturalWidth>0),true,'La imagen de respaldo debe cargar');
  const search=page.locator('#municipality-search');
  for(const r of rows){
@@ -37,6 +40,17 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
    assert.equal(await page.locator(`.municipality[data-id="${r.id}"]`).getAttribute('aria-pressed'),'true');
    assert.equal(new URL(page.url()).searchParams.get('municipio'),r.id);
  }
+ // Regression: la selección no puede sobreponer polígonos al panel lateral.
+ await search.fill('guanacevi');await search.press('Enter');
+ assert.equal(await page.locator('#municipality-detail h3').textContent(),'Guanaceví');
+ assert.equal(await page.locator('#population-map').evaluate(el=>el.viewBox.baseVal.width>=670/1.55-0.01),true,'La selección no debe ampliar excesivamente');
+ const side=await page.locator('.municipality-panel').boundingBox();
+ const covering=await page.evaluate(([x,y])=>{
+   const node=document.elementFromPoint(x,y);
+   return Boolean(node?.closest('.municipality'));
+ },[side.x+30,side.y+140]);
+ assert.equal(covering,false,'Un municipio no puede cubrir el panel de indicadores');
+ await page.getByRole('button',{name:'Vista estatal'}).click();
  await search.fill('noexiste');assert.equal(await page.locator('#search-results').innerText(),'No se encontraron municipios.');
  await search.press('Escape');assert.equal(await search.getAttribute('aria-expanded'),'false');
  await search.fill('gomez');await search.press('ArrowDown');await search.press('Enter');
