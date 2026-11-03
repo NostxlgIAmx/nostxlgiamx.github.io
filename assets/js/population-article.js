@@ -44,6 +44,7 @@
     search.setAttribute('aria-expanded','false');
     search.removeAttribute('aria-activedescendant');
     activeIndex = -1;
+    matches = [];
   }
   function updateUrl(){
     const url = new URL(location.href);
@@ -209,8 +210,9 @@
       const dx=event.clientX-drag.x,dy=event.clientY-drag.y;
       if(Math.hypot(dx,dy)>6)drag.moved=true;
       if(!drag.moved)return;
+      const matrix=svg.getScreenCTM();
       const renderedWidth=svg.getBoundingClientRect().width;
-      const units=670/(Math.max(1,renderedWidth)*zoom);
+      const units=matrix ? 1/Math.max(0.001,Math.hypot(matrix.a,matrix.b)) : 670/(Math.max(1,renderedWidth)*zoom);
       center={x:drag.cx-dx*units,y:drag.cy-dy*units};
       drawViewport();hover.classList.remove('visible');
     });
