@@ -37,7 +37,8 @@
   let selected = byId.has(params.get('municipio')) ? params.get('municipio') : null;
   let compared = selected && byId.has(params.get('comparar')) && selected !== params.get('comparar') ? params.get('comparar') : null;
   let paths = [], matches = [], activeIndex = -1, loaded = false;
-  let zoom = 1, center = {x:335,y:340}, suppressClick = false, drag = null;
+  let zoom = 1, center = {x:335,y:340}, suppressClick = false, drag = null, gesture = null;
+  const activePointers = new Map();
   for (const button of [zoomIn,zoomOut,zoomReset]) button.disabled = true;
 
   function hideResults(){
@@ -138,8 +139,8 @@
     if(writeUrl)updateUrl();
   }
   function showDetail(){
-    if(mobile.matches && selected){
-      detail.scrollIntoView({behavior:reduceMotion.matches?'instant':'smooth',block:'nearest'});
+    if(selected){
+      (mobile.matches ? detail : document.querySelector('.map-layout')).scrollIntoView({behavior:reduceMotion.matches?'instant':'smooth',block:mobile.matches?'start':'nearest'});
     }
   }
   function choose(id,options={}){
@@ -156,14 +157,14 @@
   }
   function showHover(path){
     const row=byId.get(path.dataset.id);
-    if(!row)return;
+    if(!row || !loaded)return;
     hover.textContent=row.name+' · '+pct(row.pct)+' · '+signed(row.delta)+' residentes';
-    const rect=path.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
-    const mid=(rect.left+rect.right)/2-stageRect.left;
-    const top=rect.top-stageRect.top;
-    hover.style.left=Math.max(12,Math.min(stageRect.width-220,mid))+'px';
-    hover.style.top=Math.max(10,top-58)+'px';
     hover.classList.add('visible');
+    const rect=path.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
+    const width=hover.getBoundingClientRect().width;
+    const left=(rect.left+rect.right)/2-stageRect.left-width/2;
+    hover.style.left=Math.max(8,Math.min(stageRect.width-width-8,left))+'px';
+    hover.style.top=Math.max(8,rect.top-stageRect.top-hover.offsetHeight-10)+'px';
   }
   function nextSpatial(current,direction){
     const source=current.getBBox(),sx=source.x+source.width/2,sy=source.y+source.height/2;
@@ -197,31 +198,95 @@
         }else next=nextSpatial(path,event.key);
         paths.forEach(item=>item.setAttribute('tabindex',item===next?'0':'-1'));
         next.focus({preventScroll:true});
+        focusMunicipality(next.dataset.id);
+        showHover(next);
       });
     });
+    // A tap is handled by the municipality's native click. Capture is enabled
+    // only after real movement, so it cannot steal a regular selection.
+    const suppressNextClick=()=>{
+      suppressClick=true;
+      setTimeout(()=>{suppressClick=false;},150);
+    };
+    const mapPointer=event=>({x:event.clientX,y:event.clientY,type:event.pointerType});
+    const spacing=()=>{
+      const points=[...activePointers.values()];
+      return points.length<2 ? 0 : Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);
+    };
     svg.addEventListener('click',event=>{
       if(!suppressClick)return;
-      event.stopImmediatePropagation(); event.preventDefault(); suppressClick=false;
+      event.stopImmediatePropagation();
+      event.preventDefault();
+      suppressClick=false;
     },true);
     svg.addEventListener('pointerdown',event=>{
-      if(zoom<=1.01 || event.button!==0)return;
-      drag={x:event.clientX,y:event.clientY,cx:center.x,cy:center.y,moved:false};
-      svg.setPointerCapture(event.pointerId);
+      if(event.button!==0 || zoom<=1.01)return;
+      activePointers.set(event.pointerId,mapPointer(event));
+      if(activePointers.size===2){
+        const points=[...activePointers.values()];
+        gesture={
+          distance:Math.max(1,spacing()),zoom,
+          midpoint:{x:(points[0].x+points[1].x)/2,y:(points[0].y+points[1].y)/2}
+        };
+        drag=null;
+        for(const id of activePointers.keys()){
+          try{svg.setPointerCapture(id);}catch{}
+        }
+        return;
+      }
+      drag={
+        id:event.pointerId,x:event.clientX,y:event.clientY,
+        cx:center.x,cy:center.y,moved:false
+      };
     });
     svg.addEventListener('pointermove',event=>{
-      if(!drag)return;
+      if(!activePointers.has(event.pointerId))return;
+      activePointers.set(event.pointerId,mapPointer(event));
+      if(gesture && activePointers.size>=2){
+        const points=[...activePointers.values()];
+        const midpoint={x:(points[0].x+points[1].x)/2,y:(points[0].y+points[1].y)/2};
+        const pivot=pointFromClient(midpoint.x,midpoint.y);
+        setZoom(gesture.zoom*spacing()/gesture.distance,pivot);
+        hover.classList.remove('visible');
+        return;
+      }
+      if(!drag || drag.id!==event.pointerId)return;
       const dx=event.clientX-drag.x,dy=event.clientY-drag.y;
-      if(Math.hypot(dx,dy)>6)drag.moved=true;
+      if(!drag.moved && Math.hypot(dx,dy)>7){
+        drag.moved=true;
+        try{svg.setPointerCapture(event.pointerId);}catch{}
+      }
       if(!drag.moved)return;
       const matrix=svg.getScreenCTM();
-      const renderedWidth=svg.getBoundingClientRect().width;
-      const units=matrix ? 1/Math.max(0.001,Math.hypot(matrix.a,matrix.b)) : 670/(Math.max(1,renderedWidth)*zoom);
+      const width=svg.getBoundingClientRect().width;
+      const units=matrix?1/Math.max(0.001,Math.hypot(matrix.a,matrix.b)):670/Math.max(1,width*zoom);
       center={x:drag.cx-dx*units,y:drag.cy-dy*units};
-      drawViewport();hover.classList.remove('visible');
+      drawViewport();
+      hover.classList.remove('visible');
     });
-    const endDrag=()=>{if(!drag)return;const moved=drag.moved;drag=null;if(moved){suppressClick=true;setTimeout(()=>{suppressClick=false;},80);}};
-    svg.addEventListener('pointerup',endDrag);
-    svg.addEventListener('pointercancel',endDrag);
+    const endPointer=event=>{
+      if(!activePointers.has(event.pointerId))return;
+      const moved=Boolean(gesture || (drag && drag.id===event.pointerId && drag.moved));
+      activePointers.delete(event.pointerId);
+      if(drag && drag.id===event.pointerId)drag=null;
+      if(gesture){
+        suppressNextClick();
+        if(activePointers.size<2)gesture=null;
+        if(activePointers.size===1){
+          const remaining=[...activePointers.entries()][0];
+          drag={id:remaining[0],x:remaining[1].x,y:remaining[1].y,cx:center.x,cy:center.y,moved:false};
+        }
+      }else if(moved)suppressNextClick();
+    };
+    svg.addEventListener('pointerup',endPointer);
+    svg.addEventListener('pointercancel',endPointer);
+    svg.addEventListener('lostpointercapture',event=>{
+      if(!activePointers.has(event.pointerId))return;
+      if(drag && drag.id===event.pointerId && drag.moved)suppressNextClick();
+      activePointers.delete(event.pointerId);
+      if(drag && drag.id===event.pointerId)drag=null;
+      if(activePointers.size<2)gesture=null;
+    });
     svg.addEventListener('wheel',event=>{
       if(!event.ctrlKey && !event.metaKey)return;
       event.preventDefault();
@@ -242,10 +307,17 @@
     results.hidden=false;search.setAttribute('aria-expanded','true');
   }
   search.addEventListener('input',()=>{
-    if(!normalize(search.value)){choose(null);return;}
+    const draft=search.value;
+    if(!normalize(draft)){choose(null);return;}
+    if(selected && normalize(draft)!==normalize(byId.get(selected).name)){
+      selected=null;compared=null;
+      render();
+      if(loaded)resetViewport();
+      search.value=draft;
+    }
     showResults();
   });
-  search.addEventListener('focus',showResults);
+  search.addEventListener('focus',()=>{if(selected)search.select();else showResults();});
   search.addEventListener('keydown',event=>{
     if(event.key==='Escape'){event.preventDefault();hideResults();return;}
     if(event.key==='Tab'){hideResults();return;}
@@ -278,7 +350,7 @@
   zoomReset.addEventListener('click',resetViewport);
   document.querySelectorAll('[data-select-municipality]').forEach(button=>button.addEventListener('click',event=>{
     choose(button.dataset.selectMunicipality,{showDetail:false});
-    (mobile.matches?detail:document.getElementById('mapa')).scrollIntoView({behavior:reduceMotion.matches?'instant':'smooth',block:'start'});
+    (mobile.matches?detail:document.querySelector('.map-layout')).scrollIntoView({behavior:reduceMotion.matches?'instant':'smooth',block:'start'});
     if(event.detail===0){detail.setAttribute('tabindex','-1');detail.focus({preventScroll:true});}
   }));
   document.querySelectorAll('a[href="#precision"]').forEach(link=>link.addEventListener('click',()=>{
@@ -315,7 +387,12 @@
   render(false);
   loadStatus.hidden=false;
   try{
-    const response=await fetch('/assets/images/analisis/durango-municipios-interactive.svg?v=20261102',{cache:'force-cache'});
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),10000);
+    let response;
+    try{
+      response=await fetch('/assets/images/analisis/durango-municipios-interactive.svg?v=20261102',{cache:'force-cache',signal:controller.signal});
+    }finally{clearTimeout(timeout);}
     if(!response.ok)throw Error('HTTP '+response.status);
     const documentSvg=new DOMParser().parseFromString(await response.text(),'image/svg+xml');
     if(documentSvg.querySelector('parsererror'))throw Error('SVG inválido');
