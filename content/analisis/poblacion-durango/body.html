@@ -32,6 +32,7 @@
         <g clip-path="url(#map-frame)">
           <svg id="map-camera" width="670" height="680" viewBox="0 0 670 680">
             <g id="municipality-layer"><image class="map-fallback" href="/assets/images/analisis/durango-municipios-interactive.svg?v=20261102" width="670" height="680"/></g>
+            <g id="map-emphasis" aria-hidden="true" pointer-events="none"></g>
           </svg>
         </g>
       </svg>
@@ -43,7 +44,8 @@
     <div class="map-bottomline"><span>Durango, México</span><span>Variación 2020–2025</span></div>
   </div><aside class="municipality-panel" aria-label="Detalle municipal"><div id="municipality-detail" aria-live="polite" aria-atomic="true">
     <span class="detail-kicker">Estado de Durango</span><h3>El balance estatal</h3><div class="detail-change positive">+6.04 %</div><p class="detail-delta">109,953 residentes más</p><dl class="population-values"><div><dt>2020</dt><dd>1,821,273</dd></div><div><dt>2025 · estimación</dt><dd>1,931,226</dd></div></dl><p class="detail-context">18 municipios con aumento y 21 con disminución.</p>
-  </div><div class="compare-control"><label for="compare-municipality">Comparar con otro municipio</label><p id="compare-help" class="compare-help">Selecciona primero un municipio en el mapa o mediante el buscador.</p><select id="compare-municipality" disabled><option value="">Seleccionar municipio</option>{{OPTIONS}}</select><button id="swap-municipalities" class="swap-button" type="button" disabled>Intercambiar municipios</button><div id="comparison-detail" aria-live="polite"></div></div><p class="detail-universe">Residentes en viviendas particulares habitadas.</p></aside></div>
+  </div><div class="compare-control"><label for="compare-municipality">Comparar con otro municipio</label><p id="compare-help" class="compare-help">Selecciona primero un municipio en el mapa o mediante el buscador.</p><select id="compare-municipality" disabled><option value="">Seleccionar municipio</option>{{OPTIONS}}</select><button id="swap-municipalities" class="swap-button" type="button" disabled>Intercambiar municipios</button></div><p class="detail-universe">Residentes en viviendas particulares habitadas.</p></aside></div>
+  <section id="comparison-detail" class="comparison-workspace" aria-label="Comparación municipal" aria-live="polite" hidden></section>
   <p class="figure-note">Los colores indican el tamaño de la diferencia entre ambas fuentes. En los municipios con muestra, una variación pequeña puede reflejar incertidumbre de la estimación. <a href="#precision">Sobre la precisión de 2025</a>.</p>
   <noscript><p>La tabla municipal al final del artículo contiene todas las cifras. Para seleccionar municipios en el mapa, activa JavaScript.</p></noscript>
 </section>
