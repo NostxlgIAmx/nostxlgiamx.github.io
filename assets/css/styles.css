@@ -27,6 +27,7 @@ button{color:inherit}
 .container{width:min(var(--content),calc(100% - 48px));margin-inline:auto}
 .skip-link{position:fixed;top:-90px;left:16px;z-index:250;padding:11px 16px;border-radius:6px;background:var(--gold);color:#08111d;font-weight:700;text-decoration:none}
 .skip-link:focus-visible{top:12px;outline:3px solid #fff;outline-offset:3px}
+.projects-list .project-feature[id]{scroll-margin-top:112px}
 .home-project-grid .project-card h3 a:hover,.home-project-grid .project-card h3 a:focus-visible{color:var(--cyan);text-decoration:underline;text-underline-offset:4px}
 .site-header{position:sticky;top:0;z-index:50;background:rgba(9,15,24,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--line-soft)}
 .header-inner{min-height:86px;display:flex;align-items:center;justify-content:space-between;gap:32px}
