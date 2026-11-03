@@ -46,12 +46,13 @@ async function init(){try{
      tabindex:m.code===orderedMuns[0].code?'0':'-1',
      'aria-label':`Seleccionar ${m.name}`});
    p.appendChild(svg('title',{},m.name));
-   p.addEventListener('click',()=>{activeMun=activeMun===m.code?'':m.code;munSel.value=activeMun;update();});
+   const selectMunicipality=()=>{activeMun=activeMun===m.code?'':m.code;munSel.value=activeMun;update();};
+   p.addEventListener('click',selectMunicipality);
    p.addEventListener('focus',()=>{
      gM.querySelectorAll('.denue-v5-mun').forEach(node=>node.setAttribute('tabindex',node===p?'0':'-1'));
    });
    p.addEventListener('keydown',event=>{
-     if(event.key==='Enter'||event.key===' '){event.preventDefault();p.click();return;}
+     if(event.key==='Enter'||event.key===' '){event.preventDefault();selectMunicipality();return;}
      if(!['ArrowRight','ArrowDown','ArrowLeft','ArrowUp','Home','End'].includes(event.key))return;
      event.preventDefault();
      const current=orderedMuns.findIndex(item=>item.code===m.code);
