@@ -27,6 +27,7 @@
   const svg = document.getElementById('population-map');
   const stage = document.getElementById('map-stage');
   const layer = document.getElementById('municipality-layer');
+  const emphasis = document.getElementById('map-emphasis');
   const camera = document.getElementById('map-camera');
   const loadStatus = document.getElementById('map-load-status');
   const zoomIn = document.getElementById('zoom-in');
@@ -69,6 +70,7 @@
     zoomIn.disabled = zoom>=5;
     zoomReset.disabled = zoom<=1.01;
     resetButton.disabled = !selected && !compared && zoom<=1.01;
+    updateMarkerScale();
   }
   function setZoom(value,point){
     if(!loaded)return;
@@ -97,11 +99,91 @@
     const matrix=camera.getScreenCTM();
     return matrix ? point.matrixTransform(matrix.inverse()) : {x:335,y:340};
   }
-  function comparisonMeter(row,label,scale){
-    const width = (50*Math.abs(row.pct)/scale).toFixed(2)+'%';
-    const side = row.pct<0 ? 'right' : 'left';
-    return '<div class="compare-meter"><span>'+escape(label)+'</span><div class="compare-meter-track"><i class="'+tone(row.pct)+'" style="'+side+':50%;width:'+width+'"></i></div><strong>'+pct(row.pct)+'</strong></div>';
+
+  const SVG_NS='http://www.w3.org/2000/svg';
+  function svgNode(name,attrs){
+    const el=document.createElementNS(SVG_NS,name);
+    for(const [key,val] of Object.entries(attrs||{}))el.setAttribute(key,String(val));
+    return el;
   }
+  function interiorPoint(path){
+    const b=path.getBBox(),cx=b.x+b.width/2,cy=b.y+b.height/2;
+    const inside=(x,y)=>{
+      const pt=svg.createSVGPoint();pt.x=x;pt.y=y;
+      return typeof path.isPointInFill!=='function'||path.isPointInFill(pt);
+    };
+    if(inside(cx,cy))return {x:cx,y:cy};
+    let best=null,distance=Infinity;
+    for(let iy=1;iy<=15;iy++)for(let ix=1;ix<=15;ix++){
+      const x=b.x+b.width*ix/16,y=b.y+b.height*iy/16;
+      if(!inside(x,y))continue;
+      const d=(x-cx)**2+(y-cy)**2;
+      if(d<distance){distance=d;best={x,y};}
+    }
+    return best||{x:cx,y:cy};
+  }
+  function updateMarkerScale(){
+    if(!emphasis)return;
+    emphasis.querySelectorAll('.map-letter-marker').forEach(marker=>{
+      marker.setAttribute('transform','translate('+marker.dataset.x+' '+marker.dataset.y+') scale('+(1/zoom).toFixed(5)+')');
+    });
+  }
+  function renderEmphasis(){
+    if(!emphasis||!loaded)return;
+    emphasis.replaceChildren();
+    stage.classList.toggle('has-selection',Boolean(selected));
+    stage.classList.toggle('has-comparison',Boolean(selected&&compared));
+    for(const [id,letter] of [[selected,'A'],[compared,'B']]){
+      if(!id)continue;
+      const path=paths.find(item=>item.dataset.id===id);
+      if(!path)continue;
+      const point=interiorPoint(path),theme=letter==='A'?'primary':'secondary';
+      emphasis.appendChild(svgNode('path',{d:path.getAttribute('d'),class:'map-emphasis-outline map-emphasis-'+theme,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      const marker=svgNode('g',{class:'map-letter-marker map-letter-'+theme,'pointer-events':'none'});
+      marker.dataset.x=point.x;marker.dataset.y=point.y;
+      marker.appendChild(svgNode('circle',{cx:0,cy:0,r:17}));
+      const label=svgNode('text',{x:0,y:1,'text-anchor':'middle','dominant-baseline':'middle'});
+      label.textContent=letter;marker.appendChild(label);
+      emphasis.appendChild(marker);
+    }
+    updateMarkerScale();
+  }
+  function comparisonCard(row,letter){
+    const cls=letter.toLowerCase();
+    return '<article class="comparison-card comparison-card-'+cls+'">'+
+      '<h4><span class="comparison-letter comparison-letter-'+cls+'" aria-hidden="true">'+letter+'</span>'+escape(row.name)+'</h4>'+
+      '<div class="comparison-card-value '+tone(row.delta)+'">'+pct(row.pct)+'</div>'+
+      '<p class="comparison-card-delta">'+signed(row.delta)+' residentes respecto a 2020</p>'+
+      '<dl class="comparison-card-values"><div><dt>2020 · censo</dt><dd>'+fmt(row.p20)+'</dd></div>'+
+      '<div><dt>2025 · estimación</dt><dd>'+fmt(row.p25)+'</dd></div></dl>'+
+      '</article>';
+  }
+  function comparisonBar(row,letter,scale){
+    const length=(50*Math.abs(row.pct)/scale).toFixed(3);
+    const positive=row.pct>=0,cls=letter.toLowerCase();
+    return '<div class="comparison-bar-row"><div class="comparison-bar-head">'+
+      '<span><span class="comparison-letter comparison-letter-'+cls+'" aria-hidden="true">'+letter+'</span>'+escape(row.name)+'</span>'+
+      '<strong>'+pct(row.pct)+'</strong></div>'+
+      '<div class="comparison-bar-track" role="img" aria-label="'+escape(row.name)+': variación estimada '+pct(row.pct)+'; misma escala que el otro municipio">'+
+      '<i class="comparison-bar-fill '+(positive?'bar-positive':'bar-negative')+' bar-'+cls+'" style="'+(positive?'left':'right')+':50%;width:'+length+'%"></i></div></div>';
+  }
+  function renderComparison(a,b){
+    if(!a||!b){comparisonDetail.replaceChildren();comparisonDetail.hidden=true;return;}
+    const scale=Math.max(Math.abs(a.pct),Math.abs(b.pct),.1)*1.16;
+    const diff=Math.abs(a.pct-b.pct),direction=a.pct>=b.pct?'superior':'inferior';
+    comparisonDetail.hidden=false;
+    comparisonDetail.innerHTML=
+      '<div class="comparison-heading"><span class="section-kicker">Comparación municipal</span>'+
+      '<h3 id="comparison-title">Dos municipios, una misma escala.</h3>'+
+      '<p>Variación estimada de residentes en viviendas particulares habitadas entre 2020 y 2025.</p></div>'+
+      '<div class="comparison-card-grid">'+comparisonCard(a,'A')+comparisonCard(b,'B')+'</div>'+
+      '<figure class="comparison-figure"><figcaption>Variación porcentual estimada'+
+      '<span>Escala simétrica de −'+percent.format(scale)+' % a +'+percent.format(scale)+' %; la línea central representa 0 %.</span></figcaption>'+
+      comparisonBar(a,'A',scale)+comparisonBar(b,'B',scale)+'</figure>'+
+      '<p class="comparison-conclusion">La variación estimada de <strong>'+escape(a.name)+'</strong> es '+percent.format(diff)+
+      ' puntos porcentuales '+direction+' a la de <strong>'+escape(b.name)+'</strong>. Esta diferencia descriptiva no implica significancia estadística.</p>';
+  }
+
   function render(writeUrl=true){
     const row=byId.get(selected), other=byId.get(compared);
     const tabbable=document.activeElement && paths.includes(document.activeElement) ? document.activeElement.dataset.id : (selected||'10005');
@@ -112,7 +194,7 @@
     });
     compare.disabled=!row;
     swap.disabled=!(row&&other);
-    compareHelp.textContent=row?'Compara la variación porcentual de dos municipios.':'Selecciona primero un municipio en el mapa o mediante el buscador.';
+    compareHelp.textContent=row?'Elige el segundo municipio. La comparación aparecerá debajo del mapa.':'Selecciona primero un municipio en el mapa o mediante el buscador.';
     [...compare.options].forEach(option=>{option.disabled=option.value===selected;});
     compare.value=other?other.id:'';
     if(!row){
@@ -128,16 +210,8 @@
         '<p class="detail-method-note">EIC 2025: '+(censal2025.has(row.id)?'levantamiento censal':'estimación a partir de muestra')+'.</p>';
       search.value=row.name;
     }
-    if(row&&other){
-      const max=Math.max(10,Math.abs(row.pct),Math.abs(other.pct));
-      comparisonDetail.innerHTML='<div class="comparison-summary"><h4><span class="compare-key" aria-hidden="true"></span>'+escape(other.name)+'</h4>'+
-        '<p class="comparison-subtitle">Diferencia respecto a 2020</p>'+
-        '<div class="compare-change '+tone(other.delta)+'">'+pct(other.pct)+'</div><p>'+signed(other.delta)+' residentes</p>'+
-        '<dl class="population-values"><div><dt>2020 · censo</dt><dd>'+fmt(other.p20)+'</dd></div>'+
-        '<div><dt>2025 · estimación</dt><dd>'+fmt(other.p25)+'</dd></div></dl>'+
-        '<div class="comparison-meters" aria-label="Comparación de variaciones porcentuales con eje cero">'+comparisonMeter(row,row.name,max)+comparisonMeter(other,other.name,max)+'</div>'+
-        '<p class="compare-gap">'+escape(row.name)+': '+percent.format(Math.abs(row.pct-other.pct))+' puntos porcentuales '+(row.pct>=other.pct?'por encima':'por debajo')+' de '+escape(other.name)+'.</p></div>';
-    }else comparisonDetail.innerHTML='';
+    renderComparison(row,other);
+    renderEmphasis();
     resetButton.disabled = !row && !other && zoom<=1.01;
     if(writeUrl)updateUrl();
   }
@@ -349,8 +423,8 @@
     if(option)choose(option.dataset.id,{showDetail:true});
   });
   document.addEventListener('click',event=>{if(!event.target.closest('.search-wrap'))hideResults();});
-  compare.addEventListener('change',()=>{compared=selected&&byId.has(compare.value)&&selected!==compare.value?compare.value:null;render();});
-  swap.addEventListener('click',()=>{if(!selected||!compared)return;const old=selected;selected=compared;compared=old;render();focusMunicipality(selected);});
+  compare.addEventListener('change',()=>{compared=selected&&byId.has(compare.value)&&selected!==compare.value?compare.value:null;render();if(compared)resetViewport();});
+  swap.addEventListener('click',()=>{if(!selected||!compared)return;const old=selected;selected=compared;compared=old;render();resetViewport();});
   resetButton.addEventListener('click',()=>{choose(null);hover.classList.remove('visible');});
   zoomIn.addEventListener('click',()=>setZoom(zoom*1.5));
   zoomOut.addEventListener('click',()=>setZoom(zoom/1.5));
