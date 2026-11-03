@@ -95,6 +95,7 @@ async function verifyUniqueLandmark(page,name){
           assert.equal(await keyboard.count(),1,'El mapa debe tener una única parada de tabulación');
           await keyboard.focus();
           await page.keyboard.press('ArrowDown');
+          assert.equal(await page.locator('[data-viz="denue-context"] select[data-mun]').inputValue(),'','Las flechas no deben seleccionar municipios');
           const focused=page.locator('[data-viz="denue-context"] .denue-v5-mun:focus');
           assert.equal(await focused.count(),1,'Flechas del mapa no mueven el foco');
           await page.keyboard.press('Enter');
