@@ -142,3 +142,12 @@
   .rank-no,.rank-name small,.table-scroll th,.story-byline,.catalog-meta{font-size:12px}
   .search-wrap label,.compare-control label{font-size:13px}
 }
+
+/* Ajustes de accesibilidad de la lectura cartográfica. */
+#municipality-detail{scroll-margin-top:115px}
+#map-stage{scroll-margin-top:115px}
+.detail-method-note{margin:6px 0 20px;font-size:12px;line-height:1.6;color:var(--muted)}
+@media(max-width:760px){
+  #municipality-detail{scroll-margin-top:95px}
+  .map-hover{max-width:calc(100% - 16px);overflow-wrap:anywhere}
+}
