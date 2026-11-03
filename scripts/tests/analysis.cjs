@@ -22,6 +22,11 @@ const rows=JSON.parse(fs.readFileSync(path.join(root,'assets/data/analisis/pobla
  await page.getByRole('link',{name:'Leer investigación →'}).click();
  await page.waitForLoadState('networkidle');
  assert.equal(await page.locator('.municipality').count(),39);
+ assert.equal(await page.locator('#population-map').getAttribute('hidden'),null,'SVG no debe conservar atributo hidden');
+ assert.equal(await page.locator('#population-map').isVisible(),true,'El mapa SVG debe ser visible, no solo existir');
+ assert.equal(await page.locator('.municipality').first().isVisible(),true,'Los polígonos deben estar dibujados');
+ assert.equal(await page.locator('.map-fallback').isVisible(),true,'El respaldo del mapa debe permanecer disponible');
+ assert.equal(await page.locator('.map-fallback').evaluate(img=>img.complete&&img.naturalWidth>0),true,'La imagen de respaldo debe cargar');
  const search=page.locator('#municipality-search');
  for(const r of rows){
    await search.fill(r.name.normalize('NFD').replace(/[\u0300-\u036f]/g,''));
