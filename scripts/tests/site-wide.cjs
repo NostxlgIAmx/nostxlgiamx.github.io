@@ -36,6 +36,7 @@ async function verifyUniqueLandmark(page,name){
   assert.equal(focused,true,'El enlace de salto no recibe el primer foco: '+name);
   const bounds=await skip.boundingBox();
   assert.ok(bounds && bounds.y>=0 && bounds.y<85,'El salto queda fuera de pantalla al recibir foco: '+name);
+  await skip.evaluate(el=>el.blur());
 }
 (async()=>{
   const server=spawn('python3',['-u','-m','http.server','8021','--bind','127.0.0.1','--directory',root]);
@@ -109,11 +110,18 @@ async function verifyUniqueLandmark(page,name){
           await page.keyboard.press('Space');
           assert.equal(await focused.getAttribute('aria-pressed'),'true','Espacio no selecciona exactamente una vez');
           assert.equal(errors.length,0,'Error JS en Datos: '+errors.join('; '));
+          if([390,1440].includes(width)){
+            await page.locator('[data-viz="denue-context"]').screenshot({path:path.join(out,'audit-denue-map-'+width+'.png'),animations:'disabled'});
+            await page.locator('[data-viz="enoe-sector"]').screenshot({path:path.join(out,'audit-enoe-sector-'+width+'.png'),animations:'disabled'});
+          }
         }
         if(route.name==='contacto'){
           assert.equal(await page.locator('.privacy-disclosure a[href="../privacidad/"]').count(),1,'Falta enlace de privacidad en formulario');
           assert.equal(await page.locator('input[name="correo"][type="email"][required]').count(),1);
           assert.equal(await page.locator('textarea[name="mensaje"][required]').count(),1);
+          if([390,1440].includes(width)){
+            await page.locator('.contact-form').screenshot({path:path.join(out,'audit-contact-form-'+width+'.png'),animations:'disabled'});
+          }
         }
         if(route.name==='privacidad'){
           assert.match(await page.locator('main').innerText(),/FormSubmit/);
