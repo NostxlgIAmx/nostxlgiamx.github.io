@@ -353,3 +353,6 @@ h1,h2,h3,p{margin-top:0}
 .skip-link{position:fixed;top:-80px;left:16px;z-index:1000;padding:12px 16px;border-radius:7px;background:#d8b466;color:#0b121c;font-size:15px;font-weight:700;text-decoration:none}
 .skip-link:focus-visible{top:12px;outline:3px solid #fff;outline-offset:2px}
 main[id="contenido"]{scroll-margin-top:95px}
+
+/* Reiniciar visual: área de interacción mínima de 44 px, sin alterar la animación. */
+.territory-toolbar .territory-control[data-hero-replay]{min-width:44px;min-height:44px;height:44px;padding:0 12px;font-size:16px}
