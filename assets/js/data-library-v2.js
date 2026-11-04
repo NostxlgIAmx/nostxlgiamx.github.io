@@ -43,7 +43,7 @@
       row.innerHTML=`<div class="dv-sector-row-head"><strong>${esc(r.sector)}</strong><b>${pct(r.porcentaje_total)}</b></div><div class="dv-sector-main-track"><i style="width:${r.porcentaje_total}%"></i></div><div class="dv-sector-sex"><span>Hombres</span><div class="dv-sector-mini-track is-men"><i style="width:${r.porcentaje_hombres}%"></i></div><b>${pct(r.porcentaje_hombres)}</b><span class="is-women-label">Mujeres</span><div class="dv-sector-mini-track is-women is-women-track"><i style="width:${r.porcentaje_mujeres}%"></i></div><b class="is-women-value">${pct(r.porcentaje_mujeres)}</b></div>`;
       chart.appendChild(row);
     });
-    stage.replaceChildren(chart,E('p',{class:'dv-chart-note'},'El porcentaje principal corresponde al total de personas ocupadas. Las barras inferiores muestran cómo se distribuyen hombres y mujeres ocupados entre los sectores.'));
+    stage.replaceChildren(chart,E('p',{class:'dv-chart-note'},'El porcentaje principal corresponde al total de personas ocupadas. Las barras inferiores muestran cómo se distribuyen hombres y mujeres ocupados entre los sectores. No se representa el sector no especificado: 4,515 personas (0.5 % del total), incluidas en el denominador.'));
   }
 
   function incomeRibbon(stage,data){
