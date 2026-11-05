@@ -21,6 +21,8 @@ const style=document.createElement('style');style.dataset.denueMapV5='true';styl
 .denue-v5-map svg{display:block;width:100%;height:100%}.denue-v5-mun{fill:rgba(38,57,77,.34);stroke:rgba(126,151,175,.58);stroke-width:.85;transition:.15s ease}
 .denue-v5-state{fill:none;stroke:#a4b3c2;stroke-width:1.55;opacity:.9;pointer-events:none}.denue-v5-map svg.has-selection .denue-v5-mun{fill:rgba(28,43,59,.20);stroke:rgba(102,125,148,.34)}
 .denue-v5-map svg.has-selection .denue-v5-mun.is-selected{fill:rgba(216,180,102,.24);stroke:#d8b466;stroke-width:2.1}
+.denue-v5-map .denue-v5-mun:focus-visible{outline:none;stroke:#f7dca2;stroke-width:3.2;filter:drop-shadow(0 0 3px rgba(247,220,162,.85))}
+.denue-v5-map svg.has-selection .denue-v5-mun:focus-visible{stroke:#f7dca2;stroke-width:3.2;fill:rgba(216,180,102,.3)}
 .denue-v5-cell{fill:#43c7da;stroke:#071018;stroke-width:.65;opacity:.55}.denue-v5-map svg.has-selection .denue-v5-cell.is-out{opacity:.07}.denue-v5-map svg.has-selection .denue-v5-cell.is-in{opacity:.84}
 .denue-v5-label{fill:#9cadbd;font:800 8px/1 Inter,system-ui,sans-serif;letter-spacing:.1em}.denue-v5-key{position:absolute;right:8px;bottom:7px;padding:4px 6px;border:1px solid rgba(110,132,154,.28);border-radius:999px;background:rgba(7,13,21,.78);color:#91a2b4;font-size:7px}
 .denue-v5-note{margin:0;color:#8293a6;font-size:7.8px;line-height:1.35}.denue-v5-error{display:grid;place-items:center;min-height:260px;padding:20px;color:#c7d2df;font-size:11px;text-align:center;border:1px solid #293a4f;border-radius:9px;background:#09121c}
