@@ -67,7 +67,12 @@ const server=spawn('python',['-u','-m','http.server','8020','--bind','127.0.0.1'
     assert.deepEqual(names.slice(1),names.slice(1).sort((a,b)=>a.localeCompare(b,'es-MX')),'DENUE names not alphabetical');
     const first=stage.locator('path.denue-v5-mun').first();
     assert.equal(await first.getAttribute('tabindex'),'0');
-    await first.focus();
+    // Llegar mediante Tab, no .focus(): :focus-visible depende de la modalidad de teclado.
+    await select.focus();
+    await page.keyboard.press('Tab'); // selector Sector
+    await page.keyboard.press('Tab'); // primer municipio SVG
+    assert.equal(await first.evaluate(el=>document.activeElement===el),true,'Keyboard should reach first map municipality');
+    assert.equal(await first.evaluate(el=>el.matches(':focus-visible')),true,'Keyboard focus must be visible');
     const focusStyle=await first.evaluate(el=>({stroke:getComputedStyle(el).stroke,width:getComputedStyle(el).strokeWidth}));
     assert.equal(focusStyle.stroke,'rgb(247, 220, 162)','DENUE polygon must show keyboard focus');
     assert.ok(parseFloat(focusStyle.width)>=3,'DENUE keyboard focus should be visually substantial');
