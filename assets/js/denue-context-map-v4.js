@@ -27,6 +27,7 @@ const style=document.createElement('style');style.dataset.denueMapV5='true';styl
 .denue-v5-label{fill:#9cadbd;font:800 8px/1 Inter,system-ui,sans-serif;letter-spacing:.1em}.denue-v5-key{position:absolute;right:8px;bottom:7px;padding:4px 6px;border:1px solid rgba(110,132,154,.28);border-radius:999px;background:rgba(7,13,21,.78);color:#91a2b4;font-size:7px}
 .denue-v5-note{margin:0;color:#8293a6;font-size:7.8px;line-height:1.35}.denue-v5-error{display:grid;place-items:center;min-height:260px;padding:20px;color:#c7d2df;font-size:11px;text-align:center;border:1px solid #293a4f;border-radius:9px;background:#09121c}
 @media(max-width:760px){.denue-v5-top{grid-template-columns:1fr}.denue-v5-map{height:250px}}
+@media(prefers-reduced-motion:reduce){.denue-v5-mun{transition:none}}
 `;document.head.appendChild(style);
 function parseCSV(text){const lines=text.replace(/^\uFEFF/,'').trim().split(/\r?\n/),head=lines.shift().split(',');return lines.map(line=>{const vals=line.split(',');return Object.fromEntries(head.map((h,i)=>[h,vals[i]??'']))})}
 const current=document.currentScript,base=current?new URL('../data/recursos/',current.src):new URL('../assets/data/recursos/',location.href);
