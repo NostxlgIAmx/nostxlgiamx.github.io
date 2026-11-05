@@ -73,6 +73,7 @@ const server=spawn('python',['-u','-m','http.server','8020','--bind','127.0.0.1'
     await page.keyboard.press('Tab'); // primer municipio SVG
     assert.equal(await first.evaluate(el=>document.activeElement===el),true,'Keyboard should reach first map municipality');
     assert.equal(await first.evaluate(el=>el.matches(':focus-visible')),true,'Keyboard focus must be visible');
+    await page.waitForFunction(()=>getComputedStyle(document.querySelector('[data-viz="denue-context"] .denue-v5-mun')).stroke==='rgb(247, 220, 162)',null,{timeout:2500});
     const focusStyle=await first.evaluate(el=>({stroke:getComputedStyle(el).stroke,width:getComputedStyle(el).strokeWidth}));
     assert.equal(focusStyle.stroke,'rgb(247, 220, 162)','DENUE polygon must show keyboard focus');
     assert.ok(parseFloat(focusStyle.width)>=3,'DENUE keyboard focus should be visually substantial');
