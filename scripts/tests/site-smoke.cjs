@@ -23,6 +23,16 @@ assert.ok(style.includes('.skip-link:focus-visible'));
 assert.ok(style.includes('min-width:44px;min-height:44px'));
 const xml=fs.readFileSync(path.join(root,'sitemap.xml'),'utf8');
 for(const url of pages)assert.ok(xml.includes('https://nostxlgia.com'+url));
+const projects=fs.readFileSync(path.join(root,'proyectos/index.html'),'utf8');
+const home=fs.readFileSync(path.join(root,'index.html'),'utf8');
+for(const target of ['territorio','comercial','evaluacion','electoral']){
+ assert.ok(projects.includes('id="'+target+'"'),'Missing project target '+target);
+ assert.ok(home.includes('href="proyectos/#'+target+'"'),'Missing direct home link '+target);
+}
+const homeStyle=fs.readFileSync(path.join(root,'assets/css/home.css'),'utf8');
+assert.ok(homeStyle.includes('.home-project-link:focus-visible'),'Home project links require visible focus');
+const projectsStyle=fs.readFileSync(path.join(root,'assets/css/projects-final.css'),'utf8');
+assert.ok(projectsStyle.includes('.project-feature[id]{scroll-margin-top:110px}'),'Project anchors must clear fixed header');
 const results=[];
 const server=spawn('python',['-u','-m','http.server','8020','--bind','127.0.0.1','--directory',root],{stdio:'ignore'});
 (async()=>{
@@ -58,6 +68,9 @@ const server=spawn('python',['-u','-m','http.server','8020','--bind','127.0.0.1'
     const first=stage.locator('path.denue-v5-mun').first();
     assert.equal(await first.getAttribute('tabindex'),'0');
     await first.focus();
+    const focusStyle=await first.evaluate(el=>({stroke:getComputedStyle(el).stroke,width:getComputedStyle(el).strokeWidth}));
+    assert.equal(focusStyle.stroke,'rgb(247, 220, 162)','DENUE polygon must show keyboard focus');
+    assert.ok(parseFloat(focusStyle.width)>=3,'DENUE keyboard focus should be visually substantial');
     await page.keyboard.press('Enter');
     assert.equal(await first.getAttribute('aria-pressed'),'true');
     await page.keyboard.press('Space');
