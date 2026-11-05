@@ -180,3 +180,7 @@
   .home-page .depth-card,.home-page .depth-card::before,.home-page .depth-card::after{transition:none!important;animation:none!important;transform:none!important}
   .home-page .data-territory-visual .analysis-trend,.home-page .data-territory-visual .analysis-dot{animation:none!important;stroke-dashoffset:0!important;opacity:1!important;transform:none!important}
 }
+
+/* Enlaces directos a las demostraciones, con foco de teclado visible. */
+.home-page .home-project-link:hover{text-decoration:underline;text-underline-offset:4px}
+.home-page .home-project-link:focus-visible{outline:2px solid var(--gold);outline-offset:5px;border-radius:2px}

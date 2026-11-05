@@ -186,3 +186,7 @@
 @media(prefers-reduced-motion:reduce){
   [data-projects-page] .projects-resource-border-run{display:none}
 }
+
+/* Los destinos compartidos de proyectos no quedan tapados por la cabecera fija. */
+[data-projects-page] .project-feature[id]{scroll-margin-top:110px}
+@media(max-width:760px){[data-projects-page] .project-feature[id]{scroll-margin-top:100px}}
